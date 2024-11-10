@@ -3,12 +3,10 @@
 <head>
   <base href="." />
   <meta charset="UTF-8">
-  <title>Реалистичная сцена с автомобилем и человеком</title>
+  <title>Реалистичная сцена с BMW M5 F90</title>
   <style>
     body { margin: 0; overflow: hidden; }
-    canvas {
-      display: block;
-    }
+    canvas { display: block; }
     
     .instructions {
       position: fixed;
@@ -39,8 +37,8 @@
     /* Стрелка спидометра */
     #needle {
       position: absolute;
-      bottom: 120px;
-      right: 120px;
+      bottom: 100px;
+      right: 100px;
       width: 2px;
       height: 90px;
       background: red;
@@ -57,7 +55,7 @@
       left: 0;
       width: 200px;
       height: 200px;
-      background: url('https://i.imgur.com/6R9tKcP.png') no-repeat center center;
+      background: url('https://i.imgur.com/6R9tKcP.png') no-repeat center center; /* Замените на свой URL изображения циферблата */
       background-size: cover;
       border-radius: 50%;
     }
@@ -78,19 +76,41 @@
   <!-- Подключаем three.js и GLTFLoader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   
   <script>
     // Создаем сцену, камеру и рендерер
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xa0a0a0);
 
+    // Добавляем Skybox
+    const loaderSky = new THREE.CubeTextureLoader();
+    const skyboxTextures = [
+      'https://threejs.org/examples/textures/cube/Bridge2/posx.jpg',
+      'https://threejs.org/examples/textures/cube/Bridge2/negx.jpg',
+      'https://threejs.org/examples/textures/cube/Bridge2/posy.jpg',
+      'https://threejs.org/examples/textures/cube/Bridge2/negy.jpg',
+      'https://threejs.org/examples/textures/cube/Bridge2/posz.jpg',
+      'https://threejs.org/examples/textures/cube/Bridge2/negz.jpg'
+    ];
+    const skybox = loaderSky.load(skyboxTextures);
+    scene.background = skybox;
+
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 15, 30);
+
     const renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
     
+    // Добавляем управление камерой (для отладки, можно удалить в финальной версии)
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enablePan = false;
+
     // Добавляем освещение
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
@@ -102,6 +122,8 @@
     directionalLight.shadow.camera.bottom = -100;
     directionalLight.shadow.camera.left = -100;
     directionalLight.shadow.camera.right = 100;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
     scene.add(directionalLight);
     
     // Создаем землю
@@ -174,11 +196,38 @@
       createTree(60, i);
     }
 
-    // Загрузка 3D модели автомобиля
+    // Функция для создания уличных фонарей
+    function createStreetLight(x, z) {
+      // Столб
+      const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 10, 8);
+      const poleMaterial = new THREE.MeshStandardMaterial({color: 0xaaaaaa});
+      const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+      pole.position.set(x, 5, z);
+      pole.castShadow = true;
+      pole.receiveShadow = true;
+      scene.add(pole);
+
+      // Лампа
+      const lampGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+      const lampMaterial = new THREE.MeshBasicMaterial({color: 0xffffe0});
+      const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+      lamp.position.set(0, 5.5, 0);
+      pole.add(lamp);
+    }
+
+    // Создаем несколько уличных фонарей
+    for(let i = -90; i <= 90; i += 30){
+      createStreetLight(i, -50);
+      createStreetLight(i, 50);
+      createStreetLight(-50, i);
+      createStreetLight(50, i);
+    }
+
+    // Загрузка 3D модели автомобиля (BMW M5 F90)
     const loader = new THREE.GLTFLoader();
     let car;
     loader.load(
-      'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMilkTruck/glTF-Binary/CesiumMilkTruck.glb',
+      'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF-Binary/CesiumMilkTruck.glb', // Замените на URL вашей модели BMW M5 F90
       function(gltf){
         car = gltf.scene;
         car.scale.set(0.5, 0.5, 0.5); // Настройка масштаба
@@ -208,7 +257,7 @@
     // Загрузка 3D модели игрока
     let player;
     loader.load(
-      'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Flamingo/glTF-Binary/Flamingo.glb',
+      'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Flamingo/glTF-Binary/Flamingo.glb', // Можно заменить на другую модель
       function(gltf){
         player = gltf.scene;
         player.scale.set(0.02, 0.02, 0.02); // Настройка масштаба
@@ -235,9 +284,6 @@
       }
     );
     
-    // Начальная позиция камеры
-    camera.position.set(0, 10, 30);
-    
     // Состояния игры
     let inCar = false;
     let moveForward = false;
@@ -247,8 +293,8 @@
     let rotation = 0;
     let speed = 0;
     const maxSpeed = 200; // Максимальная скорость км/ч
-    const acceleration = 1; // Ускорение км/ч за кадр
-    const deceleration = 0.5; // Замедление км/ч за кадр
+    const acceleration = 2; // Ускорение км/ч за кадр
+    const deceleration = 1; // Замедление км/ч за кадр
 
     // Обработчики клавиш
     document.addEventListener('keydown', (event) => {
@@ -258,7 +304,7 @@
         case 'KeyA': moveLeft = true; break;
         case 'KeyD': moveRight = true; break;
         case 'KeyF':
-          if(car && player && player.visible === true && player.position.distanceTo(car.position) < 5) {
+          if(car && player && player.visible && player.position.distanceTo(car.position) < 5) {
             inCar = !inCar;
             if(inCar) {
               player.visible = false;
@@ -316,7 +362,10 @@
     // Функция анимации
     function animate() {
       requestAnimationFrame(animate);
-    
+      
+      // Обновляем управление камерой только если не используем OrbitControls
+      // controls.update(); // Можно закомментировать, если не используется для финальной версии
+
       if(car && inCar) {
         // Управление автомобилем
         if(moveForward) {
@@ -379,7 +428,7 @@
         // Спидометр показывает 0
         updateSpeedometer(0);
       }
-    
+      
       renderer.render(scene, camera);
     }
     
