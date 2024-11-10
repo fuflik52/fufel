@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <base href="." />
   <meta charset="UTF-8">
-  <title>Реалистичная сцена с BMW M5 F90</title>
+  <title>Реалистичная сцена с BMW M5 F90 и физикой столкновений</title>
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
@@ -73,17 +72,17 @@
     <div id="needle"></div>
   </div>
   
-  <!-- Подключаем three.js и GLTFLoader -->
+  <!-- Подключаем библиотеки -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
   
   <script>
-    // Создаем сцену, камеру и рендерер
+    // Инициализация сцены, камеры и рендерера
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xa0a0a0);
 
-    // Добавляем Skybox
+    // Skybox для реалистичного неба
     const loaderSky = new THREE.CubeTextureLoader();
     const skyboxTextures = [
       'https://threejs.org/examples/textures/cube/Bridge2/posx.jpg',
@@ -105,12 +104,6 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
     
-    // Добавляем управление камерой (для отладки, можно удалить в финальной версии)
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.enablePan = false;
-
     // Добавляем освещение
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
@@ -223,9 +216,48 @@
       createStreetLight(50, i);
     }
 
-    // Загрузка 3D модели автомобиля (BMW M5 F90)
+    // Инициализация физического мира
+    const world = new CANNON.World();
+    world.gravity.set(0, -9.82, 0); // Гравитация
+
+    // Создание физического тела для земли
+    const groundBody = new CANNON.Body({
+      mass: 0, // Статическое тело
+      shape: new CANNON.Plane(),
+      material: new CANNON.Material({ friction: 0.5, restitution: 0.7 })
+    });
+    groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+    world.addBody(groundBody);
+
+    // Функция для создания физического тела коробки
+    function createBoxBody(width, height, depth, mass, position) {
+      const shape = new CANNON.Box(new CANNON.Vec3(width/2, height/2, depth/2));
+      const body = new CANNON.Body({ mass: mass, shape: shape });
+      body.position.set(position.x, position.y, position.z);
+      world.addBody(body);
+      return body;
+    }
+
+    // Спидометр
+    const speedometer = document.getElementById('speedometer');
+    const needle = document.getElementById('needle');
+    
+    function updateSpeedometer(currentSpeed) {
+      // Ограничение скорости
+      currentSpeed = Math.min(currentSpeed, 200);
+      
+      // Расчет угла стрелки (от -135 до 135 градусов)
+      const minAngle = -135;
+      const maxAngle = 135;
+      const speedRatio = currentSpeed / 200;
+      const angle = minAngle + speedRatio * (maxAngle - minAngle);
+      
+      needle.style.transform = `rotate(${angle}deg)`;
+    }
+
+    // Загрузка 3D модели автомобиля (замените на модель BMW M5 F90)
     const loader = new THREE.GLTFLoader();
-    let car;
+    let car, carBody;
     loader.load(
       'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMilkTruck/glTF-Binary/CesiumMilkTruck.glb', // Замените на URL вашей модели BMW M5 F90
       function(gltf){
@@ -239,23 +271,39 @@
           }
         });
         scene.add(car);
+
+        // Создание физического тела для автомобиля
+        const box = new CANNON.Box(new CANNON.Vec3(2, 1, 4)); // Размеры коробки
+        carBody = new CANNON.Body({ mass: 1500 }); // Масса автомобиля
+        carBody.addShape(box);
+        carBody.position.set(car.position.x, car.position.y, car.position.z);
+        carBody.angularDamping = 0.5;
+        world.addBody(carBody);
       },
       undefined,
       function(error){
         console.error('Ошибка загрузки модели автомобиля:', error);
         // Если модель не загрузилась, используем простую геометрию
-        const carGeometry = new THREE.BoxGeometry(2, 1, 4);
+        const carGeometry = new THREE.BoxGeometry(4, 2, 8);
         const carMaterial = new THREE.MeshStandardMaterial({color: 0xff0000});
         car = new THREE.Mesh(carGeometry, carMaterial);
-        car.position.y = 0.5;
+        car.position.y = 1;
         car.castShadow = true;
         car.receiveShadow = true;
         scene.add(car);
+
+        // Создание физического тела для автомобиля
+        const box = new CANNON.Box(new CANNON.Vec3(2, 1, 4)); // Размеры коробки
+        carBody = new CANNON.Body({ mass: 1500 }); // Масса автомобиля
+        carBody.addShape(box);
+        carBody.position.set(car.position.x, car.position.y, car.position.z);
+        carBody.angularDamping = 0.5;
+        world.addBody(carBody);
       }
     );
-    
+
     // Загрузка 3D модели игрока
-    let player;
+    let player, playerBody;
     loader.load(
       'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Flamingo/glTF-Binary/Flamingo.glb', // Можно заменить на другую модель
       function(gltf){
@@ -269,21 +317,37 @@
           }
         });
         scene.add(player);
+
+        // Создание физического тела для игрока
+        const sphere = new CANNON.Sphere(1); // Радиус сферы
+        playerBody = new CANNON.Body({ mass: 70 }); // Масса человека
+        playerBody.addShape(sphere);
+        playerBody.position.set(player.position.x, player.position.y, player.position.z);
+        playerBody.angularDamping = 0.5;
+        world.addBody(playerBody);
       },
       undefined,
       function(error){
         console.error('Ошибка загрузки модели игрока:', error);
         // Если модель не загрузилась, используем простую геометрию
-        const playerGeometry = new THREE.BoxGeometry(0.5, 1.8, 0.5);
+        const playerGeometry = new THREE.BoxGeometry(1, 3.6, 1);
         const playerMaterial = new THREE.MeshStandardMaterial({color: 0x0000ff});
         player = new THREE.Mesh(playerGeometry, playerMaterial);
-        player.position.set(5, 0.9, 0);
+        player.position.set(5, 1.8, 0);
         player.castShadow = true;
         player.receiveShadow = true;
         scene.add(player);
+
+        // Создание физического тела для игрока
+        const box = new CANNON.Box(new CANNON.Vec3(0.5, 1.8, 0.5)); // Размеры коробки
+        playerBody = new CANNON.Body({ mass: 70 }); // Масса человека
+        playerBody.addShape(box);
+        playerBody.position.set(player.position.x, player.position.y, player.position.z);
+        playerBody.angularDamping = 0.5;
+        world.addBody(playerBody);
       }
     );
-    
+
     // Состояния игры
     let inCar = false;
     let moveForward = false;
@@ -312,15 +376,21 @@
               player.visible = true;
               player.position.set(
                 car.position.x + 3 * Math.sin(rotation),
-                0.5,
+                1,
                 car.position.z + 3 * Math.cos(rotation)
               );
+              playerBody.position.set(
+                car.position.x + 3 * Math.sin(rotation),
+                1,
+                car.position.z + 3 * Math.cos(rotation)
+              );
+              playerBody.velocity.set(0, 0, 0); // Сброс скорости при выходе
             }
           }
           break;
       }
     });
-    
+
     document.addEventListener('keyup', (event) => {
       switch(event.code) {
         case 'KeyW': moveForward = false; break;
@@ -329,42 +399,43 @@
         case 'KeyD': moveRight = false; break;
       }
     });
-    
+
     // Управление мышью
     document.addEventListener('mousemove', (event) => {
       if (document.pointerLockElement === renderer.domElement) {
         rotation -= event.movementX * 0.002;
       }
     });
-    
+
     // Блокировка указателя мыши
     renderer.domElement.addEventListener('click', () => {
       renderer.domElement.requestPointerLock();
     });
-    
-    // Настройка спидометра
-    const speedometer = document.getElementById('speedometer');
-    const needle = document.getElementById('needle');
-    
-    function updateSpeedometer(currentSpeed) {
-      // Ограничение скорости
-      currentSpeed = Math.min(currentSpeed, maxSpeed);
+
+    // Функция обновления физического мира
+    function updatePhysics(delta) {
+      world.step(delta);
       
-      // Расчет угла стрелки (например, от -135 градусов до 135 градусов)
-      const minAngle = -135;
-      const maxAngle = 135;
-      const speedRatio = currentSpeed / maxSpeed;
-      const angle = minAngle + speedRatio * (maxAngle - minAngle);
-      
-      needle.style.transform = `rotate(${angle}deg)`;
+      if(car && carBody) {
+        // Обновляем позицию и ориентацию автомобиля
+        car.position.copy(carBody.position);
+        car.quaternion.copy(carBody.quaternion);
+      }
+
+      if(player && playerBody && !inCar) {
+        // Обновляем позицию и ориентацию игрока
+        player.position.copy(playerBody.position);
+        player.quaternion.copy(playerBody.quaternion);
+      }
     }
-    
+
     // Функция анимации
+    const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
       
-      // Обновляем управление камерой только если не используем OrbitControls
-      // controls.update(); // Можно закомментировать, если не используется для финальной версии
+      const delta = clock.getDelta();
+      updatePhysics(delta);
 
       if(car && inCar) {
         // Управление автомобилем
@@ -390,42 +461,27 @@
         // Ограничение скорости
         speed = Math.max(-maxSpeed, Math.min(speed, maxSpeed));
     
-        // Обновление позиции машины
-        car.rotation.y = rotation;
-        const velocity = speed * 0.05; // Коэффициент для масштабирования скорости
-        car.position.x += Math.sin(rotation) * velocity;
-        car.position.z += Math.cos(rotation) * velocity;
-        
-        // Камера следует за машиной
-        camera.position.x = car.position.x - Math.sin(rotation) * 30;
-        camera.position.z = car.position.z - Math.cos(rotation) * 30;
-        camera.position.y = car.position.y + 15;
-        camera.lookAt(car.position);
-        
+        // Обновление физического тела автомобиля
+        carBody.angularVelocity.set(0, rotation * 5, 0);
+        carBody.velocity.x = Math.sin(rotation) * speed * 0.05;
+        carBody.velocity.z = Math.cos(rotation) * speed * 0.05;
+    
         // Обновление спидометра
         updateSpeedometer(Math.abs(speed));
-      } else if(player) {
+      } else if(player && !inCar) {
         // Управление игроком
         if(moveForward) {
-          player.position.x += Math.sin(rotation) * 0.1;
-          player.position.z += Math.cos(rotation) * 0.1;
+          playerBody.velocity.x += Math.sin(rotation) * 0.5;
+          playerBody.velocity.z += Math.cos(rotation) * 0.5;
         }
         if(moveBackward) {
-          player.position.x -= Math.sin(rotation) * 0.1;
-          player.position.z -= Math.cos(rotation) * 0.1;
+          playerBody.velocity.x -= Math.sin(rotation) * 0.5;
+          playerBody.velocity.z -= Math.cos(rotation) * 0.5;
         }
         if(moveLeft) rotation += 0.02;
         if(moveRight) rotation -= 0.02;
     
-        player.rotation.y = rotation;
-        
-        // Камера следует за игроком
-        camera.position.x = player.position.x - Math.sin(rotation) * 10;
-        camera.position.z = player.position.z - Math.cos(rotation) * 10;
-        camera.position.y = player.position.y + 10;
-        camera.lookAt(player.position);
-        
-        // Спидометр показывает 0
+        // Обновление спидометра
         updateSpeedometer(0);
       }
       
@@ -433,7 +489,7 @@
     }
     
     animate();
-    
+
     // Обработка изменения размера окна
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
