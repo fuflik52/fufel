@@ -1,0 +1,90 @@
+/* shop.css */
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #222;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+#shop-container {
+    width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #333;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    text-align: center;
+}
+
+#shop-container h1 {
+    margin-bottom: 30px;
+}
+
+#shop-items {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.shop-item {
+    width: 200px;
+    padding: 15px;
+    background-color: #444;
+    border: 2px solid #fff;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.shop-item h2 {
+    margin-bottom: 10px;
+}
+
+.buy-button, .apply-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.buy-button {
+    background-color: #e74c3c;
+}
+
+.buy-button:hover {
+    background-color: #c0392b;
+}
+
+.apply-button {
+    background-color: #3498db;
+}
+
+.apply-button:hover {
+    background-color: #2980b9;
+}
+
+#back-to-game {
+    display: block;
+    margin: 30px auto 0;
+    padding: 10px 20px;
+    background-color: #2ecc71;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#back-to-game:hover {
+    background-color: #27ae60;
+}
+
+#score-display {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
