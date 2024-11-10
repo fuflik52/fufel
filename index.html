@@ -22,16 +22,44 @@
       z-index: 1;
     }
 
-    /* Спидометр */
+    /* Реалистичный спидометр */
     #speedometer {
       position: fixed;
       bottom: 20px;
-      left: 20px;
+      right: 20px;
       width: 200px;
-      height: 100px;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
+      height: 200px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-sizing: border-box;
       z-index: 1;
+    }
+
+    /* Стрелка спидометра */
+    #needle {
+      position: absolute;
+      bottom: 120px;
+      right: 120px;
+      width: 2px;
+      height: 90px;
+      background: red;
+      transform-origin: bottom center;
+      transform: rotate(0deg);
+      transition: transform 0.1s linear;
+    }
+
+    /* Фон циферблата */
+    #speedometer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 200px;
+      background: url('https://i.imgur.com/6R9tKcP.png') no-repeat center center;
+      background-size: cover;
+      border-radius: 50%;
     }
   </style>
 </head>
@@ -42,8 +70,10 @@
     Мышь - осмотреться
   </div>
 
-  <!-- Канвас для спидометра -->
-  <canvas id="speedometer" width="200" height="100"></canvas>
+  <!-- Спидометр -->
+  <div id="speedometer">
+    <div id="needle"></div>
+  </div>
   
   <!-- Подключаем three.js и GLTFLoader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -62,26 +92,88 @@
     document.body.appendChild(renderer.domElement);
     
     // Добавляем освещение
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
     
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 20, 10);
+    directionalLight.position.set(50, 100, 50);
     directionalLight.castShadow = true;
-    directionalLight.shadow.camera.top = 20;
-    directionalLight.shadow.camera.bottom = -20;
-    directionalLight.shadow.camera.left = -20;
-    directionalLight.shadow.camera.right = 20;
+    directionalLight.shadow.camera.top = 100;
+    directionalLight.shadow.camera.bottom = -100;
+    directionalLight.shadow.camera.left = -100;
+    directionalLight.shadow.camera.right = 100;
     scene.add(directionalLight);
     
     // Создаем землю
-    const groundGeometry = new THREE.PlaneGeometry(500, 500);
+    const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
     const groundMaterial = new THREE.MeshStandardMaterial({color: 0x228B22});
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
     
+    // Создаем дорогу
+    const roadGeometry = new THREE.BoxGeometry(200, 0.1, 20);
+    const roadMaterial = new THREE.MeshStandardMaterial({color: 0x555555});
+    const road = new THREE.Mesh(roadGeometry, roadMaterial);
+    road.position.set(0, 0.05, 0);
+    road.receiveShadow = true;
+    scene.add(road);
+    
+    // Функция для создания домов
+    function createHouse(x, z) {
+      const houseGeometry = new THREE.BoxGeometry(10, 10, 10);
+      const houseMaterial = new THREE.MeshStandardMaterial({color: 0x8B4513});
+      const house = new THREE.Mesh(houseGeometry, houseMaterial);
+      house.position.set(x, 5, z);
+      house.castShadow = true;
+      house.receiveShadow = true;
+      scene.add(house);
+
+      // Добавляем крышу
+      const roofGeometry = new THREE.ConeGeometry(7, 4, 4);
+      const roofMaterial = new THREE.MeshStandardMaterial({color: 0xFF0000});
+      const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+      roof.position.set(0, 7, 0);
+      roof.rotation.y = Math.PI / 4;
+      house.add(roof);
+    }
+
+    // Создаем несколько домов
+    for(let i = -50; i <= 50; i += 30){
+      createHouse(i, -40);
+      createHouse(i, 40);
+    }
+
+    // Функция для создания деревьев
+    function createTree(x, z) {
+      // Ствол
+      const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 8);
+      const trunkMaterial = new THREE.MeshStandardMaterial({color: 0x8B4513});
+      const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+      trunk.position.set(x, 2.5, z);
+      trunk.castShadow = true;
+      trunk.receiveShadow = true;
+      scene.add(trunk);
+
+      // Крона
+      const foliageGeometry = new THREE.SphereGeometry(2.5, 8, 8);
+      const foliageMaterial = new THREE.MeshStandardMaterial({color: 0x228B22});
+      const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
+      foliage.position.set(0, 4, 0);
+      foliage.castShadow = true;
+      foliage.receiveShadow = true;
+      trunk.add(foliage);
+    }
+
+    // Создаем несколько деревьев
+    for(let i = -80; i <= 80; i += 20){
+      createTree(i, -60);
+      createTree(i, 60);
+      createTree(-60, i);
+      createTree(60, i);
+    }
+
     // Загрузка 3D модели автомобиля
     const loader = new THREE.GLTFLoader();
     let car;
@@ -144,7 +236,7 @@
     );
     
     // Начальная позиция камеры
-    camera.position.set(0, 5, 15);
+    camera.position.set(0, 10, 30);
     
     // Состояния игры
     let inCar = false;
@@ -154,7 +246,10 @@
     let moveRight = false;
     let rotation = 0;
     let speed = 0;
-    
+    const maxSpeed = 200; // Максимальная скорость км/ч
+    const acceleration = 1; // Ускорение км/ч за кадр
+    const deceleration = 0.5; // Замедление км/ч за кадр
+
     // Обработчики клавиш
     document.addEventListener('keydown', (event) => {
       switch(event.code) {
@@ -203,82 +298,63 @@
     
     // Настройка спидометра
     const speedometer = document.getElementById('speedometer');
-    const ctx = speedometer.getContext('2d');
+    const needle = document.getElementById('needle');
     
-    function drawSpeedometer(currentSpeed) {
-      ctx.clearRect(0, 0, speedometer.width, speedometer.height);
+    function updateSpeedometer(currentSpeed) {
+      // Ограничение скорости
+      currentSpeed = Math.min(currentSpeed, maxSpeed);
       
-      // Рамка спидометра
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-      ctx.fillRect(0, 0, speedometer.width, speedometer.height);
+      // Расчет угла стрелки (например, от -135 градусов до 135 градусов)
+      const minAngle = -135;
+      const maxAngle = 135;
+      const speedRatio = currentSpeed / maxSpeed;
+      const angle = minAngle + speedRatio * (maxAngle - minAngle);
       
-      // Текст скорости
-      ctx.fillStyle = 'white';
-      ctx.font = '20px Arial';
-      ctx.fillText(`Скорость: ${Math.round(currentSpeed * 10)} км/ч`, 10, 30);
-      
-      // Простая шкала
-      ctx.beginPath();
-      ctx.moveTo(10, 50);
-      ctx.lineTo(speedometer.width - 10, 50);
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      
-      // Индикатор скорости
-      const maxSpeed = 100;
-      const speedRatio = Math.min(currentSpeed * 10 / maxSpeed, 1);
-      const indicatorX = 10 + speedRatio * (speedometer.width - 20);
-      ctx.beginPath();
-      ctx.arc(indicatorX, 50, 5, 0, Math.PI * 2);
-      ctx.fillStyle = 'red';
-      ctx.fill();
+      needle.style.transform = `rotate(${angle}deg)`;
     }
     
     // Функция анимации
     function animate() {
       requestAnimationFrame(animate);
     
-      const accel = 0.2;
-      const decel = 0.1;
-      const rotSpeed = 0.02;
-    
       if(car && inCar) {
-        // Управление машиной
+        // Управление автомобилем
         if(moveForward) {
-          speed += accel;
+          speed += acceleration;
         }
         if(moveBackward) {
-          speed -= accel;
+          speed -= acceleration;
         }
         if(!moveForward && !moveBackward) {
           // Естественное замедление
           if(speed > 0) {
-            speed -= decel;
+            speed -= deceleration;
             speed = Math.max(speed, 0);
           } else {
-            speed += decel;
+            speed += deceleration;
             speed = Math.min(speed, 0);
           }
         }
-        if(moveLeft) rotation += rotSpeed;
-        if(moveRight) rotation -= rotSpeed;
+        if(moveLeft) rotation += 0.02;
+        if(moveRight) rotation -= 0.02;
     
         // Ограничение скорости
-        speed = Math.max(-10, Math.min(speed, 10));
+        speed = Math.max(-maxSpeed, Math.min(speed, maxSpeed));
     
         // Обновление позиции машины
         car.rotation.y = rotation;
-        car.position.x += Math.sin(rotation) * speed * 0.1;
-        car.position.z += Math.cos(rotation) * speed * 0.1;
+        const velocity = speed * 0.05; // Коэффициент для масштабирования скорости
+        car.position.x += Math.sin(rotation) * velocity;
+        car.position.z += Math.cos(rotation) * velocity;
         
         // Камера следует за машиной
-        camera.position.x = car.position.x - Math.sin(rotation) * 15;
-        camera.position.z = car.position.z - Math.cos(rotation) * 15;
-        camera.position.y = car.position.y + 10;
+        camera.position.x = car.position.x - Math.sin(rotation) * 30;
+        camera.position.z = car.position.z - Math.cos(rotation) * 30;
+        camera.position.y = car.position.y + 15;
         camera.lookAt(car.position);
         
-        drawSpeedometer(Math.abs(speed * 10));
+        // Обновление спидометра
+        updateSpeedometer(Math.abs(speed));
       } else if(player) {
         // Управление игроком
         if(moveForward) {
@@ -289,18 +365,19 @@
           player.position.x -= Math.sin(rotation) * 0.1;
           player.position.z -= Math.cos(rotation) * 0.1;
         }
-        if(moveLeft) rotation += rotSpeed;
-        if(moveRight) rotation -= rotSpeed;
+        if(moveLeft) rotation += 0.02;
+        if(moveRight) rotation -= 0.02;
     
         player.rotation.y = rotation;
         
         // Камера следует за игроком
-        camera.position.x = player.position.x - Math.sin(rotation) * 5;
-        camera.position.z = player.position.z - Math.cos(rotation) * 5;
-        camera.position.y = player.position.y + 5;
+        camera.position.x = player.position.x - Math.sin(rotation) * 10;
+        camera.position.z = player.position.z - Math.cos(rotation) * 10;
+        camera.position.y = player.position.y + 10;
         camera.lookAt(player.position);
         
-        drawSpeedometer(0); // Скорость равна 0, когда игрок не в машине
+        // Спидометр показывает 0
+        updateSpeedometer(0);
       }
     
       renderer.render(scene, camera);
