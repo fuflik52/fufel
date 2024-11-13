@@ -1,27 +1,380 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <base href="https://chatgpt-static.com">
     <meta charset="UTF-8">
-    <title>Игра со Шарами</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин Фонов</title>
+    <style>
+        /* Общие стили */
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f9fafb;
+            color: #333;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Контейнер магазина */
+        .store-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Заголовок магазина */
+        .store-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .store-header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            color: #4CAF50;
+        }
+
+        /* Основной контейнер товаров */
+        .store {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth; /* Плавная прокрутка */
+            padding-bottom: 10px; /* Отступ для скроллбара */
+        }
+
+        /* Стилизация карточек товаров */
+        .item {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            min-width: 250px;
+            flex: 0 0 auto;
+        }
+
+        .item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Превью товара */
+        .preview {
+            width: 100%;
+            height: 150px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.3s;
+        }
+
+        .item:hover .preview {
+            transform: scale(1.05);
+        }
+
+        /* Название товара */
+        .item h3 {
+            margin: 10px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        /* Цена товара */
+        .item p {
+            margin: 10px 0;
+            font-size: 1em;
+            color: #666;
+        }
+
+        /* Кнопки */
+        .buy-btn, .close-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-size: 1em;
+        }
+
+        .buy-btn:hover, .close-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4444;
+        }
+
+        .close-btn:hover {
+            background: #cc0000;
+        }
+
+        /* Стилизация скроллбара */
+        .store::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .store::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 3px;
+        }
+
+        .store::-webkit-scrollbar-thumb {
+            background: #a0a0a0;
+            border-radius: 3px;
+        }
+
+        .store::-webkit-scrollbar-thumb:hover {
+            background: #808080;
+        }
+
+        /* Для Firefox */
+        .store {
+            scrollbar-width: thin;
+            scrollbar-color: #a0a0a0 #e0e0e0;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1200px) {
+            .store-container {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .item {
+                min-width: 200px;
+                padding: 15px;
+            }
+
+            .store-header h1 {
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .item {
+                min-width: 160px;
+                padding: 10px;
+            }
+
+            .buy-btn, .close-btn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+
+            .store-header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="game-container">
-        <div id="score">Очки: 0</div>
-        <canvas id="game-canvas"></canvas>
-        <div id="next-ball-container">
-            <div id="next-ball-label">Следующий:</div>
-            <div id="next-ball-display">
-                <div class="next-ball"></div>
-            </div>
-        </div>
-        <!-- Иконка Магазина -->
-        <button id="open-shop" title="Магазин">&#128722;</button> <!-- Unicode-иконка тележки -->
-    </div>
 
-    <!-- Подключение Matter.js через CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="script.js"></script>
+    <div class="store-container">
+        <div class="store-header">
+            <h1>Магазин Фонов</h1>
+        </div>
+        <div class="store" id="store"></div>
+    </div>
+    <button class="close-btn" onclick="closeStore()">Закрыть</button>
+
+    <script>
+        const backgrounds = [
+            {
+                id: 1,
+                name: "Зимний лес",
+                price: 100,
+                background: "linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\"><rect fill=\"%23e6f3ff\" width=\"100\" height=\"100\"/><circle cx=\"50\" cy=\"50\" r=\"2\" fill=\"white\"/></svg>')",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 2,
+                name: "Снежные горы",
+                price: 150,
+                background: "linear-gradient(#e6f3ff, #fff)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 3,
+                name: "Ледяное озеро",
+                price: 200,
+                background: "linear-gradient(#cce6ff, #e6f3ff)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 4,
+                name: "Северное сияние",
+                price: 300,
+                background: "linear-gradient(#4CAF50, #2196F3)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 5,
+                name: "Зимняя ночь",
+                price: 250,
+                background: "linear-gradient(#1a1a1a, #4a4a4a)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 6,
+                name: "Метель",
+                price: 180,
+                background: "radial-gradient(white, #e6f3ff)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 7,
+                name: "Замёрзший водопад",
+                price: 220,
+                background: "linear-gradient(#b3d9ff, #ffffff)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 8,
+                name: "Зимний закат",
+                price: 280,
+                background: "linear-gradient(#ff9999, #ffcccc)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 9,
+                name: "Снежная пустыня",
+                price: 190,
+                background: "linear-gradient(#ffffff, #f2f2f2)",
+                purchased: false,
+                active: false
+            },
+            {
+                id: 10,
+                name: "Ледяные кристаллы",
+                price: 270,
+                background: "linear-gradient(45deg, #e6f3ff, #ffffff)",
+                purchased: false,
+                active: false
+            }
+        ];
+
+        function renderStore() {
+            const store = document.getElementById('store');
+            store.innerHTML = '';
+
+            backgrounds.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = `item ${item.active ? 'active' : ''}`;
+
+                const preview = document.createElement('div');
+                preview.className = 'preview';
+                preview.style.background = item.background;
+
+                const name = document.createElement('h3');
+                name.textContent = item.name;
+
+                const price = document.createElement('p');
+                price.textContent = `${item.price} монет`;
+
+                const button = document.createElement('button');
+                button.className = 'buy-btn';
+
+                if (item.purchased) {
+                    if (item.active) {
+                        button.textContent = 'Деактивировать';
+                        button.onclick = () => deactivateBackground(item.id);
+                    } else {
+                        button.textContent = 'Активировать';
+                        button.onclick = () => activateBackground(item.id);
+                    }
+                } else {
+                    button.textContent = 'Купить';
+                    button.onclick = () => purchaseBackground(item.id);
+                }
+
+                itemElement.appendChild(preview);
+                itemElement.appendChild(name);
+                itemElement.appendChild(price);
+                itemElement.appendChild(button);
+                store.appendChild(itemElement);
+            });
+        }
+
+        function purchaseBackground(id) {
+            const background = backgrounds.find(b => b.id === id);
+            background.purchased = true;
+            background.active = true;
+            deactivateOthers(id);
+            applyBackground(background.background);
+            renderStore();
+        }
+
+        function activateBackground(id) {
+            const background = backgrounds.find(b => b.id === id);
+            background.active = true;
+            deactivateOthers(id);
+            applyBackground(background.background);
+            renderStore();
+        }
+
+        function deactivateBackground(id) {
+            const background = backgrounds.find(b => b.id === id);
+            background.active = false;
+            applyBackground('inherit');
+            renderStore();
+        }
+
+        function deactivateOthers(activeId) {
+            backgrounds.forEach(bg => {
+                if (bg.id !== activeId) {
+                    bg.active = false;
+                }
+            });
+        }
+
+        function applyBackground(background) {
+            document.body.style.background = background;
+        }
+
+        function closeStore() {
+            document.body.innerHTML = `
+                <button onclick="location.reload()" style="
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 25px;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    font-size: 1em;
+                    transition: background 0.3s, transform 0.2s;
+                ">
+                    Открыть магазин
+                </button>
+            `;
+        }
+
+        // Инициализация магазина при загрузке страницы
+        document.addEventListener('DOMContentLoaded', renderStore);
+    </script>
+
 </body>
 </html>
