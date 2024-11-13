@@ -1,0 +1,83 @@
+<!-- game.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awesome Game - Игра</title>
+    <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+    <div id="game-container">
+        <button id="open-shop-btn">Магазин</button>
+
+        <div id="score" class="info-box">Очки: 0</div>
+        <div id="next-ball" class="info-box">1</div>
+        <div id="current-ball" class="info-box">1</div>
+        
+        <div id="end-line"></div>
+        
+        <div id="dust-flash" class="dust-flash"></div>
+    </div>
+
+    <div id="shop-overlay" class="shop-overlay">
+        <div class="shop-content">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="settings">Настройки</button>
+                <button class="tab-button" data-tab="shop">Магазин</button>
+                <button class="tab-button" data-tab="tasks">Задания</button>
+                <button class="tab-button" data-tab="statistics">Статистика</button>
+            </div>
+
+            <div class="tab-content active" id="settings">
+                <h2>Настройки</h2>
+                <div class="audio-controls">
+                    <div class="audio-control">
+                        <label for="bgm-toggle">Фоновая музыка:</label>
+                        <input type="checkbox" id="bgm-toggle" checked>
+                    </div>
+                    <div class="audio-control">
+                        <label for="sfx-toggle">Звуковые эффекты:</label>
+                        <input type="checkbox" id="sfx-toggle" checked>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="shop">
+                <h2>Баланс</h2>
+                <div class="balance-display">Текущий баланс: <span id="current-balance">500</span> монет</div>
+                <div class="backgrounds" id="backgrounds-container">
+                    <!-- Фоны будут добавлены динамически через JavaScript -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="tasks">
+                <h2>Задания</h2>
+                <p>Здесь будут ваши задания.</p>
+            </div>
+
+            <div class="tab-content" id="statistics">
+                <h2>Статистика</h2>
+                <div id="statistics-content">
+                    <!-- Статистика будет добавлена динамически через JavaScript -->
+                </div>
+            </div>
+
+            <button id="close-shop-btn">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно окончания игры -->
+    <div id="game-over-modal" class="modal">
+        <div class="modal-content">
+            <h2>Игра окончена!</h2>
+            <p>Ваш счёт: <span id="final-score">0</span></p>
+            <button id="play-again-btn">Играть заново</button>
+            <button id="exit-btn">Выйти в меню</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
