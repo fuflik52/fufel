@@ -49,7 +49,7 @@ const scoreElement = document.getElementById('score');
 const nextBallElement = document.getElementById('next-ball');
 const currentBallElement = document.getElementById('current-ball');
 const dustFlash = document.getElementById('dust-flash');
-const endLine = document.getElementById('end-line');
+const endLine = document.getElementById('end-line'); // Красная полоска
 const trajectoryLine = document.createElement('div');
 trajectoryLine.id = 'trajectory-line';
 document.getElementById('game-container').appendChild(trajectoryLine);
@@ -102,12 +102,13 @@ scoreElement.textContent = `Очки: ${score}`;
 updateNextBall();
 updateCurrentBall();
 
-// Флаг для отслеживания первого шара
-let firstBallFallen = false;
-
 // Создание Matter.js двигателя и мира
 const engine = Matter.Engine.create();
 const world = engine.world;
+
+// Проверка гравитации
+console.log("Gravity Y:", world.gravity.y); // Должно быть 1
+
 const renderEngine = Matter.Render.create({
     element: document.getElementById('game-container'),
     engine: engine,
@@ -121,7 +122,7 @@ const renderEngine = Matter.Render.create({
 
 // Добавление стен
 const walls = [
-    Matter.Bodies.rectangle(250, 710, 500, 20, { isStatic: true }), // Нижняя стена
+    Matter.Bodies.rectangle(250, 690, 500, 20, { isStatic: true }), // Нижняя стена (y=700 - 10)
     Matter.Bodies.rectangle(-10, 350, 20, 700, { isStatic: true }), // Левая стена
     Matter.Bodies.rectangle(510, 350, 20, 700, { isStatic: true }) // Правая стена
 ];
@@ -168,19 +169,22 @@ Matter.Events.on(engine, 'collisionStart', (event) => {
             // Анимация пыли
             showDustFlash(newX, newY);
 
+            // Позиционирование красной полоски
+            setRedLine(newX);
+
             // Сохранение состояния
             saveGameState();
         }
     }
 });
 
-// Обновление следующего шара
+// Функция для обновления следующего шара
 function updateNextBall() {
     nextBallElement.style.backgroundColor = `hsl(${nextBallValue * 24}, 100%, 50%)`;
     nextBallElement.textContent = nextBallValue;
 }
 
-// Обновление текущего шара
+// Функция для обновления текущего шара
 function updateCurrentBall() {
     currentBallElement.style.backgroundColor = `hsl(${currentBallValue * 24}, 100%, 50%)`;
     currentBallElement.textContent = currentBallValue;
@@ -286,11 +290,6 @@ function renderShop() {
     createBackgroundItems();
 }
 
-// Функция для отображения статистики при загрузке магазина
-function displayStatisticsOnShop() {
-    displayStatistics();
-}
-
 // Функция для отображения пути броска
 function showTrajectoryLine() {
     trajectoryLine.style.display = 'block';
@@ -302,16 +301,24 @@ function hideTrajectoryLine() {
 
 function updateTrajectoryLine(x) {
     const gameContainer = document.getElementById('game-container');
-    const rect = gameContainer.getBoundingClientRect();
-    const gameX = x;
     const gameY = 100; // Позиция Y фиксирована для всех бросков
     const endY = gameContainer.offsetHeight - 100; // Полоска на 100px от нижнего края
 
     const deltaY = endY - gameY;
 
-    trajectoryLine.style.left = `${gameX}px`;
+    trajectoryLine.style.left = `${x}px`;
     trajectoryLine.style.height = `${deltaY}px`;
     trajectoryLine.style.top = `${gameY}px`;
+}
+
+// Функция для позиционирования красной полоски
+function setRedLine(x) {
+    endLine.style.left = `${x}px`;
+    endLine.style.top = `0px`;
+    endLine.style.height = `700px`; // Полоса занимает всю высоту контейнера
+    endLine.style.width = `2px`;
+    endLine.style.backgroundColor = `red`;
+    endLine.style.position = `absolute`;
 }
 
 // Функция для отображения анимации пыли
@@ -467,7 +474,8 @@ function updateStatistics(gameScore) {
     localStorage.setItem('statistics', JSON.stringify(statistics));
 }
 
-// Функция для инициализации аудио (удалена вся аудио логика)
+// Инициализация Runner в глобальной области видимости
+let runner = Matter.Runner.create();
 
 // Инициализация игры
 function initializeGame() {
@@ -528,44 +536,32 @@ function initializeGame() {
             return;
         }
 
-        // Проверка, можно ли бросать шар (только если первый шар упал)
-        if (!firstBallFallen && score > 0) {
-            alert('Первый шар ещё не упал!');
-            return;
-        }
-
         const gameContainer = document.getElementById('game-container');
         const rect = gameContainer.getBoundingClientRect();
         const x = parseFloat(currentBallElement.style.left) + currentBallElement.offsetWidth / 2;
         const y = 100; // Позиция Y фиксирована для всех бросков
+
         createBall(x, y, currentBallValue);
         currentBallValue = nextBallValue;
         nextBallValue = getRandomBallValue();
         updateNextBall();
         updateCurrentBall();
 
+        // Позиционирование красной полоски
+        setRedLine(x);
+
         // Сохранение состояния
         saveGameState();
-    });
-
-    // Отслеживание падения первого шара
-    Matter.Events.on(engine, 'afterUpdate', () => {
-        if (!firstBallFallen) {
-            const bodies = Matter.Composite.allBodies(world);
-            for (let body of bodies) {
-                if (body.label === 1 && body.position.y > 600) { // Порог падения первого шара
-                    firstBallFallen = true;
-                    console.log('Первый шар упал!');
-                    break;
-                }
-            }
-        }
     });
 
     // Проверка пересечения полоски
     Matter.Events.on(engine, 'afterUpdate', () => {
         const bodies = Matter.Composite.allBodies(world);
         for (let body of bodies) {
+            if (body.label && body.position.x === parseFloat(endLine.style.left)) {
+                // Дополнительные условия можно добавить здесь
+                // Например, проверка пересечения полоски по оси Y
+            }
             if (body.label && body.position.y > (700 - 100)) { // Полоска на 100px от нижнего края
                 if (!body.isStatic && body.speed < 0.5) { // Проверка, что шар не находится в движении
                     endGame();
@@ -578,8 +574,7 @@ function initializeGame() {
     // Проверка сохраненного состояния
     loadGameState();
 
-    // Инициализация Runner и запускаем его с Engine
-    const runner = Matter.Runner.create();
+    // Запуск Runner и Engine
     Matter.Runner.run(runner, engine);
     Matter.Render.run(renderEngine);
 
