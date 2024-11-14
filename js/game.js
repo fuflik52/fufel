@@ -17,7 +17,8 @@ const backgrounds = [
         background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
         purchased: false,
         active: false
-    }
+    },
+    // Добавьте остальные фоны до id:15 с различными цветовыми градиентами
 ];
 
 // Получение элементов DOM
@@ -48,15 +49,6 @@ let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('b
 currentBalanceElement.textContent = balance;
 
 // Инициализация выбранного фона из localStorage
-function applyBackground(background) {
-    document.body.style.background = background;
-    const gameContainer = document.getElementById('game-container');
-    gameContainer.style.background = background;
-
-    // Сохранение выбранного фона в localStorage
-    localStorage.setItem('selectedBackground', background);
-}
-
 let selectedBackgroundId = localStorage.getItem('selectedBackgroundId');
 if (selectedBackgroundId) {
     selectedBackgroundId = parseInt(selectedBackgroundId);
@@ -66,6 +58,7 @@ if (selectedBackgroundId) {
         bg.active = true;
     }
 } else {
+    // Если фон не выбран, установить предустановленный фон
     const initialBg = backgrounds.find(b => b.id === 1);
     if (initialBg && initialBg.purchased) {
         applyBackground(initialBg.background);
@@ -93,6 +86,7 @@ updateCurrentBall();
 const engine = Matter.Engine.create();
 const world = engine.world;
 
+// Проверка гравитации
 console.log("Gravity Y:", world.gravity.y); // Должно быть 1
 
 const renderEngine = Matter.Render.create({
@@ -106,22 +100,16 @@ const renderEngine = Matter.Render.create({
     }
 });
 
+// Добавление пола
 const floor = Matter.Bodies.rectangle(250, 690, 500, 20, { 
     isStatic: true,
     render: {
         fillStyle: '#ffffff'
     }
 });
-const leftWall = Matter.Bodies.rectangle(0, 350, 20, 700, { 
-    isStatic: true, 
-    render: { fillStyle: '#ffffff' }
-});
-const rightWall = Matter.Bodies.rectangle(500, 350, 20, 700, { 
-    isStatic: true, 
-    render: { fillStyle: '#ffffff' }
-});
 Matter.World.add(world, [floor, leftWall, rightWall]);
 
+// Создание шара
 function createBall(x, y, value) {
     if (value > 15) return; // Максимальное значение 15
 
@@ -140,10 +128,12 @@ function createBall(x, y, value) {
     return ball;
 }
 
+// Функция для получения случайного значения шара от 1 до 5
 function getRandomBallValue() {
     return Math.floor(Math.random() * 5) + 1; // 1-5
 }
 
+// Обработка столкновений
 Matter.Events.on(engine, 'collisionStart', (event) => {
     const pairs = event.pairs;
     pairs.forEach(pair => {
@@ -155,26 +145,263 @@ Matter.Events.on(engine, 'collisionStart', (event) => {
             const newX = (bodyA.position.x + bodyB.position.x) / 2;
             const newY = (bodyA.position.y + bodyB.position.y) / 2;
 
+            // Удаление старых шаров
             Matter.World.remove(world, [bodyA, bodyB]);
             console.log(`Объединение шаров в новый шар: ${newValue} в (${newX}, ${newY})`);
+
+            // Создание нового шара
             createBall(newX, newY, newValue);
+
+            // Обновление счета
             score += newValue;
             scoreElement.textContent = `Очки: ${score}`;
+
+            // Анимация пыли
+            showDustFlash(newX, newY);
+
+            // Сохранение состояния
             saveGameState();
         }
     });
 });
 
+// Обновление следующего шара
 function updateNextBall() {
     nextBallElement.style.backgroundColor = `hsl(${nextBallValue * 24}, 100%, 50%)`;
     nextBallElement.textContent = nextBallValue;
 }
 
+// Обновление текущего шара
 function updateCurrentBall() {
     currentBallElement.style.backgroundColor = `hsl(${currentBallValue * 24}, 100%, 50%)`;
     currentBallElement.textContent = currentBallValue;
 }
 
+// Функция для отображения статистики
+function displayStatistics() {
+    statisticsContent.innerHTML = `
+        <p>Всего игр: ${statistics.totalGames}</p>
+        <p>Общий счёт: ${statistics.totalScore}</p>
+        <p>Рекорд: ${statistics.highScore}</p>
+    `;
+}
+
+// Функция для применения фона к игре
+function applyBackground(background) {
+    document.body.style.background = background;
+    const gameContainer = document.getElementById('game-container');
+    gameContainer.style.background = background;
+
+    // Сохранение выбранного фона в localStorage
+    localStorage.setItem('selectedBackground', background);
+}
+
+// Функция для создания элементов фона в магазине
+function createBackgroundItems() {
+    backgroundsContainer.innerHTML = ''; // Очистить предыдущие элементы
+    backgrounds.forEach(bg => {
+        const bgItem = document.createElement('div');
+        bgItem.classList.add('background-item');
+        if (bg.active) {
+            bgItem.classList.add('selected');
+        }
+
+        const preview = document.createElement('div');
+        preview.classList.add('preview');
+        preview.style.background = bg.background;
+
+        const name = document.createElement('p');
+        name.textContent = bg.name;
+
+        const buyBtn = document.createElement('button');
+        buyBtn.classList.add('buy-btn');
+        if (bg.purchased) {
+            buyBtn.textContent = 'Использовать';
+            buyBtn.style.background = bg.active ? '#2196F3' : '#4CAF50';
+        } else {
+            buyBtn.textContent = `Купить (${bg.price})`;
+            buyBtn.style.background = '#4CAF50';
+        }
+
+        buyBtn.addEventListener('click', () => {
+            if (!bg.purchased) {
+                if (balance >= bg.price) {
+                    // Покупка фона
+                    bg.purchased = true;
+                    bg.active = true;
+                    balance -= bg.price;
+                    localStorage.setItem('balance', balance);
+                    currentBalanceElement.textContent = balance;
+                    deactivateOthers(bg.id);
+                    applyBackground(bg.background);
+                    localStorage.setItem('selectedBackgroundId', bg.id);
+                    createBackgroundItems();
+                } else {
+                    alert('Недостаточно монет для покупки этого фона!');
+                }
+            } else {
+                if (!bg.active) {
+                    bg.active = true;
+                    deactivateOthers(bg.id);
+                    applyBackground(bg.background);
+                    localStorage.setItem('selectedBackgroundId', bg.id);
+                    createBackgroundItems();
+                } else {
+                    // Деактивация фона, возвращение к дефолтному
+                    bg.active = false;
+                    applyBackground('linear-gradient(#222, #222)');
+                    localStorage.removeItem('selectedBackgroundId');
+                    createBackgroundItems();
+                }
+            }
+        });
+
+        bgItem.appendChild(preview);
+        bgItem.appendChild(name);
+        bgItem.appendChild(buyBtn);
+        backgroundsContainer.appendChild(bgItem);
+    });
+}
+
+// Функция для деактивации других фонов
+function deactivateOthers(activeId) {
+    backgrounds.forEach(bg => {
+        if (bg.id !== activeId && bg.active) {
+            bg.active = false;
+        }
+    });
+}
+
+// Функция для рендеринга магазина (обновление кнопок покупки и выделение активного фона)
+function renderShop() {
+    createBackgroundItems();
+}
+
+// Функция для отображения пути броска
+function showTrajectoryLine() {
+    // Удалена вся логика, связанная с траекторией
+}
+
+function hideTrajectoryLine() {
+    // Удалена вся логика, связанная с траекторией
+}
+
+function updateTrajectoryLine(x) {
+    // Удалена вся логика, связанная с траекторией
+}
+
+// Функция для отображения анимации пыли
+function showDustFlash(x, y) {
+    dustFlash.style.left = `${x - 50}px`;
+    dustFlash.style.top = `${y - 50}px`;
+    dustFlash.style.opacity = '1';
+    dustFlash.style.animation = 'none';
+    void dustFlash.offsetWidth; // Триггер reflow для перезапуска анимации
+    dustFlash.style.animation = 'dustAnimation 0.3s forwards';
+}
+
+// Рисование номеров на шарах после рендеринга
+Matter.Events.on(renderEngine, 'afterRender', () => {
+    const context = renderEngine.context;
+    context.font = "20px Arial";
+    context.fillStyle = "white";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    world.bodies.forEach(body => {
+        if (body.label) {
+            context.fillText(body.label, body.position.x, body.position.y);
+        }
+    });
+});
+
+// Функция для отображения статистики
+function displayStatistics() {
+    statisticsContent.innerHTML = `
+        <p>Всего игр: ${statistics.totalGames}</p>
+        <p>Общий счёт: ${statistics.totalScore}</p>
+        <p>Рекорд: ${statistics.highScore}</p>
+    `;
+}
+
+// Функция для окончания игры
+function endGame() {
+    // Остановить физический движок
+    Matter.Runner.stop(runner);
+    Matter.Render.stop(renderEngine);
+
+    // Обновить статистику
+    updateStatistics(score);
+    displayStatistics();
+
+    // Показать финальный счёт
+    finalScoreElement.textContent = score;
+
+    // Показать модальное окно
+    gameOverModal.style.display = 'block';
+
+    // Очистить сохраненное состояние игры
+    localStorage.removeItem('balls');
+    localStorage.removeItem('score');
+    localStorage.removeItem('nextBallValue');
+    localStorage.removeItem('currentBallValue');
+}
+
+// Обработчики кнопок модального окна
+playAgainBtn.addEventListener('click', () => {
+    // Сброс состояния игры
+    score = 0;
+    nextBallValue = getRandomBallValue();
+    currentBallValue = 1;
+    scoreElement.textContent = `Очки: ${score}`;
+    updateNextBall();
+    updateCurrentBall();
+
+    // Очистить мир и добавить стены
+    Matter.World.clear(world);
+    Matter.Engine.clear(engine);
+    Matter.Render.stop(renderEngine);
+    Matter.Render.run(renderEngine);
+    Matter.World.add(world, floor, leftWall, rightWall);
+    Matter.Runner.run(runner, engine);
+
+    // Скрыть модальное окно
+    gameOverModal.style.display = 'none';
+
+    // Сохранение состояния
+    saveGameState();
+});
+
+exitBtn.addEventListener('click', () => {
+    // Сброс состояния игры
+    score = 0;
+    nextBallValue = getRandomBallValue();
+    currentBallValue = 1;
+    scoreElement.textContent = `Очки: ${score}`;
+    updateNextBall();
+    updateCurrentBall();
+
+    // Очистить мир и добавить стены
+    Matter.World.clear(world);
+    Matter.Engine.clear(engine);
+    Matter.Render.stop(renderEngine);
+    Matter.Render.run(renderEngine);
+    Matter.World.add(world, floor);
+    Matter.Runner.run(runner, engine);
+
+    // Скрыть модальное окно
+    gameOverModal.style.display = 'none';
+
+    // Очистить сохраненное состояние игры
+    localStorage.removeItem('balls');
+    localStorage.removeItem('score');
+    localStorage.removeItem('nextBallValue');
+    localStorage.removeItem('currentBallValue');
+
+    // Перенаправление на главную страницу
+    window.location.href = 'index.html';
+});
+
+// Функции для сохранения и загрузки состояния
 function saveGameState() {
     const bodies = Matter.Composite.allBodies(world).filter(body => !body.isStatic && body.label);
     const balls = bodies.map(body => ({
@@ -205,13 +432,62 @@ function loadGameState() {
     }
 }
 
+// Функция для обновления статистики
+function updateStatistics(gameScore) {
+    statistics.totalGames += 1;
+    statistics.totalScore += gameScore;
+    if (gameScore > statistics.highScore) {
+        statistics.highScore = gameScore;
+    }
+    localStorage.setItem('statistics', JSON.stringify(statistics));
+}
+
+// Функции Магазина
+function deactivateOthers(activeId) {
+    backgrounds.forEach(bg => {
+        if (bg.id !== activeId && bg.active) {
+            bg.active = false;
+        }
+    });
+}
+
+// Обработчики вкладок магазина
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const targetTab = button.getAttribute('data-tab');
+
+        // Удалить активный класс у всех кнопок
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+
+        // Добавить активный класс к выбранной кнопке
+        button.classList.add('active');
+
+        // Скрыть все вкладки
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // Показать выбранную вкладку
+        document.getElementById(targetTab).classList.add('active');
+    });
+});
+
+// Инициализация статистики при загрузке магазина
+document.querySelector('.tab-button[data-tab="statistics"]').addEventListener('click', () => {
+    displayStatistics();
+});
+
+// Инициализация Runner в глобальной области видимости
+let runner = Matter.Runner.create();
+
+// Инициализация игры
 function initializeGame() {
+    // Перетаскивание текущего шара (управление)
     let isDragging = false;
     let dragOffsetX = 0;
 
     currentBallElement.addEventListener('mousedown', (e) => {
         isDragging = true;
         dragOffsetX = e.clientX - currentBallElement.getBoundingClientRect().left;
+        showTrajectoryLine();
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -220,34 +496,89 @@ function initializeGame() {
             let x = e.clientX - rect.left - dragOffsetX + currentBallElement.offsetWidth / 2;
             x = Math.max(currentBallElement.offsetWidth / 2, Math.min(rect.width - currentBallElement.offsetWidth / 2, x));
             currentBallElement.style.left = `${x - currentBallElement.offsetWidth / 2}px`;
+            // Trajectory line логика удалена
         }
     });
 
     document.addEventListener('mouseup', () => {
         isDragging = false;
+        hideTrajectoryLine();
     });
 
+    // Для мобильных устройств
+    currentBallElement.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        const touch = e.touches[0];
+        dragOffsetX = touch.clientX - currentBallElement.getBoundingClientRect().left;
+        showTrajectoryLine();
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            const touch = e.touches[0];
+            const rect = document.getElementById('game-container').getBoundingClientRect();
+            let x = touch.clientX - rect.left - dragOffsetX + currentBallElement.offsetWidth / 2;
+            x = Math.max(currentBallElement.offsetWidth / 2, Math.min(rect.width - currentBallElement.offsetWidth / 2, x));
+            currentBallElement.style.left = `${x - currentBallElement.offsetWidth / 2}px`;
+            // Trajectory line логика удалена
+        }
+    });
+
+    document.addEventListener('touchend', () => {
+        isDragging = false;
+        hideTrajectoryLine();
+    });
+
+    // Бросок шара при клике
     document.getElementById('game-container').addEventListener('click', (event) => {
+        // Получаем значение текущего шара и проверяем, что оно от 1 до 5
+        if (currentBallValue < 1 || currentBallValue > 5) {
+            alert('Можно бросать только шары с номерами 1-5!');
+            return;
+        }
+
         const gameContainer = document.getElementById('game-container');
         const x = parseFloat(currentBallElement.style.left) + currentBallElement.offsetWidth / 2;
-        const y = 100;
+        const y = 100; // Позиция Y фиксирована для всех бросков
+
         createBall(x, y, currentBallValue);
         currentBallValue = nextBallValue;
         nextBallValue = getRandomBallValue();
         updateNextBall();
         updateCurrentBall();
+
+        // Сохранение состояния
         saveGameState();
     });
 
+    // Проверка пересечения полоски (удалена вся логика, связанная с полоской)
+
+    // Проверка сохраненного состояния
     loadGameState();
 
-    Matter.Runner.run(Matter.Runner.create(), engine);
+    // Запуск Runner и Engine
+    Matter.Runner.run(runner, engine);
     Matter.Render.run(renderEngine);
 
+    // Инициализация без автоматического создания шаров
     updateNextBall();
     updateCurrentBall();
 }
 
+// Обработчики кнопок открытия и закрытия магазина
+openShopBtn.addEventListener('click', () => {
+    shopOverlay.style.display = 'flex';
+    openShopBtn.style.display = 'none'; // Скрыть кнопку открытия магазина
+});
+
+closeShopBtn.addEventListener('click', () => {
+    shopOverlay.style.display = 'none';
+    openShopBtn.style.display = 'block'; // Показать кнопку открытия магазина
+});
+
+// Инициализация игры при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
+    renderShop();
     initializeGame();
+    displayStatistics();
 });
