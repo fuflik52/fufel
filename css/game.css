@@ -1,5 +1,6 @@
 /* css/game.css */
 
+/* Сброс стилей и общие настройки */
 * {
     margin: 0;
     padding: 0;
@@ -11,7 +12,7 @@ body {
     margin: 0;
     padding: 0;
     background: #222; /* Default game background */
-    color: #333;
+    color: #fff; /* Белый цвет текста по умолчанию */
     transition: background 0.3s ease, color 0.3s ease;
     overflow: hidden;
     position: relative;
@@ -38,7 +39,7 @@ body {
     background-color: rgba(0, 0, 0, 0.7);
     padding: 8px 15px;
     border-radius: 20px;
-    z-index: 10;
+    z-index: 15; /* Повышенный z-index для отображения над линией */
     user-select: none;
 }
 
@@ -46,7 +47,6 @@ body {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 15; /* Над текущим шаром */
 }
 
 #next-ball {
@@ -54,6 +54,7 @@ body {
     right: 20px;
     background-color: #FFA500; /* Яркий цвет */
     font-size: 1.5em;
+    z-index: 15;
 }
 
 #current-ball {
@@ -63,45 +64,100 @@ body {
     background-color: #FF5722; /* Яркий цвет */
     font-size: 1.5em;
     cursor: grab;
-    z-index: 20; /* Над счетом */
+    z-index: 20; /* Наивысший z-index среди информационных блоков */
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #current-ball:active {
     cursor: grabbing;
 }
 
-/* Полоска для отображения пути шара */
-#trajectory-line {
+
+
+/* Эффект пыли */
+.dust-flash {
     position: absolute;
-    width: 2px;
+    width: 100px;
     height: 100px;
-    background-color: green;
-    top: 120px; /* Немного ниже текущего шара */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 14;
-    display: none; /* Скрыта по умолчанию */
+    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 80%);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+    animation: dustAnimation 0.6s forwards;
 }
 
+@keyframes dustAnimation {
+    from {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    to {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
 
-
-/* Кнопка открытия магазина */
+/* Кнопка открытия магазина (гамбургер) */
 #open-shop-btn {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: #2196F3; /* Яркий цвет */
-    color: white;
+    width: 30px;
+    height: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: transparent;
     border: none;
-    padding: 12px 25px;
-    border-radius: 25px;
     cursor: pointer;
     z-index: 1000;
-    transition: background 0.3s, transform 0.2s;
+    padding: 0;
 }
 
-#open-shop-btn:hover {
-    background: #1E88E5;
+#open-shop-btn span {
+    display: block;
+    width: 100%;
+    height: 4px;
+    background-color: white;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+/* Анимация для гамбургера при открытии магазина */
+#open-shop-btn.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+#open-shop-btn.open span:nth-child(2) {
+    opacity: 0;
+}
+
+#open-shop-btn.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Кнопка перезапуска игры */
+.restart-btn {
+    margin-top: 20px;
+    background: #FF9800; /* Оранжевый цвет */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1em;
+}
+
+.restart-btn:hover {
+    background: #FB8C00;
     transform: scale(1.05);
 }
 
@@ -186,7 +242,8 @@ body {
     flex: 1;
 }
 
-.audio-control input[type="range"] {
+.audio-control input[type="range"],
+.audio-control input[type="checkbox"] {
     flex: 2;
 }
 
@@ -203,7 +260,7 @@ body {
     text-align: center;
     margin-bottom: 25px;
     font-size: 20px;
-    color: #fff;
+    color: #333;
 }
 
 /* Контейнер фонов */
@@ -216,6 +273,9 @@ body {
 
 /* Элемент фона */
 .background-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     background: #e0e0e0;
     border-radius: 15px;
     padding: 15px;
@@ -263,7 +323,7 @@ body {
 }
 
 /* Кнопка закрытия магазина */
-#close-shop-btn {
+.close-shop-btn {
     position: absolute;
     top: 15px;
     right: 15px;
@@ -277,33 +337,9 @@ body {
     font-size: 1em;
 }
 
-#close-shop-btn:hover {
+.close-shop-btn:hover {
     background: #D32F2F;
     transform: scale(1.05);
-}
-
-/* Анимация пыли */
-.dust-flash {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
-    border-radius: 50%;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 20;
-    animation: dustAnimation 0.3s forwards;
-}
-
-@keyframes dustAnimation {
-    from {
-        transform: scale(0.5);
-        opacity: 1;
-    }
-    to {
-        transform: scale(2);
-        opacity: 0;
-    }
 }
 
 /* Модальное окно */
@@ -320,7 +356,8 @@ body {
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #333; /* Темный фон для контрастного белого текста */
+    color: white; /* Белый цвет текста */
     margin: 15% auto; /* 15% сверху и центрирование */
     padding: 20px;
     border: 1px solid #888;
@@ -369,33 +406,127 @@ body {
     transform: scale(1.05);
 }
 
-/* Стилизация скроллбара */
-.shop-content::-webkit-scrollbar {
-    width: 8px;
+/* Стиль для отображения номера на шаре */
+.ball {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px black;
+    user-select: none;
+    z-index: 10;
 }
 
-.shop-content::-webkit-scrollbar-track {
-    background: #c0c0c0;
-    border-radius: 4px;
+/* Стиль для неоновой стрелки */
+.neon-arrow {
+    position: absolute;
+    width: 2px;
+    height: 100px; /* По умолчанию, будет динамически изменяться */
+    background-color: #00FF00; /* Зеленый цвет */
+    opacity: 0;
+    transition: opacity 0.3s, height 0.3s;
+    z-index: 1000;
+    top: 0;
+    left: 0;
 }
 
-.shop-content::-webkit-scrollbar-thumb {
-    background: #808080;
-    border-radius: 4px;
+.neon-arrow .arrow-line {
+    width: 2px;
+    height: 80%; /* Основная часть стрелки */
+    background-color: #00FF00;
 }
 
-.shop-content::-webkit-scrollbar-thumb:hover {
-    background: #606060;
+.neon-arrow .arrow-head {
+    position: absolute;
+    bottom: 0;
+    left: -5px; /* Половина ширины стрелки */
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 14px solid #00FF00; /* Зеленый цвет */
 }
 
-/* Для Firefox */
-.shop-content {
-    scrollbar-width: thin;
-    scrollbar-color: #808080 #c0c0c0;
+/* Полоска очереди шаров */
+.ball-queue {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    display: flex;
+    justify-content: center; /* Центрируем содержимое */
+    align-items: center;
+    z-index: 20;
+    gap: 10px; /* Расстояние между шарами */
+}
+
+.visible-balls, .hidden-balls {
+    display: flex;
+    gap: 10px;
+}
+
+.visible-balls {
+    flex-wrap: nowrap;
+}
+
+.hidden-balls {
+    /* Оставьте скрытые шары в одном месте или распределите их по желанию */
+}
+
+.visible-balls .ball {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: gray; /* Будет заменено цветом шара */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.hidden-balls .hidden-ball {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: lightgray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+    font-weight: bold;
+    font-size: 24px;
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
+    #game-container {
+        width: 90%;
+        height: 90vh;
+    }
+
+    /* Полоска траектории */
+    #trajectory-line {
+        height: 150px;
+    }
+
+    /* Полоска очереди шаров */
+    .ball-queue {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .visible-balls, .hidden-balls {
+        justify-content: center;
+    }
+
     .background-item {
         width: 150px;
     }
@@ -408,31 +539,13 @@ body {
         font-size: 22px;
     }
 
-    #game-container {
-        width: 90%;
-        height: 90vh;
-    }
-
-    /* Полоска пути */
-    #trajectory-line {
-        height: 150px;
+    /* Корректировка позиции красной линии */
+    .neon-line {
+        top: 180px; /* Можно изменить по необходимости */
     }
 }
 
 @media (max-width: 480px) {
-    .background-item {
-        width: 130px;
-    }
-
-    .buy-btn, #close-shop-btn, #open-shop-btn {
-        padding: 8px 16px;
-        font-size: 0.9em;
-    }
-
-    .shop-content h2 {
-        font-size: 20px;
-    }
-
     #game-container {
         width: 100%;
         height: 100vh;
@@ -447,8 +560,26 @@ body {
         margin: 0;
     }
 
-    /* Полоска пути */
+    /* Полоска траектории */
     #trajectory-line {
         height: 120px;
+    }
+
+    .background-item {
+        width: 130px;
+    }
+
+    .buy-btn, #close-shop-btn, #open-shop-btn, .restart-btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+
+    .shop-content h2 {
+        font-size: 20px;
+    }
+
+    /* Корректировка позиции красной линии для маленьких экранов */
+    .neon-line {
+        top: 180px; /* Можно изменить по необходимости */
     }
 }
