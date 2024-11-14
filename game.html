@@ -1,4 +1,3 @@
-<!-- game.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -8,18 +7,46 @@
     <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
+    <!-- Контейнер игры -->
     <div id="game-container">
-        <button id="open-shop-btn">Магазин</button>
+        <!-- Кнопка открытия магазина (гамбургер) -->
+        <button id="open-shop-btn" aria-label="Открыть магазин">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
+        <!-- Информационные блоки -->
         <div id="score" class="info-box">Очки: 0</div>
         <div id="next-ball" class="info-box">1</div>
         <div id="current-ball" class="info-box">1</div>
         
-        <div id="end-line"></div>
+        <!-- Красная неоновая линия под очками -->
+        <div id="neon-line" class="neon-line"></div>
         
+        <!-- Эффект пыли -->
         <div id="dust-flash" class="dust-flash"></div>
+        
+        <!-- Неоновая стрелка под шаром -->
+        <div id="neon-arrow" class="neon-arrow">
+            <div class="arrow-line"></div>
+            <div class="arrow-head"></div>
+        </div>
+
+        <!-- Полоска очереди шаров -->
+        <div id="ball-queue" class="ball-queue">
+            <div class="visible-balls">
+                <!-- Здесь будут отображаться 5 следующих шаров -->
+                <!-- Шары будут добавляться динамически через JavaScript -->
+            </div>
+            <div class="hidden-balls">
+                <!-- Здесь будут отображаться '?' символы для остальных шаров -->
+                <!-- Скрытые шары будут добавляться динамически через JavaScript -->
+            </div>
+        </div>
     </div>
 
+    <!-- Магазин (гамбургер-меню) -->
     <div id="shop-overlay" class="shop-overlay">
         <div class="shop-content">
             <div class="tabs">
@@ -29,6 +56,7 @@
                 <button class="tab-button" data-tab="statistics">Статистика</button>
             </div>
 
+            <!-- Вкладка Настройки -->
             <div class="tab-content active" id="settings">
                 <h2>Настройки</h2>
                 <div class="audio-controls">
@@ -41,8 +69,11 @@
                         <input type="checkbox" id="sfx-toggle" checked>
                     </div>
                 </div>
+                <!-- Кнопка перезапуска игры -->
+                <button id="restart-game-btn" class="restart-btn">Перезапустить игру</button>
             </div>
 
+            <!-- Вкладка Магазин -->
             <div class="tab-content" id="shop">
                 <h2>Баланс</h2>
                 <div class="balance-display">Текущий баланс: <span id="current-balance">500</span> монет</div>
@@ -51,11 +82,13 @@
                 </div>
             </div>
 
+            <!-- Вкладка Задания -->
             <div class="tab-content" id="tasks">
                 <h2>Задания</h2>
                 <p>Здесь будут ваши задания.</p>
             </div>
 
+            <!-- Вкладка Статистика -->
             <div class="tab-content" id="statistics">
                 <h2>Статистика</h2>
                 <div id="statistics-content">
@@ -63,7 +96,8 @@
                 </div>
             </div>
 
-            <button id="close-shop-btn">Закрыть</button>
+            <!-- Кнопка закрытия магазина -->
+            <button id="close-shop-btn" class="close-shop-btn">Закрыть</button>
         </div>
     </div>
 
@@ -72,12 +106,30 @@
         <div class="modal-content">
             <h2>Игра окончена!</h2>
             <p>Ваш счёт: <span id="final-score">0</span></p>
-            <button id="play-again-btn">Играть заново</button>
-            <button id="exit-btn">Выйти в меню</button>
+            <button id="play-again-btn" class="modal-btn">Играть заново</button>
+            <button id="exit-btn" class="modal-btn">Выйти в меню</button>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js"></script>
-    <script src="js/game.js"></script>
+
+<!-- Полоска очереди шаров -->
+<div id="ball-queue" class="ball-queue">
+    <div class="visible-balls">
+        <!-- Добавьте 5 элементов с классом "current-ball" -->
+        <div class="current-ball" id="current-ball-1"></div>
+        <div class="current-ball" id="current-ball-2"></div>
+        <div class="current-ball" id="current-ball-3"></div>
+        <div class="current-ball" id="current-ball-4"></div>
+        <div class="current-ball" id="current-ball-5"></div>
+    </div>
+    <div class="hidden-balls">
+        <!-- Здесь могут отображаться символы '?' для оставшихся шаров -->
+    </div>
+</div>
+
+
+    <!-- Подключение скриптов -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js" defer></script>
+    <script src="js/game.js" defer></script>
 </body>
 </html>
