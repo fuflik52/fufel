@@ -107,7 +107,7 @@ const floor = Matter.Bodies.rectangle(250, 690, 500, 20, {
         fillStyle: '#ffffff'
     }
 });
-Matter.World.add(world, floor);
+Matter.World.add(world, [floor, leftWall, rightWall]);
 
 // Создание шара
 function createBall(x, y, value) {
@@ -361,7 +361,7 @@ playAgainBtn.addEventListener('click', () => {
     Matter.Engine.clear(engine);
     Matter.Render.stop(renderEngine);
     Matter.Render.run(renderEngine);
-    Matter.World.add(world, floor);
+    Matter.World.add(world, floor, leftWall, rightWall);
     Matter.Runner.run(runner, engine);
 
     // Скрыть модальное окно
