@@ -83,16 +83,7 @@ body {
     display: none; /* Скрыта по умолчанию */
 }
 
-/* Полоска для окончания игры */ 
-#end-line {
-    position: absolute;
-    bottom: 100px; /* Расположена на 100px от нижнего края игрового контейнера */
-    left: 0;
-    width: 100%;
-    height: 5px;
-    background-color: red;
-    z-index: 5;
-}
+
 
 /* Кнопка открытия магазина */
 #open-shop-btn {
