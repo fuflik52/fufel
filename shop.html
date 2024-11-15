@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop</title>
-    <link rel="stylesheet" href="css/shop.css">
+    <title>Магазин</title>
+    <link rel="stylesheet" href="css/shop.css"> <!-- Подключение вашего CSS-файла -->
 </head>
 <body>
     <div class="shop-container">
         <div class="shop-header">
             <div class="shop-sign">МАГАЗИН</div>
+            <button class="close-shop-btn" id="close-shop-btn">&times;</button> <!-- Кнопка закрытия магазина -->
         </div>
 
         <div class="balance">Баланс: <span id="balance">500</span> монет</div>
 
         <div class="shop-grid">
+            <!-- Пример элементов магазина -->
             <div class="shop-item" data-price="100" data-background="linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), #222">
                 <div class="item-image" style="background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), #222"></div>
                 <div class="item-name">Зимний лес</div>
@@ -81,6 +83,8 @@
         </div>
         <button class="disable-button" id="disable-background">ОТКЛЮЧИТЬ ФОН</button>
     </div>
+    
+    <!-- Подключение скрипта магазина -->
     <script src="js/shop.js"></script>
 </body>
 </html>

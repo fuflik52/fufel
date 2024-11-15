@@ -1,149 +1,102 @@
-// js/game.js
+// game.js
 
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------
     // 1. Получение элементов DOM
     // -------------------------
-
-    // Элементы интерфейса игры
     const gameContainer = document.getElementById('game-container');
     const openShopBtn = document.getElementById('open-shop-btn');
     const closeShopBtn = document.getElementById('close-shop-btn');
-    const backgroundsContainer = document.getElementById('backgrounds-container');
-    const currentBalanceElement = document.getElementById('current-balance');
-    const statisticsContent = document.getElementById('statistics-content');
-
     const scoreElement = document.getElementById('score');
     const nextBallElement = document.getElementById('next-ball');
     const currentBallElement = document.getElementById('current-ball');
-    const dustFlash = document.getElementById('dust-flash');
-
-    // Модальное окно окончания игры
+    const neonArrow = document.getElementById('neon-arrow');
+    const ballQueue = document.getElementById('ball-queue');
+    const currentBalanceElement = document.getElementById('current-balance');
+    const backgroundsContainer = document.getElementById('backgrounds-container');
+    const statisticsContent = document.getElementById('statistics-content');
     const gameOverModal = document.getElementById('game-over-modal');
     const finalScoreElement = document.getElementById('final-score');
     const playAgainBtn = document.getElementById('play-again-btn');
     const exitBtn = document.getElementById('exit-btn');
+    const resumeModal = document.getElementById('resume-modal');
+    const resumeScoreElement = document.getElementById('resume-score');
+    const continueGameBtn = document.getElementById('continue-game-btn');
+    const startNewGameBtn = document.getElementById('start-new-game-btn');
 
-    // Кнопка перезапуска игры
-    const restartGameBtn = document.getElementById('restart-game-btn');
+    // Проверка наличия всех необходимых элементов
+    const requiredElements = [
+        gameContainer,
+        openShopBtn,
+        closeShopBtn,
+        scoreElement,
+        nextBallElement,
+        currentBallElement,
+        neonArrow,
+        ballQueue,
+        currentBalanceElement,
+        backgroundsContainer,
+        statisticsContent,
+        gameOverModal,
+        finalScoreElement,
+        playAgainBtn,
+        exitBtn,
+        resumeModal,
+        resumeScoreElement,
+        continueGameBtn,
+        startNewGameBtn
+    ];
 
-    // Вкладки
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    // Неоновая стрелка под шаром
-    const neonArrow = document.getElementById('neon-arrow');
-
-    // Получение shopOverlay
-    const shopOverlay = document.getElementById('shop-overlay');
-
-    // Проверка наличия всех элементов
-    if (
-        !gameContainer ||
-        !openShopBtn ||
-        !closeShopBtn ||
-        !backgroundsContainer ||
-        !currentBalanceElement ||
-        !statisticsContent ||
-        !scoreElement ||
-        !nextBallElement ||
-        !currentBallElement ||
-        !dustFlash ||
-        !gameOverModal ||
-        !finalScoreElement ||
-        !playAgainBtn ||
-        !exitBtn ||
-        !restartGameBtn ||
-        !neonArrow ||
-        !shopOverlay
-    ) {
-        console.error('Не удалось найти некоторые элементы в DOM. Проверьте ID элементов в HTML.');
+    const missingElements = requiredElements.filter(element => !element);
+    if (missingElements.length > 0) {
+        console.error('Не удалось найти некоторые элементы в DOM. Проверьте ID элементов в HTML.', missingElements);
         return;
     }
 
     // -------------------------
     // 2. Инициализация переменных
     // -------------------------
-
-    // Функция для ограничения значения между min и max
-    function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    // Массив доступных фонов
-    const backgrounds = [
-        {
-            id: 1,
-            name: "Зимний лес",
-            price: 100,
-            background: "linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), #222",
-            purchased: true, // Предустановленный купленный фон
-            active: true     // Предустановленный активный фон
-        },
-        {
-            id: 2,
-            name: "Солнечный день",
-            price: 150,
-            background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
-            purchased: false,
-            active: false
-        },
-        // Добавьте остальные фоны до id:15 с различными цветовыми градиентами
-    ];
-
-    // Инициализация баланса из localStorage или установка по умолчанию
-    let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 500;
+    let balance = parseInt(localStorage.getItem('balance')) || 500;
     currentBalanceElement.textContent = balance;
 
-    // Инициализация выбранного фона из localStorage
-    let selectedBackgroundId = localStorage.getItem('selectedBackgroundId');
-    if (selectedBackgroundId) {
-        selectedBackgroundId = parseInt(selectedBackgroundId);
-        const bg = backgrounds.find(b => b.id === selectedBackgroundId);
-        if (bg && bg.purchased) {
-            applyBackground(bg.background);
-            bg.active = true;
-        }
-    } else {
-        // Если фон не выбран, установить предустановленный фон
-        const initialBg = backgrounds.find(b => b.id === 1);
-        if (initialBg && initialBg.purchased) {
-            applyBackground(initialBg.background);
-        }
-    }
+    let selectedBackground = localStorage.getItem('selectedBackground') || 'linear-gradient(#1a1a2e, #1a1a2e)';
+    applyBackground(selectedBackground);
 
-    // Инициализация баланса и статистики
-    let score = localStorage.getItem('score') ? parseInt(localStorage.getItem('score')) : 0;
-    let nextBallValue = localStorage.getItem('nextBallValue') ? parseInt(localStorage.getItem('nextBallValue')) : getRandomBallValue();
-    let currentBallValue = localStorage.getItem('currentBallValue') ? parseInt(localStorage.getItem('currentBallValue')) : 1;
+    let score = parseInt(localStorage.getItem('score')) || 0;
+    let nextBallValue = parseInt(localStorage.getItem('nextBallValue')) || getRandomBallValue();
+    let currentBallValue = parseInt(localStorage.getItem('currentBallValue')) || 1;
 
-    // Инициализация статистики
     let statistics = JSON.parse(localStorage.getItem('statistics')) || {
         totalGames: 0,
         totalScore: 0,
         highScore: 0
     };
 
-    // Отображение начальных значений
     scoreElement.textContent = `Очки: ${score}`;
     updateNextBall();
     updateCurrentBall();
 
-    // Флаг для контроля кулдауна между бросками
-    let isCooldown = false;
+    displayStatistics(statistics);
+
+    let isCooldown = false; // Флаг для контроля кулдауна между бросками
 
     // -------------------------
-    // 3. Инициализация Matter.js
+    // 3. Определение функции startCooldown
     // -------------------------
+    function startCooldown() {
+        isCooldown = true;
+        setTimeout(() => {
+            isCooldown = false;
+        }, 500); // Кулдаун 0.5 секунды
+    }
 
-    // Создание Matter.js двигателя и мира
+    // -------------------------
+    // 4. Инициализация Matter.js
+    // -------------------------
     const engine = Matter.Engine.create();
     const world = engine.world;
+    world.gravity.y = 0.5;
 
-    // Установка гравитации (по умолчанию 1)
-    world.gravity.y = 1;
-
-    // Создание Renderer
     const renderEngine = Matter.Render.create({
         element: gameContainer,
         engine: engine,
@@ -151,11 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
             width: 500,
             height: 700,
             wireframes: false,
-            background: 'transparent' // Фон задаётся через CSS
+            background: 'transparent'
         }
     });
 
-    // Создание пола
     const floor = Matter.Bodies.rectangle(250, 690, 500, 20, { 
         isStatic: true,
         render: {
@@ -163,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Создание левой стены
     const leftWall = Matter.Bodies.rectangle(-10, 350, 20, 700, { 
         isStatic: true,
         render: {
@@ -171,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Создание правой стены
     const rightWall = Matter.Bodies.rectangle(510, 350, 20, 700, { 
         isStatic: true,
         render: {
@@ -179,19 +129,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Добавление пола и стен в мир
     Matter.World.add(world, [floor, leftWall, rightWall]);
 
-    // Создание Runner и запуск
     const runner = Matter.Runner.create();
     Matter.Runner.run(runner, engine);
-
-    // Запуск Renderer
     Matter.Render.run(renderEngine);
 
     // -------------------------
-    // 4. Функции игры
+    // 5. Вспомогательные функции
     // -------------------------
+
+    // Функция для ограничения значения между min и max
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
 
     // Функция для создания шара
     function createBall(x, y, value) {
@@ -208,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lineWidth: 2
             }
         });
-        ball.label = value;
+        ball.label = value.toString();
         Matter.World.add(world, ball);
         console.log(`Создан шар: ${value} в (${x}, ${y})`);
         positionNeonArrow();
@@ -233,16 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentBallElement.textContent = currentBallValue;
     }
 
-    // Функция для отображения анимации пыли
-    function showDustFlash(x, y) {
-        dustFlash.style.left = `${x - 50}px`;
-        dustFlash.style.top = `${y - 50}px`;
-        dustFlash.style.opacity = '1';
-        dustFlash.style.animation = 'none';
-        void dustFlash.offsetWidth; // Триггер reflow для перезапуска анимации
-        dustFlash.style.animation = 'dustAnimation 0.6s forwards'; // Обновлённая длительность
-    }
-
     // Функция для применения фона к игре
     function applyBackground(background) {
         document.body.style.background = background;
@@ -252,115 +193,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('selectedBackground', background);
     }
 
-    // Функция для деактивации других фонов
-    function deactivateOthers(activeId) {
-        backgrounds.forEach(bg => {
-            if (bg.id !== activeId && bg.active) {
-                bg.active = false;
-            }
-        });
-    }
-
-    // Функция для создания элементов фона в магазине
-    function createBackgroundItems() {
-        backgroundsContainer.innerHTML = ''; // Очистить предыдущие элементы
-        backgrounds.forEach(bg => {
-            const bgItem = document.createElement('div');
-            bgItem.classList.add('background-item');
-            if (bg.active) {
-                bgItem.classList.add('selected');
-            }
-
-            const preview = document.createElement('div');
-            preview.classList.add('preview');
-            preview.style.background = bg.background;
-
-            const name = document.createElement('p');
-            name.textContent = bg.name;
-
-            const buyBtn = document.createElement('button');
-            buyBtn.classList.add('buy-btn');
-            if (bg.purchased) {
-                buyBtn.textContent = 'Использовать';
-                buyBtn.style.background = bg.active ? '#2196F3' : '#4CAF50';
-            } else {
-                buyBtn.textContent = `Купить (${bg.price})`;
-                buyBtn.style.background = '#4CAF50';
-            }
-
-            buyBtn.addEventListener('click', () => {
-                if (!bg.purchased) {
-                    if (balance >= bg.price) {
-                        // Покупка фона
-                        bg.purchased = true;
-                        bg.active = true;
-                        balance -= bg.price;
-                        localStorage.setItem('balance', balance);
-                        currentBalanceElement.textContent = balance;
-                        deactivateOthers(bg.id);
-                        applyBackground(bg.background);
-                        localStorage.setItem('selectedBackgroundId', bg.id);
-                        createBackgroundItems();
-                        positionNeonArrow(); // Обновить позицию стрелки
-                    } else {
-                        alert('Недостаточно монет для покупки этого фона!');
-                    }
-                } else {
-                    if (!bg.active) {
-                        bg.active = true;
-                        deactivateOthers(bg.id);
-                        applyBackground(bg.background);
-                        localStorage.setItem('selectedBackgroundId', bg.id);
-                        createBackgroundItems();
-                        positionNeonArrow(); // Обновить позицию стрелки
-                    } else {
-                        // Деактивация фона, возвращение к дефолтному
-                        bg.active = false;
-                        applyBackground('linear-gradient(#222, #222)');
-                        localStorage.removeItem('selectedBackgroundId');
-                        createBackgroundItems();
-                        positionNeonArrow(); // Обновить позицию стрелки
-                    }
-                }
-            });
-
-            bgItem.appendChild(preview);
-            bgItem.appendChild(name);
-            bgItem.appendChild(buyBtn);
-            backgroundsContainer.appendChild(bgItem);
-        });
-    }
-
-    // Функция для рендеринга магазина (обновление кнопок покупки и выделение активного фона)
-    function renderShop() {
-        createBackgroundItems();
-    }
-
-    // Функция для отображения статистики
-    function displayStatistics() {
-        statisticsContent.innerHTML = `
-            <p>Всего игр: ${statistics.totalGames}</p>
-            <p>Общий счёт: ${statistics.totalScore}</p>
-            <p>Рекорд: ${statistics.highScore}</p>
-        `;
-    }
-
-    // Функция для обновления статистики
-    function updateStatistics(gameScore) {
-        statistics.totalGames += 1;
-        statistics.totalScore += gameScore;
-        if (gameScore > statistics.highScore) {
-            statistics.highScore = gameScore;
-        }
-        localStorage.setItem('statistics', JSON.stringify(statistics));
-    }
-
     // -------------------------
-    // 5. Обработчики событий
+    // 6. Обработчики вкладок магазина
     // -------------------------
-
-    // Обработчики вкладок магазина
     function setupTabButtons() {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const targetTab = button.getAttribute('data-tab');
@@ -382,28 +221,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Если вкладка "Статистика", обновить её содержимое
                 if (targetTab === 'statistics') {
-                    displayStatistics();
+                    displayStatistics(statistics);
                 }
             });
         });
     }
 
-    // Обработчики кнопок открытия и закрытия магазина
+    // -------------------------
+    // 7. Обработчики кнопок открытия и закрытия магазина
+    // -------------------------
     function setupShopHandlers() {
         openShopBtn.addEventListener('click', () => {
-            shopOverlay.style.display = 'flex';
-            openShopBtn.classList.add('open'); // Добавить класс для анимации
-            positionNeonArrow(); // Обновить позицию стрелки при открытии магазина
+            document.getElementById('shop-overlay').style.display = 'flex';
+            openShopBtn.classList.add('open');
         });
 
         closeShopBtn.addEventListener('click', () => {
-            shopOverlay.style.display = 'none';
-            openShopBtn.classList.remove('open'); // Удалить класс после закрытия
-            neonArrow.style.opacity = '0'; // Скрыть стрелку при закрытии магазина
+            document.getElementById('shop-overlay').style.display = 'none';
+            openShopBtn.classList.remove('open');
         });
     }
 
-    // Обработчики кнопок модального окна
+    // -------------------------
+    // 8. Обработчики кнопок модальных окон
+    // -------------------------
     function setupModalHandlers() {
         playAgainBtn.addEventListener('click', () => {
             restartGame();
@@ -413,12 +254,163 @@ document.addEventListener('DOMContentLoaded', () => {
             exitGame();
         });
 
-        restartGameBtn.addEventListener('click', () => {
+        continueGameBtn.addEventListener('click', () => {
+            // Установить счёт в модальном окне resume-modal
+            const savedScore = parseInt(localStorage.getItem('score')) || 0;
+            resumeScoreElement.textContent = savedScore;
+
+            // Скрыть модальное окно
+            resumeModal.style.display = 'none';
+            // Загрузить сохранённое состояние игры
+            loadGameState();
+        });
+
+        startNewGameBtn.addEventListener('click', () => {
+            // Скрыть модальное окно
+            resumeModal.style.display = 'none';
+            // Очистить сохранённое состояние
+            clearSavedGame();
+            // Инициализировать новую игру
             restartGame();
         });
     }
 
-    // Обработчики перетаскивания шара и броска по клику
+    // -------------------------
+    // 9. Функция для управления магазином
+    // -------------------------
+    function setupShopTabHandlersFunction() {
+        // Обработка покупок фонов и применения фонов
+
+        // Получение текущих купленных фонов из localStorage
+        let purchasedBackgrounds = JSON.parse(localStorage.getItem('purchasedBackgrounds')) || [];
+
+        // Функция для обновления баланса
+        function updateBalance(newBalance) {
+            balance = newBalance;
+            currentBalanceElement.textContent = balance;
+            localStorage.setItem('balance', balance);
+        }
+
+        // Функция для отображения доступных фонов
+        function renderBackgrounds() {
+            backgroundsContainer.innerHTML = ''; // Очистка контейнера
+
+            // Пример фонов (можно заменить на динамическое добавление из другого источника)
+            const backgrounds = [
+                {
+                    name: "Зимний лес",
+                    price: 100,
+                    background: "linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), #222"
+                },
+                {
+                    name: "Солнечный день",
+                    price: 150,
+                    background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)"
+                },
+                {
+                    name: "Ночной город",
+                    price: 200,
+                    background: "linear-gradient(to bottom, #000428, #004e92)"
+                },
+                {
+                    name: "Рассвет",
+                    price: 250,
+                    background: "linear-gradient(to right, #ff7e5f, #feb47b)"
+                },
+                {
+                    name: "Туманное утро",
+                    price: 300,
+                    background: "linear-gradient(to right, #ada996, #f2f2f2, #dbdbdb, #eaeaea)"
+                },
+                {
+                    name: "Магическое небо",
+                    price: 350,
+                    background: "linear-gradient(to right, #6a11cb 0%, #2575fc 100%)"
+                },
+                {
+                    name: "Пустынный песок",
+                    price: 400,
+                    background: "linear-gradient(120deg, #f6d365 0%, #fda085 100%)"
+                },
+                {
+                    name: "Темная тема",
+                    price: 450,
+                    background: "linear-gradient(to right, #434343 0%, black 100%)"
+                },
+                {
+                    name: "Глубины океана",
+                    price: 500,
+                    background: "linear-gradient(to top, #30cfd0 0%, #330867 100%)"
+                }
+            ];
+
+            backgrounds.forEach(bg => {
+                const bgItem = document.createElement('div');
+                bgItem.classList.add('background-item');
+
+                const itemPreview = document.createElement('div');
+                itemPreview.classList.add('preview');
+                itemPreview.style.background = bg.background;
+
+                const itemName = document.createElement('div');
+                itemName.classList.add('stat-label'); // Используем тот же стиль для меток
+                itemName.textContent = bg.name;
+
+                const itemPrice = document.createElement('div');
+                itemPrice.classList.add('stat-value'); // Используем тот же стиль для значений
+                itemPrice.textContent = `${bg.price} монет`;
+
+                const buyBtn = document.createElement('button');
+                buyBtn.classList.add('buy-btn');
+                buyBtn.textContent = 'Купить';
+
+                const applyBtn = document.createElement('button');
+                applyBtn.classList.add('buy-btn'); // Используем тот же стиль для простоты
+                applyBtn.textContent = 'Применить';
+                applyBtn.style.display = 'none'; // Скрыть изначально
+
+                // Проверка, куплен ли фон
+                if (purchasedBackgrounds.includes(bg.name)) {
+                    buyBtn.style.display = 'none';
+                    applyBtn.style.display = 'block';
+                }
+
+                // Обработчик покупки
+                buyBtn.addEventListener('click', () => {
+                    if (balance >= bg.price) {
+                        updateBalance(balance - bg.price);
+                        purchasedBackgrounds.push(bg.name);
+                        localStorage.setItem('purchasedBackgrounds', JSON.stringify(purchasedBackgrounds));
+
+                        buyBtn.style.display = 'none';
+                        applyBtn.style.display = 'block';
+                    } else {
+                        alert('Недостаточно монет для покупки этого фона!');
+                    }
+                });
+
+                // Обработчик применения фона
+                applyBtn.addEventListener('click', () => {
+                    applyBackground(bg.background);
+                });
+
+                bgItem.appendChild(itemPreview);
+                bgItem.appendChild(itemName);
+                bgItem.appendChild(itemPrice);
+                bgItem.appendChild(buyBtn);
+                bgItem.appendChild(applyBtn);
+
+                backgroundsContainer.appendChild(bgItem);
+            });
+        }
+
+        // Инициализация фонов
+        renderBackgrounds();
+    }
+
+    // -------------------------
+    // 10. Обработчики перетаскивания и броска шара
+    // -------------------------
     function setupInteractionHandlers() {
         let isDragging = false;
         let dragOffsetX = 0;
@@ -461,13 +453,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dy = e.clientY - dragStartY;
 
                 // Преобразование drag vector в скорость (строго вниз)
-                const velocityScale = 0.1; // Коэффициент масштабирования скорости
+                const velocityScale = 0.05; // Уменьшен с 0.1 до 0.05
                 const velocityX = 0; // Нулевая скорость по X
                 const velocityY = dy * velocityScale;
 
                 // Ограничение максимальной скорости
-                const maxVelocity = 20;
-                const finalVelocityY = clamp(velocityY, 5, maxVelocity); // Минимальная скорость 5
+                const maxVelocity = 10; // Уменьшено с 20 до 10
+                const finalVelocityY = clamp(velocityY, 2, maxVelocity); // Минимальная скорость 2
 
                 // Создание шара
                 const newBall = createBall(ballX, ballY, currentBallValue);
@@ -527,13 +519,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dy = touch.clientY - dragStartY;
 
                 // Преобразование drag vector в скорость (строго вниз)
-                const velocityScale = 0.1; // Коэффициент масштабирования скорости
+                const velocityScale = 0.05; // Уменьшен с 0.1 до 0.05
                 const velocityX = 0; // Нулевая скорость по X
                 const velocityY = dy * velocityScale;
 
                 // Ограничение максимальной скорости
-                const maxVelocity = 20;
-                const finalVelocityY = clamp(velocityY, 5, maxVelocity); // Минимальная скорость 5
+                const maxVelocity = 10; // Уменьшено с 20 до 10
+                const finalVelocityY = clamp(velocityY, 2, maxVelocity); // Минимальная скорость 2
 
                 // Создание шара
                 const newBall = createBall(ballX, ballY, currentBallValue);
@@ -574,14 +566,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const dx = x - currentBallGameX;
             const dy = y - currentBallGameY;
 
-            const velocityScale = 0.1; // Коэффициент масштабирования скорости
+            const velocityScale = 0.05; // Уменьшен с 0.1 до 0.05
             const velocityX = dx * velocityScale;
             const velocityY = dy * velocityScale;
 
             // Ограничение максимальной скорости
-            const maxVelocity = 20;
+            const maxVelocity = 10; // Уменьшено с 20 до 10
             const finalVelocityX = clamp(velocityX, -maxVelocity, maxVelocity);
-            const finalVelocityY = clamp(velocityY, 5, maxVelocity); // Минимальная скорость 5 по Y
+            const finalVelocityY = clamp(velocityY, 2, maxVelocity); // Минимальная скорость 2
 
             // Создание шара
             const newBall = createBall(currentBallGameX, currentBallGameY, currentBallValue);
@@ -603,10 +595,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 4. Функции управления игрой
+    // 10. Функция окончания игры
     // -------------------------
-
-    // Функция для окончания игры
     function endGame() {
         // Остановить физический движок и отрисовку
         Matter.Runner.stop(runner);
@@ -614,26 +604,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Обновить статистику
         updateStatistics(score);
-        displayStatistics();
+        displayStatistics(statistics);
 
         // Показать финальный счёт
         finalScoreElement.textContent = score;
 
-        // Показать модальное окно
+        // Показать модальное окно окончания игры
         gameOverModal.style.display = 'block';
 
         // Очистить сохранённое состояние игры
-        localStorage.removeItem('balls');
-        localStorage.removeItem('score');
-        localStorage.removeItem('nextBallValue');
-        localStorage.removeItem('currentBallValue');
+        clearSavedGame();
     }
 
-    // Функция для перезапуска игры
+    // -------------------------
+    // 11. Функция перезапуска игры
+    // -------------------------
     function restartGame() {
+        // Очистка сохранённого состояния
+        clearSavedGame();
+
         // Обновление статистики
         updateStatistics(score);
-        displayStatistics();
+        displayStatistics(statistics);
 
         // Сброс текущего счета
         score = 0;
@@ -652,6 +644,27 @@ document.addEventListener('DOMContentLoaded', () => {
         Matter.Runner.stop(runner);
 
         // Воссоздание пола и стен
+        const floor = Matter.Bodies.rectangle(250, 690, 500, 20, { 
+            isStatic: true,
+            render: {
+                fillStyle: '#ffffff'
+            }
+        });
+
+        const leftWall = Matter.Bodies.rectangle(-10, 350, 20, 700, { 
+            isStatic: true,
+            render: {
+                fillStyle: '#ffffff'
+            }
+        });
+
+        const rightWall = Matter.Bodies.rectangle(510, 350, 20, 700, { 
+            isStatic: true,
+            render: {
+                fillStyle: '#ffffff'
+            }
+        });
+
         Matter.World.add(world, [floor, leftWall, rightWall]);
 
         // Запуск Runner и Render заново
@@ -667,23 +680,24 @@ document.addEventListener('DOMContentLoaded', () => {
         // Сохранение состояния
         saveGameState();
 
-        // Скрыть модальное окно
+        // Скрыть модальное окно окончания игры, если оно было открыто
         gameOverModal.style.display = 'none';
     }
 
-    // Функция для выхода из игры (перенаправление на главную страницу)
+    // -------------------------
+    // 12. Функция выхода из игры
+    // -------------------------
     function exitGame() {
         // Очистить сохранённое состояние игры
-        localStorage.removeItem('balls');
-        localStorage.removeItem('score');
-        localStorage.removeItem('nextBallValue');
-        localStorage.removeItem('currentBallValue');
+        clearSavedGame();
 
-        // Перенаправление на главную страницу
+        // Перенаправление на главную страницу (если имеется)
         window.location.href = 'index.html';
     }
 
-    // Функция для сохранения состояния игры
+    // -------------------------
+    // 13. Функции для сохранения и загрузки состояния игры
+    // -------------------------
     function saveGameState() {
         const bodies = Matter.Composite.allBodies(world).filter(body => !body.isStatic && body.label);
         const balls = bodies.map(body => ({
@@ -696,14 +710,16 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('score', score);
         localStorage.setItem('nextBallValue', nextBallValue);
         localStorage.setItem('currentBallValue', currentBallValue);
+        
+        // Сохранение статистики
+        localStorage.setItem('statistics', JSON.stringify(statistics));
     }
 
-    // Функция для загрузки состояния игры
     function loadGameState() {
         const savedBalls = JSON.parse(localStorage.getItem('balls'));
         if (savedBalls && savedBalls.length > 0) {
             savedBalls.forEach(ballData => {
-                const ball = createBall(ballData.x, ballData.y, ballData.label);
+                const ball = createBall(ballData.x, ballData.y, parseInt(ballData.label));
                 Matter.Body.setVelocity(ball, ballData.velocity);
             });
             score = parseInt(localStorage.getItem('score')) || 0;
@@ -712,15 +728,29 @@ document.addEventListener('DOMContentLoaded', () => {
             scoreElement.textContent = `Очки: ${score}`;
             updateNextBall();
             updateCurrentBall();
-            positionNeonArrow();
+
+            // Восстановление статистики
+            const savedStatistics = JSON.parse(localStorage.getItem('statistics'));
+            if (savedStatistics) {
+                statistics = savedStatistics;
+            }
+
+            // Применение сохранённого фона
+            const savedBackground = localStorage.getItem('selectedBackground');
+            if (savedBackground) {
+                applyBackground(savedBackground);
+            } else {
+                applyBackground('linear-gradient(#1a1a2e, #1a1a2e)');
+            }
+
+            // Обновление статистики на экране
+            displayStatistics(statistics);
         }
     }
 
     // -------------------------
-    // 5. Обработка столкновений
+    // 14. Обработка столкновений для объединения шаров
     // -------------------------
-
-    // Обработка столкновений для объединения шаров
     Matter.Events.on(engine, 'collisionStart', (event) => {
         const pairs = event.pairs;
         pairs.forEach(pair => {
@@ -743,11 +773,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 score += newValue;
                 scoreElement.textContent = `Очки: ${score}`;
 
-                // Анимация пыли
-                showDustFlash(newX, newY);
+                // Обновление статистики
+                statistics.totalScore += newValue;
+                if (newValue > statistics.highScore) {
+                    statistics.highScore = newValue;
+                }
 
                 // Сохранение состояния
                 saveGameState();
+
+                // Обновление отображения статистики
+                displayStatistics(statistics);
 
                 // Проверка условия окончания игры
                 checkGameOver();
@@ -755,7 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Функция для проверки условия окончания игры
+    // -------------------------
+    // 15. Функция проверки окончания игры
+    // -------------------------
     function checkGameOver() {
         // Пример условия: если последний шар вылетает за нижнюю границу экрана
         const bodies = Matter.Composite.allBodies(engine.world).filter(body => !body.isStatic && body.label);
@@ -767,10 +805,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 6. Функции позиционирования стрелки
+    // 16. Функция позиционирования неоновой стрелки
     // -------------------------
-
-    // Функция для позиционирования неоновой стрелки под текущим шаром до пола
     function positionNeonArrow() {
         const rect = currentBallElement.getBoundingClientRect();
         const gameRect = gameContainer.getBoundingClientRect();
@@ -787,10 +823,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 7. Добавление нумерации внутри шаров
+    // 17. Рендеринг текста на шарах после отрисовки
     // -------------------------
-
-    // Функция для рисования текста на шарах после рендеринга
     Matter.Events.on(renderEngine, 'afterRender', () => {
         const context = renderEngine.context;
 
@@ -811,64 +845,83 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // -------------------------
-    // 8. Функции управления магазином и статистикой
+    // 18. Функция для управления статистикой
     // -------------------------
+    // Эта функция уже определена в statistics.js и вызывается через displayStatistics(statistics)
 
-    // Функция для отображения статистики
-    function displayStatistics() {
-        statisticsContent.innerHTML = `
-            <p>Всего игр: ${statistics.totalGames}</p>
-            <p>Общий счёт: ${statistics.totalScore}</p>
-            <p>Рекорд: ${statistics.highScore}</p>
-        `;
+    // -------------------------
+    // 19. Функция для управления магазином
+    // -------------------------
+    setupShopTabHandlersFunction();
+
+    // -------------------------
+    // 20. Обработчики вкладок магазина
+    // -------------------------
+    setupTabButtons();
+
+    // -------------------------
+    // 21. Обработчики кнопок открытия и закрытия магазина
+    // -------------------------
+    setupShopHandlers();
+
+    // -------------------------
+    // 22. Обработчики кнопок модальных окон
+    // -------------------------
+    setupModalHandlers();
+
+    // -------------------------
+    // 23. Обработчики перетаскивания и броска шара
+    // -------------------------
+    setupInteractionHandlers();
+
+    // -------------------------
+    // 24. Проверка наличия сохранённой игры
+    // -------------------------
+    if (localStorage.getItem('balls')) {
+        // Установить счёт в модальном окне resume-modal
+        const savedScore = parseInt(localStorage.getItem('score')) || 0;
+        resumeScoreElement.textContent = savedScore;
+
+        // Показать модальное окно выбора
+        resumeModal.style.display = 'flex';
+    } else {
+        // Если сохранённого состояния нет, инициализировать новую игру
+        createBall(250, 100, currentBallValue);
+        positionNeonArrow();
     }
 
     // -------------------------
-    // 9. Функция для инициализации всех обработчиков
+    // 25. Сохранение состояния при каждом обновлении движка
     // -------------------------
+    Matter.Events.on(engine, 'afterUpdate', () => {
+        saveGameState();
+    });
 
-    function setupHandlers() {
-        setupTabButtons();
-        setupShopHandlers();
-        setupModalHandlers();
-        setupInteractionHandlers();
-    }
-
-    // Функция для запуска игры
-    function initializeGame() {
-        // Создание начального шара, если нет сохранённых
-        if (!localStorage.getItem('balls')) {
-            createBall(250, 100, currentBallValue);
-            positionNeonArrow();
+    // -------------------------
+    // 26. Функция для спавна шаров через консоль
+    // -------------------------
+    // Объявим функцию глобально, чтобы её можно было вызывать из консоли
+    window.spawnBall = function(x, y, value) {
+        if (isCooldown) {
+            console.warn('Сейчас на кулдауне. Попробуйте позже.');
+            return;
         }
 
-        // Загрузка сохранённого состояния игры
-        loadGameState();
+        // Создание шара
+        const newBall = createBall(x, y, value);
+        if (newBall) {
+            Matter.Body.setVelocity(newBall, { x: 0, y: 5 }); // Пример скорости
+            // Запуск кулдауна
+            startCooldown();
 
-        // Сохранение состояния при каждом обновлении движка
-        Matter.Events.on(engine, 'afterUpdate', () => {
+            // Обновление значений текущего и следующего шара
+            currentBallValue = nextBallValue;
+            nextBallValue = getRandomBallValue();
+            updateNextBall();
+            updateCurrentBall();
+
+            // Сохранение состояния
             saveGameState();
-        });
-    }
-
-    // -------------------------
-    // 10. Кулдаун между бросками
-    // -------------------------
-
-    function startCooldown() {
-        isCooldown = true;
-        setTimeout(() => {
-            isCooldown = false;
-        }, 500); // 0.5 секунды
-    }
-
-    // -------------------------
-    // 11. Инициализация и запуск
-    // -------------------------
-
-    // Инициализация обработчиков и игры
-    setupHandlers();
-    renderShop();
-    initializeGame();
-    displayStatistics();
+        }
+    };
 });

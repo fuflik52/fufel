@@ -80,29 +80,7 @@ body {
 
 
 
-/* Эффект пыли */
-.dust-flash {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 80%);
-    border-radius: 50%;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 20;
-    animation: dustAnimation 0.6s forwards;
-}
 
-@keyframes dustAnimation {
-    from {
-        transform: scale(0.5);
-        opacity: 1;
-    }
-    to {
-        transform: scale(2.5);
-        opacity: 0;
-    }
-}
 
 /* Кнопка открытия магазина (гамбургер) */
 #open-shop-btn {
@@ -474,9 +452,6 @@ body {
     flex-wrap: nowrap;
 }
 
-.hidden-balls {
-    /* Оставьте скрытые шары в одном месте или распределите их по желанию */
-}
 
 .visible-balls .ball {
     width: 40px;
@@ -582,4 +557,69 @@ body {
     .neon-line {
         top: 180px; /* Можно изменить по необходимости */
     }
+}
+
+
+
+/* Стиль для модального окна выбора продолжения или начала новой игры */
+#resume-modal .modal-content {
+    background-color: #333;
+    color: white;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+#resume-modal .modal-content h2 {
+    margin-bottom: 20px;
+}
+
+#resume-modal .modal-content p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+#resume-modal .modal-content button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    font-size: 1em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+#continue-game-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+#continue-game-btn:hover {
+    background: #43A047;
+    transform: scale(1.05);
+}
+
+#start-new-game-btn {
+    background: #F44336;
+    color: white;
+}
+
+#start-new-game-btn:hover {
+    background: #D32F2F;
+    transform: scale(1.05);
+}
+.stats-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    z-index: 1000;
 }

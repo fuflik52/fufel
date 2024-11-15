@@ -1,5 +1,3 @@
-/* css/settings.css */
-
 body {
     background: #333;
     color: #fff;
@@ -15,16 +13,31 @@ body {
     padding: 30px;
     border-radius: 15px;
     text-align: center;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    width: 300px;
 }
 
 .settings-container h1 {
     margin-bottom: 20px;
+    font-size: 1.8em;
+    color: #00ccff;
 }
 
 .settings-option {
     margin-bottom: 15px;
     font-size: 1.2em;
+    color: #ddd;
+}
+
+.settings-option input {
+    background: #555;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    width: 80%;
+    margin-top: 5px;
+    font-size: 1em;
 }
 
 #back-button {
@@ -36,6 +49,7 @@ body {
     color: #fff;
     cursor: pointer;
     transition: background 0.3s, transform 0.2s;
+    margin-top: 20px;
 }
 
 #back-button:hover {
