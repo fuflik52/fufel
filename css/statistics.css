@@ -1,4 +1,8 @@
-/* statistics.css */
+/* ... существующие стили game.css ... */
+
+/* -------------------------
+   Статистика (statistics.css)
+------------------------- */
 
 /* Стиль контейнера статистики */
 .stats-container {
@@ -6,10 +10,10 @@
     color: #fff;
     padding: 20px;
     border-radius: 15px;
-    width: 100%; /* Изменено с 300px на 100% для адаптивности */
+    width: 100%; /* Для адаптивности */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    box-sizing: border-box; /* Добавлено для правильного расчета размеров */
+    box-sizing: border-box; /* Для правильного расчета размеров */
 }
 
 /* Стиль для каждого элемента статистики */
@@ -44,7 +48,7 @@
 }
 
 /* Стиль заголовка внутри вкладки статистики */
-.tab-content#statistics h2 {
+#statistics h2 {
     text-align: center;
     color: #4ecca3;
     margin-bottom: 20px;
@@ -61,4 +65,13 @@
     0% { opacity: 0.3; }
     50% { opacity: 1; }
     100% { opacity: 0.3; }
+}
+
+/* Стиль для таб-контента */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
 }

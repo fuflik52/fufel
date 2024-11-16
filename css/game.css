@@ -8,10 +8,10 @@
 }
 
 body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background: #222; /* Default game background */
+    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Унифицированный фон */
     color: #fff; /* Белый цвет текста по умолчанию */
     transition: background 0.3s ease, color 0.3s ease;
     overflow: hidden;
@@ -25,10 +25,11 @@ body {
     border: 2px solid #444;
     position: relative;
     overflow: hidden;
-    background-color: black;
+    background-color: transparent; /* Сделать фон прозрачным для наследования от body */
     margin: auto;
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    transition: width 0.3s ease, height 0.3s ease;
 }
 
 /* Информационные блоки */
@@ -78,10 +79,6 @@ body {
     cursor: grabbing;
 }
 
-
-
-
-
 /* Кнопка открытия магазина (гамбургер) */
 #open-shop-btn {
     position: absolute;
@@ -124,7 +121,7 @@ body {
 /* Кнопка перезапуска игры */
 .restart-btn {
     margin-top: 20px;
-    background: #FF9800; /* Оранжевый цвет */
+    background: #4CAF50; /* Зеленый цвет для согласованности */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -135,11 +132,11 @@ body {
 }
 
 .restart-btn:hover {
-    background: #FB8C00;
+    background: #43A047;
     transform: scale(1.05);
 }
 
-/* Магазин фонов (overlay) */
+/* Магазин (гамбургер-меню) */
 .shop-overlay {
     display: none; /* Hidden by default */
     position: fixed;
@@ -147,23 +144,27 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(128, 128, 128, 0.95); /* Серый фон */
+    background-color: rgba(26, 26, 46, 0.95); /* Полупрозрачный фон с градиентом */
     z-index: 999;
     justify-content: center;
     align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 
 /* Содержимое магазина */
 .shop-content {
-    background-color: #f0f0f0;
+    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Унифицированный фон */
     padding: 25px;
     border-radius: 15px;
-    width: 90%;
+    width: 100%;
     max-width: 900px;
     max-height: 90%;
     overflow-y: auto;
     position: relative;
     box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    color: #fff; /* Белый цвет текста */
 }
 
 /* Вкладки */
@@ -171,38 +172,53 @@ body {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .tab-button {
-    background: #e0e0e0;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     padding: 10px 20px;
-    margin: 0 5px;
+    margin: 5px;
     border-radius: 20px;
     cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
+    transition: background 0.3s, transform 0.2s, color 0.3s;
     font-size: 1em;
+    color: #fff;
 }
 
 .tab-button:hover {
-    background: #d5d5d5;
+    background: rgba(255, 255, 255, 0.15);
     transform: scale(1.05);
 }
 
 .tab-button.active {
-    background: #4CAF50;
-    color: white;
+    background: #4ecca3;
+    color: #1a1a2e;
 }
 
 /* Содержимое вкладок */
 .tab-content {
     display: none;
+    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Унифицированный фон */
+    border-radius: 15px;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .tab-content.active {
     display: block;
 }
 
+/* Заголовки внутри вкладок */
+.tab-content h2 {
+    text-align: center;
+    color: #4ecca3;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+/* Аудио контролы */
 .audio-controls {
     display: flex;
     flex-direction: column;
@@ -220,17 +236,10 @@ body {
     flex: 1;
 }
 
-.audio-control input[type="range"],
 .audio-control input[type="checkbox"] {
     flex: 2;
-}
-
-/* Заголовки внутри вкладок */
-.tab-content h2 {
-    text-align: center;
-    color: #4CAF50;
-    margin-bottom: 15px;
-    font-size: 26px;
+    transform: scale(1.5);
+    cursor: pointer;
 }
 
 /* Отображение баланса */
@@ -238,7 +247,7 @@ body {
     text-align: center;
     margin-bottom: 25px;
     font-size: 20px;
-    color: #333;
+    color: #4ecca3;
 }
 
 /* Контейнер фонов */
@@ -254,22 +263,24 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #e0e0e0;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
     padding: 15px;
     width: 180px;
     text-align: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     cursor: pointer;
-    transition: transform 0.3s, border 0.3s;
+    transition: transform 0.3s, border 0.3s, background 0.3s;
 }
 
 .background-item:hover {
     transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .background-item.selected {
-    border: 4px solid #4CAF50;
+    border: 4px solid #4ecca3;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Превью фона */
@@ -285,7 +296,25 @@ body {
 
 /* Кнопка покупки */
 .buy-btn {
-    background: #4CAF50;
+    background: #4ecca3;
+    color: #1a1a2e;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1em;
+    margin-top: 10px;
+}
+
+.buy-btn:hover {
+    background: #43a089;
+    transform: scale(1.05);
+}
+
+/* Кнопка отключения фона */
+.disable-bg-btn {
+    background: #F44336; /* Красный цвет */
     color: white;
     border: none;
     padding: 10px 20px;
@@ -293,10 +322,11 @@ body {
     cursor: pointer;
     transition: background 0.3s, transform 0.2s;
     font-size: 1em;
+    margin-top: 20px;
 }
 
-.buy-btn:hover {
-    background: #43A047;
+.disable-bg-btn:hover {
+    background: #D32F2F;
     transform: scale(1.05);
 }
 
@@ -320,7 +350,7 @@ body {
     transform: scale(1.05);
 }
 
-/* Модальное окно */
+/* Модальное окно окончания игры */
 .modal {
     display: none; /* Hidden by default */
     position: fixed;
@@ -334,8 +364,8 @@ body {
 }
 
 .modal-content {
-    background-color: #333; /* Темный фон для контрастного белого текста */
-    color: white; /* Белый цвет текста */
+    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Унифицированный фон */
+    color: #fff; /* Белый цвет текста */
     margin: 15% auto; /* 15% сверху и центрирование */
     padding: 20px;
     border: 1px solid #888;
@@ -347,6 +377,8 @@ body {
 
 .modal-content h2 {
     margin-bottom: 20px;
+    color: #4ecca3;
+    font-size: 24px;
 }
 
 .modal-content p {
@@ -365,12 +397,12 @@ body {
 }
 
 #play-again-btn {
-    background: #4CAF50;
-    color: white;
+    background: #4ecca3;
+    color: #1a1a2e;
 }
 
 #play-again-btn:hover {
-    background: #43A047;
+    background: #43a089;
     transform: scale(1.05);
 }
 
@@ -384,48 +416,29 @@ body {
     transform: scale(1.05);
 }
 
-/* Стиль для отображения номера на шаре */
-.ball {
-    position: absolute;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-weight: bold;
-    pointer-events: none;
-    text-shadow: 1px 1px 2px black;
-    user-select: none;
-    z-index: 10;
+/* Модальное окно выбора продолжения или начала новой игры */
+#resume-modal .modal-content {
+    background: linear-gradient(145deg, #1a1a2e, #16213e); /* Унифицированный фон */
+    color: #fff; /* Белый цвет текста */
 }
 
-/* Стиль для неоновой стрелки */
-.neon-arrow {
-    position: absolute;
-    width: 2px;
-    height: 100px; /* По умолчанию, будет динамически изменяться */
-    background-color: #00FF00; /* Зеленый цвет */
-    opacity: 0;
-    transition: opacity 0.3s, height 0.3s;
-    z-index: 1000;
-    top: 0;
-    left: 0;
+#resume-modal .modal-content h2 {
+    color: #4ecca3;
+    font-size: 24px;
 }
 
-.neon-arrow .arrow-line {
-    width: 2px;
-    height: 80%; /* Основная часть стрелки */
-    background-color: #00FF00;
+#resume-modal .modal-content p {
+    font-size: 1.1em;
 }
 
-.neon-arrow .arrow-head {
-    position: absolute;
-    bottom: 0;
-    left: -5px; /* Половина ширины стрелки */
-    width: 0;
-    height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-top: 14px solid #00FF00; /* Зеленый цвет */
+#resume-modal .modal-content button {
+    background: #4ecca3;
+    color: #1a1a2e;
+}
+
+#resume-modal .modal-content button:hover {
+    background: #43a089;
+    transform: scale(1.05);
 }
 
 /* Полоска очереди шаров */
@@ -452,20 +465,6 @@ body {
     flex-wrap: nowrap;
 }
 
-
-.visible-balls .ball {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: gray; /* Будет заменено цветом шара */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-}
-
 .hidden-balls .hidden-ball {
     width: 40px;
     height: 40px;
@@ -479,16 +478,146 @@ body {
     font-size: 24px;
 }
 
-/* Адаптивность */
+/* Стиль для неоновой стрелки */
+.neon-arrow {
+    position: absolute;
+    width: 2px;
+    height: 100px; /* По умолчанию, будет динамически изменяться */
+    background-color: #4ecca3; /* Зеленый цвет */
+    opacity: 0;
+    transition: opacity 0.3s, height 0.3s;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+}
+
+.neon-arrow .arrow-line {
+    width: 2px;
+    height: 80%; /* Основная часть стрелки */
+    background-color: #4ecca3;
+}
+
+.neon-arrow .arrow-head {
+    position: absolute;
+    bottom: 0;
+    left: -5px; /* Половина ширины стрелки */
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 14px solid #4ecca3; /* Зеленый цвет */
+}
+
+/* -------------------------
+   Статистика (statistics.css)
+------------------------- */
+
+/* Стиль контейнера статистики */
+.stats-container {
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    color: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    width: 100%; /* Для адаптивности */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    box-sizing: border-box; /* Для правильного расчета размеров */
+}
+
+/* Стиль для каждого элемента статистики */
+.stat-item {
+    background: rgba(255,255,255,0.1);
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: scale(1.02);
+    background: rgba(255,255,255,0.15);
+}
+
+/* Стиль для значений статистики */
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #4ecca3;
+    text-shadow: 0 0 10px rgba(78,204,163,0.3);
+}
+
+/* Стиль для меток статистики */
+.stat-label {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+/* Эффект блеска */
+.sparkle {
+    animation: sparkle 1.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes sparkle {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}
+
+/* -------------------------
+   Уведомления
+------------------------- */
+
+/* Контейнер для уведомлений */
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000; /* Выше остальных элементов */
+}
+
+/* Уведомление */
+.notification {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    max-width: 300px;
+    font-size: 1em;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification.success {
+    background-color: #4CAF50; /* Зеленый для успеха */
+}
+
+.notification.error {
+    background-color: #F44336; /* Красный для ошибок */
+}
+
+.notification.info {
+    background-color: #2196F3; /* Синий для информации */
+}
+
+/* -------------------------
+   Адаптивность
+------------------------- */
 @media (max-width: 768px) {
     #game-container {
         width: 90%;
         height: 90vh;
-    }
-
-    /* Полоска траектории */
-    #trajectory-line {
-        height: 150px;
     }
 
     /* Полоска очереди шаров */
@@ -514,9 +643,39 @@ body {
         font-size: 22px;
     }
 
-    /* Корректировка позиции красной линии */
+    /* Корректировка позиции неоновой стрелки */
     .neon-line {
         top: 180px; /* Можно изменить по необходимости */
+    }
+
+    /* Обеспечить, чтобы шары не улетали за экран */
+    #game-container {
+        overflow-x: hidden;
+    }
+
+    /* Корректировка кнопки открытия магазина */
+    #open-shop-btn {
+        top: 15px;
+        left: 15px;
+        width: 25px;
+        height: 20px;
+    }
+
+    #open-shop-btn span {
+        height: 3px;
+    }
+
+    /* Корректировка шрифтов */
+    .stat-label {
+        font-size: 14px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+    }
+
+    #statistics h2 {
+        font-size: 24px;
     }
 }
 
@@ -526,8 +685,8 @@ body {
         height: 100vh;
     }
 
-    /* Скрыть элементы кроме игры на мобильных устройствах */
-    body > :not(#game-container) {
+    /* Скрыть элементы кроме игры, магазина и модальных окон на мобильных устройствах */
+    body > :not(#game-container):not(.shop-overlay):not(.modal) {
         display: none;
     }
 
@@ -535,9 +694,11 @@ body {
         margin: 0;
     }
 
-    /* Полоска траектории */
-    #trajectory-line {
-        height: 120px;
+    /* Полоска очереди шаров */
+    .ball-queue {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     }
 
     .background-item {
@@ -553,73 +714,38 @@ body {
         font-size: 20px;
     }
 
-    /* Корректировка позиции красной линии для маленьких экранов */
+    /* Корректировка позиции неоновой стрелки для маленьких экранов */
     .neon-line {
         top: 180px; /* Можно изменить по необходимости */
     }
-}
 
+    /* Обеспечить, чтобы шары не улетали за экран */
+    #game-container {
+        overflow-x: hidden;
+    }
 
+    /* Корректировка кнопки открытия магазина */
+    #open-shop-btn {
+        top: 15px;
+        left: 15px;
+        width: 25px;
+        height: 20px;
+    }
 
-/* Стиль для модального окна выбора продолжения или начала новой игры */
-#resume-modal .modal-content {
-    background-color: #333;
-    color: white;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 400px;
-    border-radius: 15px;
-    text-align: center;
-}
+    #open-shop-btn span {
+        height: 3px;
+    }
 
-#resume-modal .modal-content h2 {
-    margin-bottom: 20px;
-}
+    /* Корректировка шрифтов */
+    .stat-label {
+        font-size: 14px;
+    }
 
-#resume-modal .modal-content p {
-    font-size: 1.2em;
-    margin-bottom: 30px;
-}
+    .stat-value {
+        font-size: 20px;
+    }
 
-#resume-modal .modal-content button {
-    padding: 10px 20px;
-    margin: 0 10px;
-    font-size: 1em;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
-}
-
-#continue-game-btn {
-    background: #4CAF50;
-    color: white;
-}
-
-#continue-game-btn:hover {
-    background: #43A047;
-    transform: scale(1.05);
-}
-
-#start-new-game-btn {
-    background: #F44336;
-    color: white;
-}
-
-#start-new-game-btn:hover {
-    background: #D32F2F;
-    transform: scale(1.05);
-}
-.stats-container {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    font-size: 16px;
-    z-index: 1000;
+    #statistics h2 {
+        font-size: 24px;
+    }
 }

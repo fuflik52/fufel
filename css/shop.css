@@ -1,148 +1,289 @@
+/* game.css */
+
+/* Общие стили */
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
     margin: 0;
-    background: #1a1a2e;
+    padding: 0;
     font-family: Arial, sans-serif;
+    background: linear-gradient(#1a1a2e, #1a1a2e);
     transition: background 0.5s;
 }
 
-.shop-container {
-    background: linear-gradient(to bottom, #2a2a4a, #1a1a2e);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-
-.shop-header {
+/* Контейнер игры */
+#game-container {
     position: relative;
-    text-align: center;
-    margin-bottom: 20px;
+    width: 500px;
+    height: 700px;
+    margin: 0 auto;
+    background: transparent;
+    overflow: hidden;
 }
 
-.shop-sign {
-    background: #8b0000;
-    color: #ffd700;
-    padding: 10px 40px;
-    border-radius: 10px;
-    font-size: 32px;
+/* Информационные блоки */
+.info-box {
+    position: absolute;
+    color: #fff;
+    font-size: 20px;
     font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    border: 3px solid #fff;
-    position: relative;
+    text-shadow: 1px 1px 2px black;
 }
 
-.shop-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    padding: 20px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
+#score {
+    top: 20px;
+    left: 20px;
 }
 
-.shop-item {
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    padding: 10px;
-    text-align: center;
-    transition: transform 0.2s;
-    cursor: pointer;
+#next-ball {
+    top: 20px;
+    right: 20px;
+}
+
+#current-ball {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Кнопка открытия меню (гамбургер) */
+.open-menu-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 30px;
+    height: 25px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-}
-
-.shop-item:hover {
-    transform: scale(1.05);
-}
-
-/* Золотая обводка для последних трех товаров */
-.shop-item:nth-last-child(1), 
-.shop-item:nth-last-child(2), 
-.shop-item:nth-last-child(3) {
-    border: 3px solid #ffd700; /* Золотая обводка */
-}
-
-.item-image {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    margin: 0 auto 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.buy-button {
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 5px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-    margin-top: 10px;
-    width: 80%;
-}
-
-.buy-button:hover {
-    background: #45a049;
-}
-
-.apply-button, .disable-button {
-    background: #2196F3;
-    color: white;
-    border: none;
-    padding: 5px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-    margin-top: 5px;
-    display: none;
-    width: 80%;
-}
-
-.apply-button:hover, .disable-button:hover {
-    background: #1976D2;
-}
-
-.balance {
-    color: #ffd700;
-    font-size: 24px;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.item-name {
-    color: white;
-    margin: 5px 0;
-}
-
-.item-price {
-    color: #ffd700;
-    margin: 5px 0;
-}
-
-.disable-button {
-    display: block;
-    background: #FF4500;
-    margin: 20px auto 0;
-}
-
-.close-shop-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+    justify-content: space-between;
     background: transparent;
     border: none;
-    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.open-menu-btn span {
+    display: block;
+    height: 3px;
+    background: #fff;
+    border-radius: 2px;
+}
+
+/* Оверлей меню и магазин */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: none; /* Скрыто по умолчанию */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.overlay-content {
+    background: #333;
+    padding: 20px;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+    color: #fff;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 30px;
     color: #fff;
     cursor: pointer;
 }
 
-.close-shop-btn:hover {
+.close-btn:hover {
     color: #ff0000;
+}
+
+/* Кнопки меню */
+.menu-button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.3s;
+}
+
+.menu-button:hover {
+    background: #555;
+}
+
+/* Магазин */
+.backgrounds-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 20px 0;
+}
+
+.background-item {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.background-item:hover {
+    transform: scale(1.05);
+}
+
+.background-item .preview {
+    width: 100%;
+    height: 100px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.buy-btn {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.buy-btn:hover {
+    background: #45a049;
+}
+
+.disable-button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    background: #FF4500;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.disable-button:hover {
+    background: #e03e00;
+}
+
+/* Модальные окна */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.9);
+    display: none; /* Скрыто по умолчанию */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal-content {
+    background: #444;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: #fff;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    margin: 15px 10px 0 10px;
+    background: #2196F3;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.modal-btn:hover {
+    background: #1976D2;
+}
+
+/* Неоновая стрелка */
+.neon-arrow {
+    position: absolute;
+    width: 2px;
+    height: 100px; /* По умолчанию, будет динамически изменяться */
+    background-color: #00FF00; /* Зеленый цвет */
+    opacity: 0;
+    transition: opacity 0.3s, height 0.3s;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+}
+
+.neon-arrow .arrow-line {
+    width: 2px;
+    height: 80%; /* Основная часть стрелки */
+    background-color: #00FF00;
+}
+
+.neon-arrow .arrow-head {
+    position: absolute;
+    bottom: 0;
+    left: -5px; /* Половина ширины стрелки */
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 14px solid #00FF00; /* Зеленый цвет */
+}
+
+/* Остальные стили остаются без изменений */
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    #game-container {
+        width: 90%;
+        height: 90vh;
+    }
+
+    .backgrounds-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    #game-container {
+        width: 100%;
+        height: 100vh;
+    }
+
+    .overlay-content {
+        width: 90%;
+    }
+
+    .background-item .preview {
+        height: 80px;
+    }
+
+    .background-item {
+        padding: 5px;
+    }
+
+    .buy-btn, .disable-button, .menu-button {
+        padding: 6px;
+        font-size: 14px;
+    }
 }
