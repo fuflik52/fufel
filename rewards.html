@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="." />
+    <title>Награды</title>
+    <link rel="stylesheet" href="css/rewards.css">
+</head>
+<body>
+
+    <div class="wrapper">
+        <div class="rewards-container">
+            <button class="close-btn" onclick="closeRewards()">✕</button>
+            <h2>Награды <span class="sparkle">🎯</span></h2>
+            
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('today')">Сегодня</button>
+                <button class="tab-btn" onclick="switchTab('achievements')">Достижения</button>
+            </div>
+
+            <div id="today" class="tab-content active">
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Открыть 6 шаров</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+100</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Набрать 1500 очков</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+200</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Открыть 10 шаров</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+300</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Набрать 2000 очков</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+400</span>
+                </div>
+            </div>
+
+            <div id="achievements" class="tab-content">
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Открыть 12 шаров</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+500</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Набрать 3000 очков</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+600</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Открыть 15 шаров</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+1000</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Набрать 5000 очков</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+1500</span>
+                </div>
+
+                <div class="reward-item">
+                    <div>
+                        <span class="reward-title">Мастер шаров: открыть 20 шаров</span>
+                        <div class="reward-progress">
+                            <div class="reward-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text">0%</div>
+                    </div>
+                    <span class="reward-value">+2000</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/rewards.js"></script>
+</body>
+</html>

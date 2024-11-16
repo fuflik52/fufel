@@ -1,4 +1,4 @@
-// game.js
+// js/game.js
 
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------
@@ -31,18 +31,71 @@ document.addEventListener('DOMContentLoaded', () => {
         sfxToggle: document.getElementById('sfx-toggle'),
         restartGameBtn: document.getElementById('restart-game-btn'),
         disableBackgroundBtn: document.getElementById('disable-background'),
+        notificationsContainer: document.getElementById('notification-container'),
+        tasksContainer: document.querySelector('#tasks .stats-container'), // Контейнер для заданий
     };
 
     // Проверка наличия всех необходимых элементов
     const missingElements = Object.entries(DOM).filter(([key, element]) => element === null);
     if (missingElements.length > 0) {
-        const missingIDs = missingElements.map(([key, element]) => key);
-        console.error('Не удалось найти некоторые элементы в DOM. Проверьте ID элементов в HTML.', missingIDs);
+        // console.error('Не удалось найти некоторые элементы в DOM. Проверьте ID элементов в HTML.', missingIDs);
         return;
     }
 
     // -------------------------
-    // 2. Инициализация переменных состояния
+    // 2. Определение стандартных заданий
+    // -------------------------
+    const defaultTasks = [
+        {
+            id: 'open-6-balls',
+            title: 'Открыть 6 шаров',
+            type: 'ballsOpened',
+            target: 6,
+            reward: 100,
+            progress: 0,
+            completed: false
+        },
+        {
+            id: 'score-1500',
+            title: 'Набрать 1500 очков',
+            type: 'score',
+            target: 1500,
+            reward: 200,
+            progress: 0,
+            completed: false
+        },
+        {
+            id: 'open-10-balls',
+            title: 'Открыть 10 шаров',
+            type: 'ballsOpened',
+            target: 10,
+            reward: 300,
+            progress: 0,
+            completed: false
+        },
+        {
+            id: 'score-2000',
+            title: 'Набрать 2000 очков',
+            type: 'score',
+            target: 2000,
+            reward: 400,
+            progress: 0,
+            completed: false
+        },
+        {
+            id: 'master-20-balls',
+            title: 'Мастер шаров: открыть 20 шаров',
+            type: 'ballsOpened',
+            target: 20,
+            reward: 2000,
+            progress: 0,
+            completed: false
+        },
+        // Добавьте дополнительные задания здесь
+    ];
+
+    // -------------------------
+    // 3. Инициализация переменных состояния
     // -------------------------
     let state = {
         balance: parseInt(localStorage.getItem('balance')) || 500,
@@ -59,7 +112,47 @@ document.addEventListener('DOMContentLoaded', () => {
         isCooldown: false,
         bgmEnabled: JSON.parse(localStorage.getItem('bgmEnabled')) !== false, // По умолчанию включено
         sfxEnabled: JSON.parse(localStorage.getItem('sfxEnabled')) !== false, // По умолчанию включено
+        tasks: [] // Будет инициализировано ниже
     };
+
+    // -------------------------
+    // 4. Загрузка и объединение заданий
+    // -------------------------
+    function loadAndMergeTasks() {
+        let savedTasks = JSON.parse(localStorage.getItem('tasks'));
+
+        if (!Array.isArray(savedTasks)) {
+            savedTasks = [];
+        }
+
+        // Создаём объект для быстрого поиска сохранённых заданий по id
+        const savedTasksMap = {};
+        savedTasks.forEach(task => {
+            savedTasksMap[task.id] = task;
+        });
+
+        // Добавляем все стандартные задания, если их нет в сохранённых
+        defaultTasks.forEach(defaultTask => {
+            if (!savedTasksMap[defaultTask.id]) {
+                savedTasks.push(defaultTask);
+            } else {
+                // Если задание существует, убедимся, что все необходимые поля присутствуют
+                const savedTask = savedTasksMap[defaultTask.id];
+                Object.keys(defaultTask).forEach(key => {
+                    if (savedTask[key] === undefined) {
+                        savedTask[key] = defaultTask[key];
+                    }
+                });
+            }
+        });
+
+        state.tasks = savedTasks;
+
+        // Сохраняем обновлённый список заданий обратно в localStorage
+        localStorage.setItem('tasks', JSON.stringify(state.tasks));
+    }
+
+    loadAndMergeTasks();
 
     // Обновление UI
     DOM.currentBalanceElement.textContent = state.balance;
@@ -69,9 +162,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCurrentBall();
     displayStatistics(state.statistics);
     updateAudioSettings();
+    renderTasks(); // Рендеринг заданий
 
     // -------------------------
-    // 3. Инициализация Matter.js
+    // 5. Инициализация Matter.js
     // -------------------------
     const engine = Matter.Engine.create();
     const world = engine.world;
@@ -110,12 +204,12 @@ document.addEventListener('DOMContentLoaded', () => {
     Matter.Render.run(renderEngine);
 
     // -------------------------
-    // 4. Вспомогательные функции
+    // 6. Вспомогательные функции
     // -------------------------
 
     // Функция для отображения уведомлений
     function showNotification(message, type = 'info', duration = 3000) {
-        const container = document.getElementById('notification-container');
+        const container = DOM.notificationsContainer;
         if (!container) return;
 
         const notification = document.createElement('div');
@@ -163,8 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         ball.label = value.toString();
         Matter.World.add(world, ball);
-        // positionNeonArrow(); // Возможно, эта функция мешает. Проверьте необходимость вызова здесь.
-        console.log(`Создан шар: ${ball.label} на позиции (${ball.position.x}, ${ball.position.y})`);
         return ball;
     }
 
@@ -211,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Отображение статистики
     function displayStatistics(statistics) {
-        const statisticsContent = document.getElementById('statistics-content');
+        const statisticsContent = DOM.statisticsContent;
         if (!statisticsContent) return;
 
         statisticsContent.innerHTML = `
@@ -240,6 +332,70 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('statistics', JSON.stringify(state.statistics));
     }
 
+    // Рендеринг заданий
+    function renderTasks() {
+        const tasksContainer = DOM.tasksContainer;
+        if (!tasksContainer) {
+            return;
+        }
+
+        tasksContainer.innerHTML = ''; // Очистить контейнер
+
+        state.tasks.forEach(task => {
+            const taskItem = document.createElement('div');
+            taskItem.classList.add('reward-item');
+            if (task.completed) {
+                taskItem.classList.add('completed');
+            }
+
+            taskItem.innerHTML = `
+                <div>
+                    <span class="reward-title">${task.title}</span>
+                    <div class="reward-progress">
+                        <div class="reward-progress-bar" style="width: ${Math.min((task.progress / task.target) * 100, 100)}%"></div>
+                    </div>
+                    <div class="progress-text">${Math.min(Math.floor((task.progress / task.target) * 100), 100)}%</div>
+                </div>
+                <span class="reward-value">+${task.reward} ${task.completed ? '🎉' : ''}</span>
+            `;
+
+            tasksContainer.appendChild(taskItem);
+        });
+    }
+
+    // Обновление прогресса заданий
+    function updateTaskProgress(type, amount) {
+        let tasksUpdated = false;
+
+        state.tasks.forEach(task => {
+            if (task.type === type && !task.completed) {
+                task.progress += amount;
+                if (task.progress >= task.target) {
+                    task.progress = task.target;
+                    task.completed = true;
+                    awardReward(task);
+                    showNotification(`Задание "${task.title}" выполнено! Вы получили ${task.reward} монет.`, 'success');
+                }
+                tasksUpdated = true;
+            }
+        });
+
+        if (tasksUpdated) {
+            saveTasks();
+            renderTasks();
+        }
+    }
+
+    // Начисление награды за выполнение задания
+    function awardReward(task) {
+        updateBalance(state.balance + task.reward);
+    }
+
+    // Сохранение заданий
+    function saveTasks() {
+        localStorage.setItem('tasks', JSON.stringify(state.tasks));
+    }
+
     // Сохранение состояния игры
     function saveGameState() {
         const bodies = Matter.Composite.allBodies(world).filter(body => !body.isStatic && body.label);
@@ -249,7 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
             label: body.label,
             velocity: body.velocity
         }));
-        localStorage.setItem('balls', JSON.stringify(balls));
+        try {
+            localStorage.setItem('balls', JSON.stringify(balls));
+        } catch (error) {
+            // Обработка ошибки при сохранении шаров
+        }
         localStorage.setItem('score', state.score);
         localStorage.setItem('nextBallValue', state.nextBallValue);
         localStorage.setItem('currentBallValue', state.currentBallValue);
@@ -257,18 +417,25 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('balance', state.balance);
         localStorage.setItem('bgmEnabled', state.bgmEnabled);
         localStorage.setItem('sfxEnabled', state.sfxEnabled);
+        saveTasks();
     }
 
     // Загрузка состояния игры
     function loadGameState() {
-        const savedBalls = JSON.parse(localStorage.getItem('balls'));
-        if (savedBalls && savedBalls.length > 0) {
-            console.log('Загрузка сохранённых шаров:', savedBalls);
+        let savedBalls;
+        try {
+            savedBalls = JSON.parse(localStorage.getItem('balls'));
+        } catch (error) {
+            savedBalls = null;
+        }
+
+        if (savedBalls && Array.isArray(savedBalls) && savedBalls.length > 0) {
             savedBalls.forEach(ballData => {
-                const ball = createBall(ballData.x, ballData.y, parseInt(ballData.label));
-                if (ball) {
-                    Matter.Body.setVelocity(ball, ballData.velocity);
-                    console.log(`Создан шар: ${ball.label} на позиции (${ball.position.x}, ${ball.position.y}) с скоростью (${ball.velocity.x}, ${ball.velocity.y})`);
+                if (ballData.x !== undefined && ballData.y !== undefined && ballData.label !== undefined && ballData.velocity) {
+                    const ball = createBall(ballData.x, ballData.y, parseInt(ballData.label));
+                    if (ball) {
+                        Matter.Body.setVelocity(ball, ballData.velocity);
+                    }
                 }
             });
             state.score = parseInt(localStorage.getItem('score')) || 0;
@@ -294,11 +461,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Обновление отображения статистики
             displayStatistics(state.statistics);
-            
-            console.log('Состояние игры успешно загружено.');
+
+            // Обновление прогресса заданий
+            renderTasks();
         } else {
-            console.log('Сохранённые шары не найдены. Инициализация новой игры.');
+            initializeNewGame();
         }
+    }
+
+    // Инициализация новой игры
+    function initializeNewGame() {
+        // Сброс всех параметров (опционально)
+        state.score = 0;
+        DOM.scoreElement.textContent = `Очки: ${state.score}`;
+        state.currentBallValue = 1;
+        state.nextBallValue = getRandomBallValue();
+        updateNextBall();
+        updateCurrentBall();
+
+        // Очистка мира, сохраняя статические тела
+        Matter.World.clear(engine.world, false);
+        Matter.Engine.clear(engine);
+        Matter.Render.stop(renderEngine);
+        Matter.Runner.stop(runner);
+
+        // Воссоздание статических тел с обновлёнными размерами
+        staticBodies.forEach(body => {
+            Matter.World.add(engine.world, body);
+        });
+
+        // Запуск Runner и Render заново
+        Matter.Runner.run(runner, engine);
+        Matter.Render.run(renderEngine);
+
+        // Создание начального шара
+        createBall(DOM.gameContainer.clientWidth / 2, 100, state.currentBallValue);
+        positionNeonArrow();
+
+        // Разрешить бросок
+        state.isCooldown = false;
+
+        // Сохранение состояния
+        saveGameState();
     }
 
     // Очистка сохранённого состояния игры
@@ -311,10 +515,11 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('balance');
         localStorage.removeItem('bgmEnabled');
         localStorage.removeItem('sfxEnabled');
+        localStorage.removeItem('tasks');
     }
 
     // -------------------------
-    // 5. Обработчики модальных окон
+    // 7. Обработчики модальных окон
     // -------------------------
     function setupModalHandlers() {
         DOM.playAgainBtn.addEventListener('click', restartGame);
@@ -331,7 +536,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 6. Обработчики магазина и меню
+    // 8. Обработчики магазина и меню
     // -------------------------
     function setupShopHandlers() {
         // Открытие магазина
@@ -369,6 +574,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Если вкладка "Статистика", обновить её содержимое
                 if (targetTab === 'statistics') {
                     displayStatistics(state.statistics);
+                }
+
+                // Если вкладка "Задания", рендерить задания
+                if (targetTab === 'tasks') {
+                    renderTasks();
                 }
             });
         });
@@ -488,6 +698,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Автоматически применяем купленный фон
                     applyBackground(bg.background);
                     showNotification(`Фон "${bg.name}" применён!`, 'success');
+
+                    // Обновление прогресса заданий (например, покупка фона может быть заданием)
+                    updateTaskProgress('purchaseBackground', 1); // Тип задания 'purchaseBackground', количество 1
                 } else {
                     showNotification('Недостаточно монет для покупки этого фона!', 'error');
                 }
@@ -580,16 +793,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (newBall) {
                 Matter.Body.setVelocity(newBall, { x: 0, y: velocityY });
                 startCooldown();
+
+                // Обновление текущего и следующего шара
+                state.currentBallValue = state.nextBallValue;
+                state.nextBallValue = getRandomBallValue();
+                updateNextBall();
+                updateCurrentBall();
+
+                // Сохранение состояния
+                saveGameState();
+
+                // Обновление прогресса заданий (например, открытие шара)
+                updateTaskProgress('ballsOpened', 1); // Тип задания 'ballsOpened', количество 1
             }
-
-            // Обновление текущего и следующего шара
-            state.currentBallValue = state.nextBallValue;
-            state.nextBallValue = getRandomBallValue();
-            updateNextBall();
-            updateCurrentBall();
-
-            // Сохранение состояния
-            saveGameState();
         }
 
         document.addEventListener('mouseup', (e) => handleDragEnd(e.clientX, e.clientY));
@@ -622,21 +838,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (newBall) {
                 Matter.Body.setVelocity(newBall, { x: velocityX, y: velocityY });
                 startCooldown();
+
+                // Обновление текущего и следующего шара
+                state.currentBallValue = state.nextBallValue;
+                state.nextBallValue = getRandomBallValue();
+                updateNextBall();
+                updateCurrentBall();
+
+                // Сохранение состояния
+                saveGameState();
+
+                // Обновление прогресса заданий (например, бросок шара)
+                updateTaskProgress('ballsOpened', 1); // Тип задания 'ballsOpened', количество 1
             }
-
-            // Обновление текущего и следующего шара
-            state.currentBallValue = state.nextBallValue;
-            state.nextBallValue = getRandomBallValue();
-            updateNextBall();
-            updateCurrentBall();
-
-            // Сохранение состояния
-            saveGameState();
         });
     }
 
     // -------------------------
-    // 8. Обработчики столкновений и объединения шаров
+    // 9. Обработчики столкновений и объединения шаров
     // -------------------------
     function setupCollisionHandlers(engine, renderEngine) {
         Matter.Events.on(engine, 'collisionStart', (event) => {
@@ -666,11 +885,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         state.statistics.highScore = newValue;
                     }
 
+                    // Вызов эффекта вспышки пыли
+                    createDustFlash(newX, newY); // Добавляем вызов эффекта
+
                     // Сохранение состояния
                     saveGameState();
 
                     // Обновление отображения статистики
                     displayStatistics(state.statistics);
+
+                    // Обновление прогресса заданий (например, увеличение счета)
+                    updateTaskProgress('score', newValue); // Тип задания 'score', количество newValue
 
                     // Проверка условия окончания игры
                     checkGameOver();
@@ -680,7 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 9. Функция проверки окончания игры
+    // 10. Функция проверки окончания игры
     // -------------------------
     function checkGameOver() {
         const bodies = Matter.Composite.allBodies(engine.world).filter(body => !body.isStatic && body.label);
@@ -741,6 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Создание начального шара
         createBall(DOM.gameContainer.clientWidth / 2, 100, state.currentBallValue);
+        positionNeonArrow();
 
         // Разрешить бросок
         state.isCooldown = false;
@@ -750,6 +976,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Скрыть модальное окно окончания игры
         DOM.gameOverModal.style.display = 'none';
+
+        // Рендеринг заданий
+        renderTasks();
     }
 
     // Выход из игры
@@ -814,10 +1043,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Реализуйте включение/выключение фоновой музыки здесь
             if (state.bgmEnabled) {
                 // Включить музыку
-                console.log('Фоновая музыка включена');
+                // Например: bgm.play();
             } else {
                 // Выключить музыку
-                console.log('Фоновая музыка выключена');
+                // Например: bgm.pause();
             }
         });
 
@@ -828,10 +1057,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Реализуйте включение/выключение звуковых эффектов здесь
             if (state.sfxEnabled) {
                 // Включить звуки
-                console.log('Звуковые эффекты включены');
             } else {
                 // Выключить звуки
-                console.log('Звуковые эффекты выключены');
             }
         });
     }
@@ -842,7 +1069,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 13. Инициализация всех обработчиков
+    // 13. Рендеринг заданий
+    // -------------------------
+    // Эта функция уже определена выше. Убедитесь, что она определяется только один раз.
+
+    // -------------------------
+    // 14. Инициализация всех обработчиков
     // -------------------------
     function initialize() {
         setupModalHandlers();
@@ -855,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // -------------------------
-    // 14. Проверка наличия сохранённой игры
+    // 15. Проверка наличия сохранённой игры
     // -------------------------
     function checkSavedGame() {
         if (localStorage.getItem('balls')) {
@@ -864,17 +1096,15 @@ document.addEventListener('DOMContentLoaded', () => {
             DOM.resumeModal.style.display = 'flex';
         } else {
             // Инициализация новой игры
-            createBall(DOM.gameContainer.clientWidth / 2, 100, state.currentBallValue);
-            positionNeonArrow();
+            initializeNewGame();
         }
     }
 
     // -------------------------
-    // 15. Глобальная функция для спавна шаров через консоль
+    // 16. Глобальная функция для спавна шаров через консоль
     // -------------------------
     window.spawnBall = function(x, y, value) {
         if (state.isCooldown) {
-            console.warn('Сейчас на кулдауне. Попробуйте позже.');
             return;
         }
 
@@ -891,11 +1121,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Сохранение состояния
             saveGameState();
+
+            // Обновление прогресса заданий (например, открытие шара)
+            updateTaskProgress('ballsOpened', 1); // Тип задания 'ballsOpened', количество 1
         }
     };
 
     // -------------------------
-    // 16. Инициализация
+    // 17. Инициализация
     // -------------------------
     initialize();
 });

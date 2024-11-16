@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Awesome Game - Игра</title>
+    <!-- Подключение CSS файлов -->
     <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="css/effects.css"> <!-- CSS для эффектов -->
+    <link rel="stylesheet" href="/line.css"> <!-- CSS для линии -->
 </head>
 <body>
     <!-- Контейнер игры -->
@@ -23,9 +26,6 @@
         
         <!-- Красная неоновая линия под очками -->
         <div id="neon-line" class="neon-line"></div>
-        
-        <!-- Эффект пыли -->
-        <div id="dust-flash" class="dust-flash"></div>
         
         <!-- Неоновая стрелка под шаром -->
         <div id="neon-arrow" class="neon-arrow">
@@ -80,7 +80,7 @@
                 <div class="backgrounds" id="backgrounds-container">
                     <!-- Фоны будут добавлены динамически через JavaScript -->
                 </div>
-                <!-- Добавленная кнопка для отключения фона -->
+                <!-- Кнопка для отключения фона -->
                 <button id="disable-background" class="disable-bg-btn">Отключить фон</button>
             </div>
 
@@ -121,7 +121,7 @@
         <div class="modal-content">
             <h2>Продолжить игру?</h2>
             <p>Вы нашли сохранённую игру. Хотите продолжить или начать заново?</p>
-            <!-- Добавленный элемент для отображения сохранённого счёта -->
+            <!-- Элемент для отображения сохранённого счёта -->
             <p>Ваш сохранённый счёт: <span id="resume-score">0</span></p>
             <button id="continue-game-btn" class="modal-btn">Продолжить</button>
             <button id="start-new-game-btn" class="modal-btn">Начать заново</button>
@@ -133,6 +133,8 @@
 
     <!-- Подключение скриптов -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.18.0/matter.min.js" defer></script>
-    <script src="js/game.js" defer></script>
+    <script src="js/effects.js" defer></script> <!-- effects.js подключается первым -->
+    <script src="js/game.js" defer></script> <!-- game.js подключается перед line.js -->
+    <script src="js/rewards.js" defer></script> <!-- Другие скрипты -->
 </body>
 </html>
