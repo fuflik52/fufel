@@ -79,50 +79,40 @@ body {
     cursor: grabbing;
 }
 
-/* Кнопка открытия магазина (гамбургер) */
+/* Кнопка открытия магазина (шестерёнка) */
 #open-shop-btn {
     position: absolute;
     top: 20px;
     left: 20px;
-    width: 30px;
-    height: 25px;
+    width: 40px; /* Увеличенный размер для удобства */
+    height: 40px;
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background: transparent;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1); /* Добавить фон для видимости */
     border: none;
     cursor: pointer;
     z-index: 1000;
     padding: 0;
-}
-
-#open-shop-btn span {
-    display: block;
-    width: 100%;
-    height: 4px;
-    background-color: white;
-    border-radius: 2px;
+    border-radius: 50%; /* Круглая форма */
     transition: all 0.3s ease;
 }
 
-/* Анимация для гамбургера при открытии магазина */
-#open-shop-btn.open span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
+#open-shop-btn span {
+    display: none; /* Скрыть полоски */
 }
 
-#open-shop-btn.open span:nth-child(2) {
-    opacity: 0;
-}
-
-#open-shop-btn.open span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
+#open-shop-btn::before {
+    content: '⚙'; /* Unicode символ шестерёнки */
+    font-size: 24px;
+    color: white;
 }
 
 /* Кнопка перезапуска игры */
 .restart-btn {
     margin-top: 20px;
-    background: #4CAF50; /* Зеленый цвет для согласованности */
-    color: white;
+    background: #4ecca3; /* Зеленый цвет для согласованности */
+    color: #1a1a2e;
     border: none;
     padding: 10px 20px;
     border-radius: 25px;
@@ -132,7 +122,7 @@ body {
 }
 
 .restart-btn:hover {
-    background: #43A047;
+    background: #43a089;
     transform: scale(1.05);
 }
 
@@ -253,9 +243,21 @@ body {
 /* Контейнер фонов */
 .backgrounds {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto; /* Горизонтальная прокрутка */
     gap: 25px;
-    justify-content: center;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Плавная прокрутка на мобильных */
+    cursor: grab; /* Индикатор, что можно прокручивать */
+}
+
+.backgrounds::-webkit-scrollbar {
+    display: none; /* Скрыть скроллбар для Webkit */
+}
+
+.backgrounds {
+    -ms-overflow-style: none;  /* IE и Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 /* Элемент фона */
@@ -271,6 +273,7 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     cursor: pointer;
     transition: transform 0.3s, border 0.3s, background 0.3s;
+    flex: 0 0 auto; /* Предотвращает сжатие */
 }
 
 .background-item:hover {
@@ -482,7 +485,7 @@ body {
 .neon-arrow {
     position: absolute;
     width: 2px;
-    height: 100px; /* По умолчанию, будет динамически изменяться */
+    height: 60px; /* Уменьшенная длина стрелки */
     background-color: #4ecca3; /* Зеленый цвет */
     opacity: 0;
     transition: opacity 0.3s, height 0.3s;
@@ -657,12 +660,12 @@ body {
     #open-shop-btn {
         top: 15px;
         left: 15px;
-        width: 25px;
-        height: 20px;
+        width: 35px;
+        height: 35px; /* Уменьшить размер для мобильных */
     }
 
-    #open-shop-btn span {
-        height: 3px;
+    #open-shop-btn::before {
+        font-size: 20px; /* Уменьшить размер иконки */
     }
 
     /* Корректировка шрифтов */
@@ -728,12 +731,15 @@ body {
     #open-shop-btn {
         top: 15px;
         left: 15px;
-        width: 25px;
-        height: 20px;
+        width: 40px; /* Увеличить размер для удобства на мобильных */
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.1); /* Добавить фон для видимости */
     }
 
-    #open-shop-btn span {
-        height: 3px;
+    #open-shop-btn::before {
+        content: '⚙'; /* Unicode символ шестерёнки */
+        font-size: 24px;
+        color: white;
     }
 
     /* Корректировка шрифтов */
@@ -747,5 +753,11 @@ body {
 
     #statistics h2 {
         font-size: 24px;
+    }
+
+    /* Корректировка кнопки закрытия магазина чтобы не перекрывала меню */
+    .close-shop-btn {
+        top: 15px;
+        right: 50px; /* Отодвинуть вправо, чтобы не перекрывать меню */
     }
 }
