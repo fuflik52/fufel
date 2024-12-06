@@ -981,7 +981,7 @@ function createNewChat() {
     
     chatMessages.innerHTML = '';
     
-    const userKey = currentTelegramId;
+    const userKey = currentTelegramId || 'default';
     const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
     
     const newChat = {
@@ -1001,7 +1001,7 @@ function createNewChat() {
 
 function loadChatHistory() {
     const historyContainer = document.querySelector('.chat-history');
-    const userKey = currentTelegramId;
+    const userKey = currentTelegramId || 'default';
     const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
     
     if (!historyContainer) return;
@@ -1055,7 +1055,7 @@ function loadChatHistory() {
 }
 
 function deleteChat(chatId) {
-    const userKey = currentTelegramId;
+    const userKey = currentTelegramId || 'default';
     let history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
     
     history = history.filter(chat => chat.id !== chatId);
@@ -1068,7 +1068,7 @@ function deleteChat(chatId) {
 }
 
 function setDefaultUserInfo() {
-    currentTelegramId = null; // Changed from 'default' to null
+    currentTelegramId = 'default';
     currentUsername = 'Guest User';
     currentAvatar = null;
     telegramInitialized = false;
@@ -1076,7 +1076,6 @@ function setDefaultUserInfo() {
     const profileImage = document.querySelector('.profile-image');
     const usernameEl = document.querySelector('.profile-info h2');
     const telegramIdEl = document.getElementById('telegramId');
-    const tokensDisplay = document.querySelector('.tokens-display');
 
     if (profileImage) {
         profileImage.innerHTML = `
@@ -1090,17 +1089,45 @@ function setDefaultUserInfo() {
     }
     
     if (telegramIdEl) {
-        telegramIdEl.textContent = 'Войдите через Telegram для использования токенов';
+        telegramIdEl.textContent = 'Not connected to Telegram';
     }
 
-    if (tokensDisplay) {
-        tokensDisplay.textContent = 'Требуется вход';
-    }
-
+    initializeTokens();
     loadChatHistory();
 }
 
-// Update the initialization code to only show tokens for Telegram users
+function initializeTokens() {
+    const userKey = currentTelegramId || 'default';
+    const storedTokens = localStorage.getItem(`tokens_${userKey}`);
+    if (storedTokens === null) {
+        localStorage.setItem(`tokens_${userKey}`, '500');
+        userTokens = 500;
+    } else {
+        userTokens = parseInt(storedTokens);
+    }
+    updateTokensDisplay();
+}
+
+function updateTokensDisplay() {
+    const tokensDisplay = document.querySelector('.tokens-display');
+    if (tokensDisplay) {
+        tokensDisplay.textContent = `${userTokens} токенов`;
+        tokensDisplay.classList.add('tokens-updated');
+        setTimeout(() => tokensDisplay.classList.remove('tokens-updated'), 300);
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
 function initializeTelegram() {
     if (window.Telegram?.WebApp) {
         try {
@@ -1116,7 +1143,7 @@ function initializeTelegram() {
                 telegramInitialized = true;
                 
                 updateProfileDisplay();
-                initializeTokens(); // Only initialize tokens after confirming Telegram user
+                initializeTokens();
                 loadChatHistory();
                 
                 showNotification('Successfully connected to Telegram', 'success');
@@ -1134,37 +1161,46 @@ function initializeTelegram() {
     }
 }
 
-function initializeTokens() {
-    // Only use Telegram ID for tokens storage, remove 'default' fallback
-    if (currentTelegramId) {
-        const storedTokens = localStorage.getItem(`tokens_${currentTelegramId}`);
-        if (storedTokens === null) {
-            localStorage.setItem(`tokens_${currentTelegramId}`, '500');
-            userTokens = 500;
+function updateProfileDisplay() {
+    const profileImage = document.querySelector('.profile-image');
+    const usernameEl = document.querySelector('.profile-info h2');
+    const telegramIdEl = document.getElementById('telegramId');
+    
+    if (telegramInitialized && window.Telegram?.WebApp) {
+        const userData = window.Telegram.WebApp.initDataUnsafe;
+        const user = userData?.user;
+
+        if (user) {
+            usernameEl.textContent = user.username || 'No Username';  
+            telegramIdEl.textContent = `Telegram ID: ${user.id}`;
+            
+            if (user.photo_url) {
+                profileImage.innerHTML = `<img src="${user.photo_url}" alt="Profile Photo">`;
+            } else {
+                profileImage.innerHTML = `
+                    <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
+                        <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+                    </svg>`;
+            }
         } else {
-            userTokens = parseInt(storedTokens);
+            setDefaultUserInfo();
         }
-        updateTokensDisplay();
+    } else {
+        setDefaultUserInfo();
     }
 }
 
-function updateTokensDisplay() {
-    const tokensDisplay = document.querySelector('.tokens-display');
-    if (tokensDisplay && currentTelegramId) {
-        tokensDisplay.textContent = `${userTokens} токенов`;
-        tokensDisplay.classList.add('tokens-updated');
-        setTimeout(() => tokensDisplay.classList.remove('tokens-updated'), 300);
-    }
-}
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTelegram();
+    
+    setInterval(() => {
+        if (window.Telegram?.WebApp && !telegramInitialized) {
+            initializeTelegram();
+        }
+    }, 5000); // Check every 5 seconds
+});
 
-// Update the sendMessage function to only work with Telegram ID
 async function sendMessage() {
-    // Check if user is authenticated with Telegram
-    if (!currentTelegramId) {
-        showNotification('Пожалуйста, войдите через Telegram', 'error');
-        return;
-    }
-
     const input = document.getElementById('messageInput');
     const chatMessages = document.getElementById('chatMessages');
     const message = input.value.trim();
@@ -1178,8 +1214,8 @@ async function sendMessage() {
     }
     userTokens -= tokenCost;
     
-    // Store tokens only with Telegram ID
-    localStorage.setItem(`tokens_${currentTelegramId}`, userTokens.toString());
+    const userKey = currentTelegramId || 'default';
+    localStorage.setItem(`tokens_${userKey}`, userTokens.toString());
     updateTokensDisplay();
 
     const userMsg = document.createElement('div');
@@ -1189,15 +1225,14 @@ async function sendMessage() {
 
     input.value = '';
 
-    // Store chat history with Telegram ID
-    const history = JSON.parse(localStorage.getItem(`chatHistory_${currentTelegramId}`)) || [];
+    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
     if (history.length > 0) {
         history[0].messages.push({
             type: 'user',
             text: message,
             timestamp: new Date()
         });
-        localStorage.setItem(`chatHistory_${currentTelegramId}`, JSON.stringify(history));
+        localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
     }
 
     await simulateAIResponse(message);
@@ -1246,7 +1281,7 @@ async function simulateAIResponse(userMessage) {
         `;
         chatMessages.appendChild(aiMsg);
 
-        const userKey = currentTelegramId;
+        const userKey = currentTelegramId || 'default';
         const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
         if (history.length > 0) {
             history[0].messages.push({
