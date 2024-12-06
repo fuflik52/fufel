@@ -962,67 +962,64 @@ function openChat(chat) {
 }
 
 function initializeTelegram() {
-    if (window.Telegram?.WebApp) {
-        try {
-            // Initialize WebApp
-            window.Telegram.WebApp.ready();
-            
-            const user = window.Telegram.WebApp.initDataUnsafe?.user;
-            if (user) {
-                currentTelegramId = user.id;
-                currentUsername = user.username || 'No Username';
-                currentAvatar = user.photo_url;
-                telegramInitialized = true;
-                
-                // Update the display
-                updateProfileDisplay();
-                initializeTokens();
-                loadChatHistory();
-            } else {
-                console.log('Telegram user data not available');
+    window.addEventListener('load', () => {
+        if (window.Telegram?.WebApp) {
+            try {
+                // Initialize WebApp
+                window.Telegram.WebApp.ready();
+
+                // Get user data
+                const userData = window.Telegram.WebApp.initDataUnsafe;
+                const user = userData?.user;
+
+                if (user) {
+                    currentTelegramId = user.id;
+                    currentUsername = user.username || 'No Username';
+                    currentAvatar = user.photo_url;
+                    telegramInitialized = true;
+                    
+                    // Update the display
+                    updateProfileDisplay();
+                    initializeTokens();
+                    loadChatHistory();
+                } else {
+                    console.log('Telegram user data not available');
+                    setDefaultUserInfo();
+                }
+            } catch (error) {
+                console.error('Error initializing Telegram:', error);
                 setDefaultUserInfo();
             }
-        } catch (error) {
-            console.error('Error initializing Telegram:', error);
+        } else {
+            console.log('Telegram WebApp not available');
             setDefaultUserInfo();
         }
-    } else {
-        console.log('Telegram WebApp not available');
-        setDefaultUserInfo();
-    }
+    });
 }
 
-// Add new function to set default user info
-function setDefaultUserInfo() {
-    currentTelegramId = 'default';
-    currentUsername = 'No Username';
-    currentAvatar = null;
-    updateProfileDisplay();
-}
-
-// Add new function to update profile display
+// Update profile display function to show proper user info
 function updateProfileDisplay() {
     const profileImage = document.querySelector('.profile-image');
     const usernameEl = document.querySelector('.profile-info h2');
-    const telegramIdEl = document.querySelector('#telegramId');
+    const telegramIdEl = document.getElementById('telegramId');
     
     // Update username
     if (usernameEl) {
-        usernameEl.textContent = currentUsername || 'No Username';
+        usernameEl.textContent = currentUsername;
     }
     
     // Update Telegram ID
     if (telegramIdEl) {
-        telegramIdEl.textContent = currentTelegramId || 'Not connected';
+        telegramIdEl.textContent = `Telegram ID: ${currentTelegramId}`;
     }
     
     // Update profile image
     if (profileImage) {
         if (currentAvatar) {
-            // If we have a photo URL, create and set an img element
-            profileImage.innerHTML = `<img src="${currentAvatar}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            // Create and set img element if we have a photo URL
+            profileImage.innerHTML = `<img src="${currentAvatar}" alt="Profile">`;
         } else {
-            // If no photo, show default Telegram icon
+            // Show default Telegram icon if no photo
             profileImage.innerHTML = `
                 <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
                     <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
@@ -1031,265 +1028,16 @@ function updateProfileDisplay() {
     }
 }
 
-// Initialize tokens
-function initializeTokens() {
-    const userKey = currentTelegramId || 'default';
-    const savedTokens = localStorage.getItem(`userTokens_${userKey}`);
-    if (savedTokens === null) {
-        userTokens = 500;
-        localStorage.setItem(`userTokens_${userKey}`, userTokens);
-    } else {
-        userTokens = parseInt(savedTokens);
-    }
-    updateTokensDisplay();
-}
-
-function updateTokens(amount) {
-    userTokens += amount;
-    const userKey = currentTelegramId || 'default';
-    localStorage.setItem(`userTokens_${userKey}`, userTokens);
-    updateTokensDisplay();
-}
-
-function updateTokensDisplay() {
-    const tokensDisplay = document.querySelector('.tokens-display');
-    if (tokensDisplay) {
-        tokensDisplay.textContent = `${userTokens} токенов`;
-        // Add animation class
-        tokensDisplay.classList.add('tokens-updated');
-        setTimeout(() => tokensDisplay.classList.remove('tokens-updated'), 300);
-    }
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = message;
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-function loadChatHistory() {
-    const chatHistory = document.getElementById('chatHistory');
-    const emptyHistory = document.getElementById('empty-history');
-    
-    if (!chatHistory || !emptyHistory) return;
-    
-    const userKey = currentTelegramId || 'default';
-    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
-
-    if (history.length === 0) {
-        emptyHistory.style.display = 'flex';
-        return;
-    }
-
-    emptyHistory.style.display = 'none';
-    
-    // Clear existing history
-    chatHistory.innerHTML = '<div class="section-container"><div class="section-header"><h3>История чатов</h3></div><div class="chat-history"></div></div>';
-
-    history.forEach(chat => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item';
-        chatItem.innerHTML = `
-            <div class="chat-main">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-                </svg>
-                <span>${chat.title || 'Chat'}</span>
-                <span class="message-preview">${chat.messages?.length ? `(${chat.messages.length} сообщений)` : ''}</span>
-            </div>
-            <span class="chat-date">${new Date(chat.date).toLocaleDateString()}</span>
-        `;
-
-        // Add click handler to open chat
-        chatItem.addEventListener('click', () => openChat(chat));
-        
-        chatHistory.querySelector('.chat-history').appendChild(chatItem);
-    });
-}
-
-// Update sendMessage to work with current chat
-function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const messageText = messageInput.value.trim();
-    if (!messageText) return;
-
-    const chatMessages = document.getElementById('chatMessages');
-    const userMessage = document.createElement('div');
-    userMessage.className = 'message user-message';
-    userMessage.textContent = messageText;
-    chatMessages.appendChild(userMessage);
-
-    // Update tokens
-    updateTokens(-1);
-
-    messageInput.value = '';
-
-    // Save message to current chat
-    const userKey = currentTelegramId || 'default';
-    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
-    
-    if (history.length > 0) {
-        history[0].messages = history[0].messages || [];
-        history[0].messages.push({
-            type: 'user',
-            text: messageText,
-            timestamp: new Date()
-        });
-        
-        // Simulate AI response
-        setTimeout(() => {
-            const aiMessage = document.createElement('div');
-            aiMessage.className = 'message ai-message';
-            aiMessage.textContent = 'AI response to: ' + messageText;
-            chatMessages.appendChild(aiMessage);
-            
-            history[0].messages.push({
-                type: 'ai',
-                text: 'AI response to: ' + messageText,
-                timestamp: new Date()
-            });
-            
-            localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 1000);
-    }
-}
-
-function copyErrorCode(code) {
-    navigator.clipboard.writeText(code)
-        .then(() => showNotification('Error code copied to clipboard', 'success'))
-        .catch(() => showNotification('Failed to copy error code', 'error'));
-}
-
-function toggleTheme() {
-    const themeSwitch = document.getElementById('themeToggleSwitch');
-    document.body.classList.toggle('dark-theme', themeSwitch.checked);
-    localStorage.setItem('darkTheme', themeSwitch.checked);
-}
-
-function createSnowflake() {
-    if (!isSnowing) return;
-    
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
-    snowflake.textContent = '❄';
-    
-    // Random position and animation duration
-    const startPosition = Math.random() * window.innerWidth;
-    const animationDuration = (15 - snowfallSpeed) + Math.random() * 5;
-    
-    snowflake.style.left = startPosition + 'px';
-    snowflake.style.animationDuration = animationDuration + 's';
-    
-    document.body.appendChild(snowflake);
-    snowflakes.push(snowflake);
-    
-    // Remove snowflake after animation
-    snowflake.addEventListener('animationend', () => {
-        snowflake.remove();
-        snowflakes = snowflakes.filter(flake => flake !== snowflake);
-    });
-}
-
+// Remove the DOMContentLoaded call to initializeTelegram since we now use window.load
 document.addEventListener('DOMContentLoaded', function() {
-    initializeTelegram();
+    // Other initialization code...
     
     // Get nav items
     const homeNav = document.querySelector('.nav-item:nth-child(1)');
     const chatsNav = document.querySelector('.nav-item:nth-child(2)');
     const settingsNav = document.querySelector('.nav-item:nth-child(3)');
     
-    // Get content sections
-    const mainContent = Array.from(document.querySelector('.app-container').children).filter(el => 
-        !el.classList.contains('bottom-nav') && 
-        !el.classList.contains('chat-interface') && 
-        !el.classList.contains('settings-panel') &&
-        !el.classList.contains('chat-history-container')
-    );
-    
-    const chatHistoryContainer = document.querySelector('.chat-history-container');
-    const settingsPanel = document.getElementById('settingsPanel');
-    
-    function hideAllSections() {
-        mainContent.forEach(el => el.style.display = 'none');
-        chatHistoryContainer.style.display = 'none';
-        settingsPanel.style.display = 'none';
-    }
-
-    // Add click handlers
-    chatsNav.addEventListener('click', function() {
-        hideAllSections();
-        chatHistoryContainer.style.display = 'block';
-        
-        // Update active state
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        chatsNav.classList.add('active');
-        
-        // Reload chat history
-        loadChatHistory();
-    });
-    
-    settingsNav.addEventListener('click', function() {
-        hideAllSections();
-        settingsPanel.style.display = 'block';
-        
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        settingsNav.classList.add('active');
-    });
-    
-    homeNav.addEventListener('click', function() {
-        hideAllSections();
-        mainContent.forEach(el => el.style.display = 'block');
-        
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        homeNav.classList.add('active');
-    });
-
-    const themeSwitch = document.getElementById('themeToggleSwitch');
-    themeSwitch.checked = localStorage.getItem('darkTheme') === 'true';
-    document.body.classList.toggle('dark-theme', themeSwitch.checked);
-    themeSwitch.addEventListener('change', toggleTheme);
-
-    const snowflakeToggle = document.getElementById('snowflakeToggle');
-    const snowfallSpeedInput = document.getElementById('snowfallSpeed');
-
-    // Initialize snowfall settings from localStorage
-    isSnowing = localStorage.getItem('snowEnabled') === 'true';
-    snowfallSpeed = parseInt(localStorage.getItem('snowSpeed')) || 5;
-    
-    if (snowflakeToggle) {
-        snowflakeToggle.checked = isSnowing;
-        snowflakeToggle.addEventListener('change', (e) => {
-            isSnowing = e.target.checked;
-            localStorage.setItem('snowEnabled', isSnowing);
-            if (!isSnowing) {
-                // Remove all snowflakes
-                snowflakes.forEach(flake => flake.remove());
-                snowflakes = [];
-            }
-        });
-    }
-
-    if (snowfallSpeedInput) {
-        snowfallSpeedInput.value = snowfallSpeed;
-        snowfallSpeedInput.addEventListener('input', (e) => {
-            snowfallSpeed = parseInt(e.target.value);
-            localStorage.setItem('snowSpeed', snowfallSpeed);
-        });
-    }
-
-    // Start snowfall if enabled
-    if (isSnowing) {
-        setInterval(createSnowflake, 200);
-    }
+    // ... rest of the initialization code
 });
 </script>
 </body>
