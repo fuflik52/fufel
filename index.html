@@ -11,23 +11,20 @@
 }
 
 :root {
-    --primary-color: #0A84FF;
-    --background-color: #f0f2f5;
-    --card-background: #ffffff;
-    --text-color: #1c1e21;
-    --border-color: #dddfe2;
-    --button-gray: #f5f6f7;
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --primary-color: #007AFF;
+    --background-color: #f5f5f5;
+    --card-background: #fff;
+    --text-color: #333;
+    --border-color: #e0e0e0;
+    --button-gray: #ffffff;
 }
 
 .dark-theme {
-    --primary-color: #1a91ff;
-    --background-color: #18191a;
-    --card-background: #242526;
-    --text-color: #e4e6eb;
-    --border-color: #3e4042;
-    --button-gray: #3a3b3c;
-    --shadow-color: rgba(0, 0, 0, 0.3);
+    --primary-color: #0A84FF;
+    --background-color: #121212;
+    --card-background: #1E1E1E;
+    --text-color: #ffffff;
+    --border-color: #2D2D2D;
 }
 
 body {
@@ -43,7 +40,6 @@ body {
     color: var(--text-color);
     overflow-y: auto;
     padding-bottom: 60px; /* Add padding for bottom nav */
-    box-shadow: 0 2px 12px var(--shadow-color);
 }
 
 .tokens-display {
@@ -57,18 +53,6 @@ body {
     color: var(--text-color);
     font-weight: 500;
     border: 1px solid var(--border-color);
-    animation: fadeInSlide 0.3s ease;
-}
-
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1; 
-        transform: translateY(0);
-    }
 }
 
 .profile-section {
@@ -105,8 +89,7 @@ body {
 
 .subscription-section {
     padding: 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #00c6ff 100%);
-    color: white;
+    background: var(--background-color);
     border-radius: 12px;
     margin: 15px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -130,19 +113,19 @@ body {
 .subscription-header {
     font-size: 18px;
     font-weight: 600;
+    color: var(--text-color);
     margin-bottom: 8px;
-    color: white;
 }
 
 .subscription-details {
     font-size: 15px;
-    color: white;
+    color: var(--text-color);
 }
 
 .new-chat-button {
     margin: 15px;
     padding: 15px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #00c6ff 100%);
+    background: var(--primary-color);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -150,7 +133,6 @@ body {
     cursor: pointer;
     border: none;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .new-chat-button:hover {
@@ -177,16 +159,6 @@ body {
     transition: all 0.2s ease;
     text-align: center;
     margin-bottom: 10px;
-    box-shadow: 0 2px 8px var(--shadow-color);
-}
-
-.button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.button:active {
-    transform: translateY(1px);
 }
 
 .button-with-icon {
@@ -206,6 +178,7 @@ body {
 .primary-button {
     background: var(--button-gray);
     color: black;
+    border: 1px solid var(--border-color);
 }
 
 .secondary-button {
@@ -598,41 +571,10 @@ input:checked + .toggle-slider:before {
     cursor: pointer;
 }
 
-.notification {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    border-radius: 12px;
-    background: var(--card-background);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 16px var(--shadow-color);
-    z-index: 1000;
-    animation: slideDown 0.3s ease;
-    color: var(--text-color);
-}
-
-@keyframes slideDown {
-    from {
-        transform: translate(-50%, -100%);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
-}
-
-.error-code {
-    font-family: monospace;
-    padding: 4px 8px;
-    background: rgba(255,0,0,0.1);
-    border-radius: 4px;
-    cursor: pointer;
-    user-select: all;
-}
+/* Additional CSS can be added here */
 </style>
+<script src="https://telegram.org/js/telegram-widget.js?7"
+        async defer></script>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -774,89 +716,104 @@ input:checked + .toggle-slider:before {
 </div>
 
 <script>
-let currentTelegramId;
-let currentUsername;
-let currentAvatar;
-let userTokens = parseInt(localStorage.getItem('userTokens')) || 500;
+let snowflakeInterval = null;
 
-// Function to update tokens display
+let userTokens = parseInt(localStorage.getItem('userTokens') || '500');
+
 function updateTokensDisplay() {
     const tokensDisplay = document.querySelector('.tokens-display');
     if (tokensDisplay) {
         tokensDisplay.textContent = `${userTokens} токенов`;
+        localStorage.setItem('userTokens', userTokens.toString());
     }
 }
 
-// Function to update profile display
+let currentTelegramId = localStorage.getItem('telegramId') || null;
+let currentUsername = localStorage.getItem('telegramUsername') || 'Username';
+let currentAvatar = localStorage.getItem('telegramAvatar') || null;
+
+async function fetchTelegramUserInfo() {
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+        // Get data from Telegram Web App if available
+        const user = window.Telegram.WebApp.initDataUnsafe.user;
+        return {
+            id: user.id || 'Нет данных',
+            username: user.username || 'Нет данных',
+            avatar: user.photo_url || null
+        };
+    } else {
+        // Return default values when not in Telegram
+        return {
+            id: 'Нет данных',
+            username: 'Нет данных',
+            avatar: null
+        };
+    }
+}
+
 function updateProfileDisplay() {
+    // Update username
     const usernameElement = document.querySelector('.profile-info h2');
-    const telegramIdElement = document.getElementById('telegramId');
-    const profileImage = document.querySelector('.profile-image');
-
     if (usernameElement) {
-        usernameElement.textContent = currentUsername || 'Unknown User';
+        usernameElement.textContent = currentUsername || 'Нет данных';
     }
 
+    // Update Telegram ID
+    const telegramIdElement = document.getElementById('telegramId');
     if (telegramIdElement) {
-        telegramIdElement.textContent = currentTelegramId || 'Not connected';
+        telegramIdElement.textContent = currentTelegramId || 'Нет данных';
     }
 
-    if (profileImage && currentAvatar) {
-        // Clear existing content
-        profileImage.innerHTML = '';
-        // Create and add image if avatar exists
-        const img = document.createElement('img');
-        img.src = currentAvatar;
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.borderRadius = '50%';
-        img.style.objectFit = 'cover';
-        profileImage.appendChild(img);
+    // Update avatar if available
+    const profileImage = document.querySelector('.profile-image');
+    if (profileImage) {
+        if (currentAvatar) {
+            // Clear existing content
+            profileImage.innerHTML = '';
+            // Create and add image element
+            const img = document.createElement('img');
+            img.src = currentAvatar;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.borderRadius = '50%';
+            img.style.objectFit = 'cover';
+            profileImage.appendChild(img);
+        } else {
+            // Show default Telegram icon if no avatar
+            profileImage.innerHTML = `
+                <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
+                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+                </svg>
+            `;
+        }
     }
 }
 
-// Function to show notifications
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = message;
-    document.body.appendChild(notification);
-
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-// Function to load chat history
 function loadChatHistory() {
     const chatHistory = document.getElementById('chatHistory');
     const emptyHistory = document.getElementById('empty-history');
     
-    // Get chat history from localStorage
-    const history = JSON.parse(localStorage.getItem(`chatHistory_${currentTelegramId}`)) || [];
-
-    if (history.length === 0) {
-        if (emptyHistory) {
-            emptyHistory.style.display = 'flex';
-        }
-        return;
-    }
-
-    if (emptyHistory) {
-        emptyHistory.style.display = 'none';
-    }
-
-    // Clear existing history
+    // Try to get chat history from localStorage
+    const savedChats = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    
+    // Clear existing chat history display
     while (chatHistory.firstChild) {
         chatHistory.removeChild(chatHistory.firstChild);
     }
-
-    // Add each chat to history
-    history.forEach(chat => {
+    
+    if (savedChats.length === 0) {
+        // Show empty history message
+        chatHistory.appendChild(emptyHistory);
+        return;
+    }
+    
+    // Hide empty history message
+    if (emptyHistory) {
+        emptyHistory.style.display = 'none';
+    }
+    
+    // Display each chat in history
+    savedChats.forEach((chat, index) => {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         chatItem.innerHTML = `
@@ -864,120 +821,156 @@ function loadChatHistory() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
                 </svg>
-                <span>${chat.title || 'Chat'}</span>
+                <span>${chat.title || `Чат ${index + 1}`}</span>
+                <span class="chat-date">${new Date(chat.timestamp).toLocaleDateString()}</span>
             </div>
-            <span class="chat-date">${new Date(chat.date).toLocaleDateString()}</span>
+            <div class="chat-actions">
+                <button class="chat-action-btn" onclick="deleteChat(${index})">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>
         `;
+        
+        // Add click handler to open chat
+        chatItem.addEventListener('click', (e) => {
+            // Ignore if clicking delete button
+            if (e.target.closest('.chat-action-btn')) return;
+            openChat(chat);
+        });
+        
         chatHistory.appendChild(chatItem);
     });
 }
 
-// Function to create new chat
-function createNewChat() {
-    const chatInterface = document.getElementById('chatInterface');
-    if (chatInterface) {
-        chatInterface.style.display = 'flex';
-    }
+// Add this helper function to delete chats
+function deleteChat(index) {
+    const savedChats = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    savedChats.splice(index, 1);
+    localStorage.setItem('chatHistory', JSON.stringify(savedChats));
+    loadChatHistory();
 }
 
-// Function to close chat interface
-function closeChatInterface() {
+// Add this helper function to open a specific chat
+function openChat(chat) {
     const chatInterface = document.getElementById('chatInterface');
-    if (chatInterface) {
-        chatInterface.style.display = 'none';
-    }
+    const chatMessages = document.getElementById('chatMessages');
+    
+    // Clear existing messages
+    chatMessages.innerHTML = '';
+    
+    // Display chat messages
+    chat.messages?.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.type}-message`;
+        messageDiv.textContent = msg.content;
+        chatMessages.appendChild(messageDiv);
+    });
+    
+    chatInterface.style.display = 'flex';
+}
+
+// Add this helper function to create new chats
+function createNewChat() {
+    const savedChats = JSON.parse(localStorage.getItem('chatHistory')) || [];
+    const newChat = {
+        id: Date.now(),
+        title: `Чат ${savedChats.length + 1}`,
+        timestamp: Date.now(),
+        messages: []
+    };
+    
+    savedChats.push(newChat);
+    localStorage.setItem('chatHistory', JSON.stringify(savedChats));
+    
+    // Open the new chat
+    openChat(newChat);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize tokens immediately if not already set
+    // Initialize Telegram Web App if available
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+    }
+
+    // Initialize tokens
     if (!localStorage.getItem('userTokens')) {
         userTokens = 500;
         localStorage.setItem('userTokens', userTokens.toString());
-    } else {
-        userTokens = parseInt(localStorage.getItem('userTokens'));
     }
+    
     updateTokensDisplay();
 
-    // Try to get stored Telegram ID first
-    currentTelegramId = localStorage.getItem('telegramId');
-    currentUsername = localStorage.getItem('telegramUsername');
-    currentAvatar = localStorage.getItem('telegramAvatar');
-
-    // Wait for Telegram WebApp to load
-    if (window.Telegram && window.Telegram.WebApp) {
-        try {
-            await window.Telegram.WebApp.ready();
-            const user = window.Telegram.WebApp.initDataUnsafe?.user;
-
-            if (user) {
-                currentTelegramId = user.id.toString();
-                currentUsername = user.username || `${user.first_name} ${user.last_name || ''}`.trim();
-                currentAvatar = user.photo_url;
-
-                localStorage.setItem('telegramId', currentTelegramId);
-                localStorage.setItem('telegramUsername', currentUsername);
-                if (currentAvatar) {
-                    localStorage.setItem('telegramAvatar', currentAvatar);
-                }
-
-                updateProfileDisplay();
-                showNotification('Successfully connected to Telegram', 'success');
-            } else {
-                // Generate guest ID if no user data
-                const errorCode = `ERR_${Math.random().toString(36).substr(2, 9)}`;
-                currentTelegramId = `GUEST_${errorCode}`;
-                currentUsername = `Guest ${errorCode}`;
-
-                localStorage.setItem('telegramId', currentTelegramId);
-                localStorage.setItem('telegramUsername', currentUsername);
-
-                updateProfileDisplay();
-                const errorMessage = `No user data: <span class="error-code" onclick="copyErrorCode('${errorCode}')">${errorCode}</span>`;
-                showNotification(errorMessage, 'error');
-            }
-        } catch (error) {
-            console.error('Error initializing Telegram WebApp:', error);
-            const errorCode = `ERR_${Math.random().toString(36).substr(2, 9)}`;
-            currentTelegramId = `GUEST_${errorCode}`;
-            currentUsername = `Error ${errorCode}`;
-
+    try {
+        const userInfo = await fetchTelegramUserInfo();
+        currentTelegramId = userInfo.id;
+        currentUsername = userInfo.username;
+        currentAvatar = userInfo.avatar;
+        
+        // Only store valid data
+        if (currentTelegramId !== 'Нет данных') {
             localStorage.setItem('telegramId', currentTelegramId);
-            localStorage.setItem('telegramUsername', currentUsername);
-
-            updateProfileDisplay();
-            const errorMessage = `Initialization failed: <span class="error-code" onclick="copyErrorCode('${errorCode}')">${errorCode}</span>`;
-            showNotification(errorMessage, 'error');
         }
-    } else {
-        // Handle case when Telegram WebApp is not available
-        const errorCode = `ERR_${Math.random().toString(36).substr(2, 9)}`;
-        currentTelegramId = `GUEST_${errorCode}`;
-        currentUsername = `Error ${errorCode}`;
-
-        localStorage.setItem('telegramId', currentTelegramId);
-        localStorage.setItem('telegramUsername', currentUsername);
-
+        if (currentUsername !== 'Нет данных') {
+            localStorage.setItem('telegramUsername', currentUsername);
+        }
+        if (currentAvatar) {
+            localStorage.setItem('telegramAvatar', currentAvatar);
+        }
+        
         updateProfileDisplay();
-        const errorMessage = `WebApp not available: <span class="error-code" onclick="copyErrorCode('${errorCode}')">${errorCode}</span>`;
-        showNotification(errorMessage, 'error');
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        currentTelegramId = 'Нет данных';
+        currentUsername = 'Нет данных'; 
+        currentAvatar = null;
+        updateProfileDisplay();
     }
-
-    // Initialize theme
-    const isDarkMode = localStorage.getItem('darkTheme') === 'true';
-    if (isDarkMode) {
-        document.body.classList.add('dark-theme');
-        document.getElementById('themeToggleSwitch').checked = true;
-    }
-
-    // Load chat history after user identification
+    
     loadChatHistory();
+
+    // Rest of the initialization code...
 });
 
-// Add this helper function to copy error codes
-function copyErrorCode(code) {
-    navigator.clipboard.writeText(code)
-        .then(() => showNotification('Error code copied to clipboard', 'success'))
-        .catch(() => showNotification('Failed to copy error code', 'error'));
-}
+// Add event listeners for the bottom navigation
+document.addEventListener('DOMContentLoaded', () => {
+    // Handle navigation items
+    const navItems = document.querySelectorAll('.nav-item');
+    const mainContent = document.querySelector('.app-container');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const chatInterface = document.getElementById('chatInterface');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const type = this.textContent.trim();
+            
+            // Remove active class from all items
+            navItems.forEach(navItem => navItem.classList.remove('active'));
+            
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Handle different navigation items
+            switch(type) {
+                case 'Главная':
+                    if (chatInterface.style.display !== 'flex') {
+                        mainContent.style.display = 'block';
+                        settingsPanel.style.display = 'none';
+                    }
+                    break;
+                case 'Чаты':
+                    loadChatHistory(); // Make sure this function exists
+                    break;
+                case 'Настройки':
+                    if (chatInterface.style.display !== 'flex') {
+                        mainContent.style.display = 'none';
+                        settingsPanel.style.display = 'block';
+                    }
+                    break;
+            }
+        });
+    });
+});
 </script>
 </body></html>
