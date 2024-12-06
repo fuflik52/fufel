@@ -700,24 +700,9 @@ input:checked + .toggle-slider:before {
     background: var(--card-background);
     border: 1px solid var(--border-color);
     box-shadow: 0 4px 16px var(--shadow-color);
-    z-index: 2000;
+    z-index: 1000;
     animation: slideDown 0.3s ease;
     color: var(--text-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.notification.success {
-    border-left: 4px solid #4CAF50;
-}
-
-.notification.error {
-    border-left: 4px solid #f44336;
-}
-
-.notification.info {
-    border-left: 4px solid #2196F3;
 }
 
 @keyframes slideDown {
@@ -731,21 +716,52 @@ input:checked + .toggle-slider:before {
     }
 }
 
-@keyframes fadeOut {
+.error-code {
+    font-family: monospace;
+    padding: 4px 8px;
+    background: rgba(255,0,0,0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: all;
+}
+
+/* Add animations for smooth transitions */
+.settings-panel, .chat-history-container {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
     from {
-        opacity: 1;
+        opacity: 0;
+        transform: translateY(20px);
     }
     to {
-        opacity: 0;
+        opacity: 1;
+        transform: translateY(0);
     }
+}
+
+/* Add animation for install button */
+@keyframes pulseButton {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.install-button {
+    animation: pulseButton 2s infinite;
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.install-button:hover {
+    animation: none;
 }
 </style>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 <div class="app-container">
-    <div class="loading-overlay" id="loadingOverlay"></div>
-    <div class="loading-spinner" id="loadingSpinner"></div>
     <div class="tokens-display">
         500 токенов
     </div>
@@ -957,41 +973,110 @@ document.querySelector('.secondary-button').addEventListener('click', async () =
     deferredPrompt = null;
 });
 
-function showLoadingSpinner() {
-    document.getElementById('loadingOverlay').style.display = 'block';
-    document.getElementById('loadingSpinner').style.display = 'block';
+function createNewChat() {
+    const chatInterface = document.getElementById('chatInterface');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    if (!chatInterface || !chatMessages) return;
+    
+    chatMessages.innerHTML = '';
+    
+    const userKey = currentTelegramId;
+    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
+    
+    const newChat = {
+        id: Date.now(),
+        title: `Chat ${history.length + 1}`,
+        date: new Date(),
+        messages: []
+    };
+    
+    history.unshift(newChat);
+    localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
+    
+    chatInterface.style.display = 'flex';
+    
+    loadChatHistory();
 }
 
-function hideLoadingSpinner() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-    document.getElementById('loadingSpinner').style.display = 'none';
-}
+function loadChatHistory() {
+    const historyContainer = document.querySelector('.chat-history');
+    const userKey = currentTelegramId;
+    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
+    
+    if (!historyContainer) return;
 
-function initializeTokens() {
-    if (!currentTelegramId) {
-        console.warn('No Telegram ID available');
+    historyContainer.innerHTML = '';
+    
+    if (history.length === 0) {
+        historyContainer.innerHTML = `
+            <div class="chat-item" id="empty-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                </svg>
+                История запросов пуста
+            </div>`;
         return;
     }
+
+    history.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.onclick = () => openChat(chat);
+        
+        const lastMessage = chat.messages?.length > 0 
+            ? chat.messages[chat.messages.length - 1].text 
+            : 'No messages';
+            
+        const date = new Date(chat.date);
+        const formattedDate = date.toLocaleString();
+        
+        chatItem.innerHTML = `
+            <div class="chat-main">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500;">${chat.title}</div>
+                    <div style="font-size: 0.9em; opacity: 0.7;">${lastMessage.substring(0, 30)}${lastMessage.length > 30 ? '...' : ''}</div>
+                </div>
+                <div class="chat-date">${formattedDate}</div>
+            </div>
+            <div class="chat-actions">
+                <button class="chat-action-btn" onclick="event.stopPropagation(); deleteChat(${chat.id})">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>`;
+            
+        historyContainer.appendChild(chatItem);
+    });
+}
+
+function deleteChat(chatId) {
+    const userKey = currentTelegramId;
+    let history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
     
-    const storedTokens = localStorage.getItem(`tokens_${currentTelegramId}`);
-    if (storedTokens === null) {
-        localStorage.setItem(`tokens_${currentTelegramId}`, '500');
-        userTokens = 500;
-    } else {
-        userTokens = parseInt(storedTokens);
-    }
-    updateTokensDisplay();
+    history = history.filter(chat => chat.id !== chatId);
+    
+    localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
+    
+    loadChatHistory();
+    
+    showNotification('Chat deleted', 'success');
 }
 
 function setDefaultUserInfo() {
-    showNotification('Unable to connect to Telegram', 'error');
-    currentUsername = 'Not Connected';
+    currentTelegramId = null; // Changed from 'default' to null
+    currentUsername = 'Guest User';
     currentAvatar = null;
     telegramInitialized = false;
 
     const profileImage = document.querySelector('.profile-image');
     const usernameEl = document.querySelector('.profile-info h2');
     const telegramIdEl = document.getElementById('telegramId');
+    const tokensDisplay = document.querySelector('.tokens-display');
 
     if (profileImage) {
         profileImage.innerHTML = `
@@ -1001,109 +1086,110 @@ function setDefaultUserInfo() {
     }
     
     if (usernameEl) {
-        usernameEl.textContent = 'Not Connected';
+        usernameEl.textContent = 'Guest User';
     }
     
     if (telegramIdEl) {
-        telegramIdEl.textContent = 'Please connect to Telegram';
+        telegramIdEl.textContent = 'Войдите через Telegram для использования токенов';
     }
 
-    hideLoadingSpinner();
+    if (tokensDisplay) {
+        tokensDisplay.textContent = 'Требуется вход';
+    }
+
+    loadChatHistory();
 }
 
+// Update the initialization code to only show tokens for Telegram users
 function initializeTelegram() {
-    showLoadingSpinner();
-    
-    let attempts = 0;
-    const maxAttempts = 5;
-    
-    const tryInitialize = () => {
-        if (window.Telegram?.WebApp) {
-            try {
-                window.Telegram.WebApp.ready();
-                const userData = window.Telegram.WebApp.initDataUnsafe;
-                const user = userData?.user;
+    if (window.Telegram?.WebApp) {
+        try {
+            window.Telegram.WebApp.ready();
 
-                if (user) {
-                    currentTelegramId = user.id.toString();
-                    currentUsername = user.username || 'No Username';
-                    currentAvatar = user.photo_url;
-                    telegramInitialized = true;
-                    
-                    initializeTokens();
-                    updateProfileDisplay();
-                    loadChatHistory();
-                    
-                    hideLoadingSpinner();
-                    showNotification('Successfully connected to Telegram', 'success');
-                } else {
-                    throw new Error('No user data');
-                }
-            } catch (error) {
-                console.error('Error initializing Telegram:', error);
-                attempts++;
+            const userData = window.Telegram.WebApp.initDataUnsafe;
+            const user = userData?.user;
+
+            if (user) {
+                currentTelegramId = user.id;
+                currentUsername = user.username || 'No Username';
+                currentAvatar = user.photo_url;
+                telegramInitialized = true;
                 
-                if (attempts >= maxAttempts) {
-                    setDefaultUserInfo();
-                } else {
-                    setTimeout(tryInitialize, 1000);
-                }
-            }
-        } else {
-            attempts++;
-            if (attempts >= maxAttempts) {
-                setDefaultUserInfo();
+                updateProfileDisplay();
+                initializeTokens(); // Only initialize tokens after confirming Telegram user
+                loadChatHistory();
+                
+                showNotification('Successfully connected to Telegram', 'success');
             } else {
-                setTimeout(tryInitialize, 1000);
+                console.log('No Telegram user data available');
+                setDefaultUserInfo();
             }
+        } catch (error) {
+            console.error('Error initializing Telegram:', error);
+            setDefaultUserInfo();
         }
-    };
-
-    tryInitialize();
-}
-
-// Update token operations to always use Telegram ID
-function updateTokensForUser(newAmount) {
-    if (!currentTelegramId) {
-        showNotification('Please connect to Telegram first', 'error');
-        return false;
+    } else {
+        console.log('Telegram WebApp not available');
+        setDefaultUserInfo();
     }
-    
-    userTokens = newAmount;
-    localStorage.setItem(`tokens_${currentTelegramId}`, newAmount.toString());
-    updateTokensDisplay();
-    return true;
 }
 
-// Update the sendMessage function to use the new token system
+function initializeTokens() {
+    // Only use Telegram ID for tokens storage, remove 'default' fallback
+    if (currentTelegramId) {
+        const storedTokens = localStorage.getItem(`tokens_${currentTelegramId}`);
+        if (storedTokens === null) {
+            localStorage.setItem(`tokens_${currentTelegramId}`, '500');
+            userTokens = 500;
+        } else {
+            userTokens = parseInt(storedTokens);
+        }
+        updateTokensDisplay();
+    }
+}
+
+function updateTokensDisplay() {
+    const tokensDisplay = document.querySelector('.tokens-display');
+    if (tokensDisplay && currentTelegramId) {
+        tokensDisplay.textContent = `${userTokens} токенов`;
+        tokensDisplay.classList.add('tokens-updated');
+        setTimeout(() => tokensDisplay.classList.remove('tokens-updated'), 300);
+    }
+}
+
+// Update the sendMessage function to only work with Telegram ID
 async function sendMessage() {
+    // Check if user is authenticated with Telegram
     if (!currentTelegramId) {
-        showNotification('Please connect to Telegram to send messages', 'error');
+        showNotification('Пожалуйста, войдите через Telegram', 'error');
         return;
     }
-    
+
     const input = document.getElementById('messageInput');
+    const chatMessages = document.getElementById('chatMessages');
     const message = input.value.trim();
     
     if (!message) return;
     
     const tokenCost = 10;
     if (userTokens < tokenCost) {
-        showNotification('Insufficient tokens', 'error');
+        showNotification('Недостаточно токенов', 'error');
         return;
     }
+    userTokens -= tokenCost;
     
-    if (!updateTokensForUser(userTokens - tokenCost)) {
-        return;
-    }
+    // Store tokens only with Telegram ID
+    localStorage.setItem(`tokens_${currentTelegramId}`, userTokens.toString());
+    updateTokensDisplay();
 
     const userMsg = document.createElement('div');
     userMsg.className = 'message user-message';
     userMsg.textContent = message;
-    document.getElementById('chatMessages').appendChild(userMsg);
+    chatMessages.appendChild(userMsg);
 
     input.value = '';
 
+    // Store chat history with Telegram ID
     const history = JSON.parse(localStorage.getItem(`chatHistory_${currentTelegramId}`)) || [];
     if (history.length > 0) {
         history[0].messages.push({
@@ -1116,7 +1202,7 @@ async function sendMessage() {
 
     await simulateAIResponse(message);
 
-    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function simulateAIResponse(userMessage) {
@@ -1160,14 +1246,15 @@ async function simulateAIResponse(userMessage) {
         `;
         chatMessages.appendChild(aiMsg);
 
-        const history = JSON.parse(localStorage.getItem(`chatHistory_${currentTelegramId}`)) || [];
+        const userKey = currentTelegramId;
+        const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
         if (history.length > 0) {
             history[0].messages.push({
                 type: 'ai',
                 text: aiResponse,
                 timestamp: new Date()
             });
-            localStorage.setItem(`chatHistory_${currentTelegramId}`, JSON.stringify(history));
+            localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
         }
 
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1320,65 +1407,6 @@ themeToggleSwitch.addEventListener('change', function() {
 if (localStorage.getItem('darkTheme') === 'true') {
     document.documentElement.classList.add('dark-theme');
     themeToggleSwitch.checked = true;
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    showLoadingSpinner();
-    initializeTelegram();
-    
-    // Add Enter key support for sending messages
-    document.getElementById('messageInput')?.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-});
-
-// Add this function in your JavaScript section, before any other functions that use it
-function showNotification(message, type = 'info') {
-    // Remove any existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => {
-        notification.remove();
-    });
-
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    
-    // Add appropriate icon based on notification type
-    let icon = '';
-    switch(type) {
-        case 'success':
-            icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#4CAF50"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
-            break;
-        case 'error':
-            icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#f44336"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>';
-            break;
-        case 'info':
-            icon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="#2196F3"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>';
-            break;
-    }
-    
-    notification.innerHTML = `${icon}<span>${message}</span>`;
-    
-    // Add to document
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'fadeOut 0.3s ease forwards';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-// Update the function that updates snowfall speed
-function updateSnowfallSpeed(speed) {
-    snowfallSpeed = parseInt(speed);
-    localStorage.setItem('snowfallSpeed', snowfallSpeed);
-    showNotification(`Snowfall speed updated to ${snowfallSpeed}`, 'info');
 }
 </script>
 </body>
