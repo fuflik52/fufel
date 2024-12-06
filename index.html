@@ -11,23 +11,27 @@
 }
 
 :root {
-    --primary-color: #0A84FF;
-    --background-color: #f0f2f5;
-    --card-background: #ffffff;
-    --text-color: #1c1e21;
-    --border-color: #dddfe2;
-    --button-gray: #f5f6f7;
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --primary-color: #4C9EEB;
+    --background-color: #0B1021;
+    --card-background: #1A2038;
+    --text-color: #E4E8F7;
+    --border-color: #2A3552;
+    --button-gray: #2A3552;
+    --shadow-color: rgba(76, 158, 235, 0.1);
+    --gradient-primary: linear-gradient(135deg, #4C9EEB 0%, #2B6DB1 100%);
+    --space-glow: 0 0 20px rgba(76, 158, 235, 0.2);
+    transition: all 0.3s ease;
 }
 
 .dark-theme {
-    --primary-color: #1a91ff;
-    --background-color: #18191a;
-    --card-background: #242526;
-    --text-color: #e4e6eb;
-    --border-color: #3e4042;
-    --button-gray: #3a3b3c;
-    --shadow-color: rgba(0, 0, 0, 0.3);
+    --primary-color: #4C9EEB;
+    --background-color: #0B1021;
+    --card-background: #1A2038;
+    --text-color: #E4E8F7;
+    --border-color: #2A3552;
+    --button-gray: #2A3552;
+    --shadow-color: rgba(76, 158, 235, 0.2);
+    transition: all 0.3s ease;
 }
 
 body {
@@ -37,15 +41,14 @@ body {
 .app-container {
     max-width: 480px;
     margin: 0 auto;
-    background: var(--card-background);
+    background: linear-gradient(180deg, var(--card-background) 0%, #131829 100%);
     min-height: 100vh;
     position: relative;
     color: var(--text-color);
-    overflow-y: auto;
+    overflow: hidden; /* Change from overflow-y to overflow to contain snowflakes */
     padding-bottom: 60px;
-    box-shadow: 0 2px 12px var(--shadow-color);
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    border-radius: 24px;
+    box-shadow: var(--space-glow);
 }
 
 .app-container::-webkit-scrollbar {
@@ -56,13 +59,14 @@ body {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: var(--background-color);
+    background: var(--gradient-primary);
     padding: 8px 12px;
     border-radius: 16px;
     font-size: 14px;
     color: var(--text-color);
     font-weight: 500;
-    border: 1px solid var(--border-color);
+    border: none;
+    box-shadow: var(--space-glow);
     animation: fadeInSlide 0.3s ease;
     transition: transform 0.3s ease;
 }
@@ -90,8 +94,10 @@ body {
 
 .profile-section {
     padding: 20px;
-    background: var(--card-background);
-    border-bottom: 1px solid var(--border-color);
+    background: rgba(76, 158, 235, 0.05);
+    border-radius: 20px;
+    margin: 15px;
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: 15px;
@@ -130,11 +136,11 @@ body {
 
 .subscription-section {
     padding: 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #00c6ff 100%);
+    background: var(--gradient-primary);
     color: white;
-    border-radius: 12px;
+    border-radius: 20px;
     margin: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: var(--space-glow);
     display: flex;
     align-items: center;
     gap: 15px;
@@ -167,15 +173,15 @@ body {
 .new-chat-button {
     margin: 15px;
     padding: 15px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #00c6ff 100%);
-    border-radius: 12px;
+    background: var(--gradient-primary);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     gap: 12px;
     cursor: pointer;
     border: none;
+    box-shadow: var(--space-glow);
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .new-chat-button:hover {
@@ -194,7 +200,7 @@ body {
 .button {
     width: 100%;
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 16px;
     border: none;
     font-size: 15px;
     font-weight: 500;
@@ -202,12 +208,12 @@ body {
     transition: all 0.2s ease;
     text-align: center;
     margin-bottom: 10px;
-    box-shadow: 0 2px 8px var(--shadow-color);
+    box-shadow: var(--space-glow);
 }
 
 .button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .button:active {
@@ -229,13 +235,13 @@ body {
 }
 
 .primary-button {
-    background: var(--button-gray);
-    color: black;
+    background: var(--gradient-primary);
+    color: white;
 }
 
 .secondary-button {
-    background: var(--background-color);
-    color: var(--text-color);
+    background: rgba(76, 158, 235, 0.1);
+    border-radius: 16px;
     border: 1px solid var(--border-color);
 }
 
@@ -253,7 +259,6 @@ body {
     margin: 0 auto;
     box-shadow: 0 2px 12px var(--shadow-color);
     scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
 }
 
 .chat-history-container::-webkit-scrollbar {
@@ -271,9 +276,9 @@ body {
     margin: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: var(--card-background);
-    border: 1px solid var(--border-color);
+    background: rgba(76, 158, 235, 0.05);
     border-radius: 16px;
+    border: 1px solid var(--border-color);
 }
 
 .chat-item:last-child {
@@ -330,14 +335,14 @@ body {
 }
 
 .user-message {
-    background: var(--primary-color);
+    background: var(--gradient-primary);
     color: white;
     margin-left: auto;
     border-radius: 20px 20px 4px 20px;
 }
 
 .ai-message {
-    background: var(--background-color);
+    background: rgba(76, 158, 235, 0.1);
     color: var(--text-color);
     margin-right: auto;
     display: flex;
@@ -420,8 +425,9 @@ body {
     bottom: 0;
     width: 100%;
     max-width: 480px;
-    background: var(--card-background);
-    border-top: 1px solid var(--border-color);
+    background: rgba(26, 32, 56, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px 20px 0 0;
     display: flex;
     justify-content: space-around;
     padding: 10px 0;
@@ -525,16 +531,16 @@ body {
     left: 0;
     right: 0;
     bottom: 60px; /* Height of bottom nav */
-    background: var(--card-background);
+    background: linear-gradient(180deg, var(--card-background) 0%, #131829 100%);
     z-index: 1000;
     padding: 20px;
     overflow-y: auto;
     display: none;
     max-width: 480px; /* Match app-container width */
     margin: 0 auto;
+    border-radius: 24px;
     box-shadow: 0 2px 12px var(--shadow-color);
     scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
 }
 
 .settings-panel::-webkit-scrollbar {
@@ -545,12 +551,74 @@ body {
     margin-bottom: 20px;
 }
 
+.settings-content {
+    padding: 20px;
+    background: rgba(76, 158, 235, 0.05);
+    border-radius: 20px;
+    margin: 15px;
+    border: 1px solid var(--border-color);
+}
+
 .setting-item {
+    background: rgba(76, 158, 235, 0.1);
+    margin: 15px 0;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.setting-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.snowfall-speed {
+    background: var(--gradient-primary);
+    height: 8px;
+    border-radius: 4px;
+    outline: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    width: 200px;
+}
+
+.snowfall-speed:hover {
+    opacity: 1;
+}
+
+.snowfall-speed::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(76, 158, 235, 0.5);
+}
+
+.snowflake {
+    position: absolute; /* Keep absolute positioning */
+    color: var(--primary-color);
+    text-shadow: 0 0 5px rgba(76, 158, 235, 0.5);
+    pointer-events: none;
+    z-index: 9999;
+    user-select: none;
+    animation-timing-function: linear;
+    top: -20px; /* Start above the container to ensure smooth entry */
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(0) rotate(0deg); /* Start from top */
+    }
+    100% {
+        transform: translateY(calc(100vh)) rotate(360deg); /* Fall to bottom of viewport */
+    }
 }
 
 .section-container {
@@ -575,24 +643,6 @@ body {
     font-size: 18px;
     font-weight: 600;
     color: var(--text-color);
-}
-
-.snowflake {
-    position: fixed;
-    color: var(--text-color);
-    font-size: 1em;
-    opacity: 0.8;
-    text-shadow: 0 0 1px #000;
-    pointer-events: none;
-    user-select: none;
-    z-index: 1000;
-    animation: fall linear forwards;
-}
-
-@keyframes fall {
-    to {
-        transform: translateY(100vh);
-    }
 }
 
 .toggle-switch {
@@ -638,34 +688,6 @@ input:checked + .toggle-slider {
 
 input:checked + .toggle-slider:before {
     transform: translateX(26px);
-}
-
-.snowfall-speed {
-    width: 100%;
-    height: 34px;
-    -webkit-appearance: none;
-    background: var(--background-color);
-    outline: none;
-    border-radius: 17px;
-    padding: 0 4px;
-}
-
-.snowfall-speed::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
-}
-
-.snowfall-speed::-moz-range-thumb {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    cursor: pointer;
 }
 
 .notification {
@@ -717,6 +739,23 @@ input:checked + .toggle-slider:before {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Add animation for install button */
+@keyframes pulseButton {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.install-button {
+    animation: pulseButton 2s infinite;
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.install-button:hover {
+    animation: none;
 }
 </style>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -777,7 +816,7 @@ input:checked + .toggle-slider:before {
             </svg>
             Купить комплект токенов
         </button>
-        <button class="button secondary-button">Добавить на рабочий стол</button>
+        <button class="button secondary-button" style="display: none;">Добавить на рабочий стол</button>
     </div>
 
     <div class="chat-history-container" id="chatHistory">
@@ -845,21 +884,38 @@ input:checked + .toggle-slider:before {
             </div>
             <div class="settings-content">
                 <div class="setting-item">
-                    <span>Темная тема</span>
+                    <div>
+                        <span style="font-weight: 500;">Темная тема</span>
+                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
+                            Переключить между светлой и темной темой
+                        </div>
+                    </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="themeToggleSwitch">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
+                
                 <div class="setting-item">
-                    <span>Снежинки</span>
+                    <div>
+                        <span style="font-weight: 500;">Снежинки</span>
+                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
+                            Включить анимацию снежинок
+                        </div>
+                    </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="snowflakeToggle">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
+                
                 <div class="setting-item">
-                    <span>Скорость снежинок</span>
+                    <div>
+                        <span style="font-weight: 500;">Скорость снежинок</span>
+                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
+                            Настроить скорость падения
+                        </div>
+                    </div>
                     <input type="range" id="snowfallSpeed" class="snowfall-speed" min="1" max="10" value="5">
                 </div>
             </div>
@@ -868,6 +924,11 @@ input:checked + .toggle-slider:before {
 </div>
 
 <script>
+const AI_CONFIG = {
+    apiKey: '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',
+    endpoint: 'https://api.openai.com/v1/chat/completions'
+};
+
 let currentTelegramId;
 let currentUsername;
 let currentAvatar;
@@ -879,17 +940,47 @@ let snowflakes = [];
 let isSnowing = false;
 let snowfallSpeed = 5;
 
-// Function to create a new chat
+// PWA Install functionality
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    const installButton = document.querySelector('.secondary-button');
+    if (installButton) {
+        installButton.classList.add('install-button');
+        installButton.style.display = 'block';
+    }
+});
+
+document.querySelector('.secondary-button').addEventListener('click', async () => {
+    if (!deferredPrompt) {
+        showNotification('This feature is only available when accessing the site in a supported browser', 'info');
+        return;
+    }
+    
+    deferredPrompt.prompt();
+    
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+        showNotification('Thanks for installing our app!', 'success');
+    } else {
+        showNotification('App installation cancelled', 'info');
+    }
+    
+    deferredPrompt = null;
+});
+
 function createNewChat() {
     const chatInterface = document.getElementById('chatInterface');
     const chatMessages = document.getElementById('chatMessages');
     
     if (!chatInterface || !chatMessages) return;
     
-    // Clear existing messages
     chatMessages.innerHTML = '';
     
-    // Create new chat in history
     const userKey = currentTelegramId || 'default';
     const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
     
@@ -900,18 +991,354 @@ function createNewChat() {
         messages: []
     };
     
-    // Add to beginning of history
     history.unshift(newChat);
     localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
     
-    // Show chat interface
     chatInterface.style.display = 'flex';
     
-    // Reload chat history
     loadChatHistory();
 }
 
-// Function to close chat interface
+function loadChatHistory() {
+    const historyContainer = document.querySelector('.chat-history');
+    const userKey = currentTelegramId || 'default';
+    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
+    
+    if (!historyContainer) return;
+
+    historyContainer.innerHTML = '';
+    
+    if (history.length === 0) {
+        historyContainer.innerHTML = `
+            <div class="chat-item" id="empty-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                </svg>
+                История запросов пуста
+            </div>`;
+        return;
+    }
+
+    history.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.onclick = () => openChat(chat);
+        
+        const lastMessage = chat.messages?.length > 0 
+            ? chat.messages[chat.messages.length - 1].text 
+            : 'No messages';
+            
+        const date = new Date(chat.date);
+        const formattedDate = date.toLocaleString();
+        
+        chatItem.innerHTML = `
+            <div class="chat-main">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500;">${chat.title}</div>
+                    <div style="font-size: 0.9em; opacity: 0.7;">${lastMessage.substring(0, 30)}${lastMessage.length > 30 ? '...' : ''}</div>
+                </div>
+                <div class="chat-date">${formattedDate}</div>
+            </div>
+            <div class="chat-actions">
+                <button class="chat-action-btn" onclick="event.stopPropagation(); deleteChat(${chat.id})">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>`;
+            
+        historyContainer.appendChild(chatItem);
+    });
+}
+
+function deleteChat(chatId) {
+    const userKey = currentTelegramId || 'default';
+    let history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
+    
+    history = history.filter(chat => chat.id !== chatId);
+    
+    localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
+    
+    loadChatHistory();
+    
+    showNotification('Chat deleted', 'success');
+}
+
+function setDefaultUserInfo() {
+    currentTelegramId = 'default';
+    currentUsername = 'Guest User';
+    currentAvatar = null;
+    telegramInitialized = false;
+
+    const profileImage = document.querySelector('.profile-image');
+    const usernameEl = document.querySelector('.profile-info h2');
+    const telegramIdEl = document.getElementById('telegramId');
+
+    if (profileImage) {
+        profileImage.innerHTML = `
+            <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
+                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+            </svg>`;
+    }
+    
+    if (usernameEl) {
+        usernameEl.textContent = 'Guest User';
+    }
+    
+    if (telegramIdEl) {
+        telegramIdEl.textContent = 'Not connected to Telegram';
+    }
+
+    initializeTokens();
+    loadChatHistory();
+}
+
+function initializeTokens() {
+    const userKey = currentTelegramId || 'default';
+    const storedTokens = localStorage.getItem(`tokens_${userKey}`);
+    if (storedTokens === null) {
+        localStorage.setItem(`tokens_${userKey}`, '500');
+        userTokens = 500;
+    } else {
+        userTokens = parseInt(storedTokens);
+    }
+    updateTokensDisplay();
+}
+
+function updateTokensDisplay() {
+    const tokensDisplay = document.querySelector('.tokens-display');
+    if (tokensDisplay) {
+        tokensDisplay.textContent = `${userTokens} токенов`;
+        tokensDisplay.classList.add('tokens-updated');
+        setTimeout(() => tokensDisplay.classList.remove('tokens-updated'), 300);
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function initializeTelegram() {
+    if (window.Telegram?.WebApp) {
+        try {
+            window.Telegram.WebApp.ready();
+
+            const userData = window.Telegram.WebApp.initDataUnsafe;
+            const user = userData?.user;
+
+            if (user) {
+                currentTelegramId = user.id;
+                currentUsername = user.username || 'No Username';
+                currentAvatar = user.photo_url;
+                telegramInitialized = true;
+                
+                updateProfileDisplay();
+                initializeTokens();
+                loadChatHistory();
+                
+                showNotification('Successfully connected to Telegram', 'success');
+            } else {
+                console.log('No Telegram user data available');
+                setDefaultUserInfo();
+            }
+        } catch (error) {
+            console.error('Error initializing Telegram:', error);
+            setDefaultUserInfo();
+        }
+    } else {
+        console.log('Telegram WebApp not available');
+        setDefaultUserInfo();
+    }
+}
+
+function updateProfileDisplay() {
+    const profileImage = document.querySelector('.profile-image');
+    const usernameEl = document.querySelector('.profile-info h2');
+    const telegramIdEl = document.getElementById('telegramId');
+    
+    if (telegramInitialized && window.Telegram?.WebApp) {
+        const userData = window.Telegram.WebApp.initDataUnsafe;
+        const user = userData?.user;
+
+        if (user) {
+            usernameEl.textContent = user.username || 'No Username';  
+            telegramIdEl.textContent = `Telegram ID: ${user.id}`;
+            
+            if (user.photo_url) {
+                profileImage.innerHTML = `<img src="${user.photo_url}" alt="Profile Photo">`;
+            } else {
+                profileImage.innerHTML = `
+                    <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
+                        <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+                    </svg>`;
+            }
+        } else {
+            setDefaultUserInfo();
+        }
+    } else {
+        setDefaultUserInfo();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTelegram();
+    
+    setInterval(() => {
+        if (window.Telegram?.WebApp && !telegramInitialized) {
+            initializeTelegram();
+        }
+    }, 5000); // Check every 5 seconds
+});
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    const tokenCost = 10;
+    if (userTokens < tokenCost) {
+        showNotification('Недостаточно токенов', 'error');
+        return;
+    }
+    userTokens -= tokenCost;
+    
+    const userKey = currentTelegramId || 'default';
+    localStorage.setItem(`tokens_${userKey}`, userTokens.toString());
+    updateTokensDisplay();
+
+    const userMsg = document.createElement('div');
+    userMsg.className = 'message user-message';
+    userMsg.textContent = message;
+    chatMessages.appendChild(userMsg);
+
+    input.value = '';
+
+    const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
+    if (history.length > 0) {
+        history[0].messages.push({
+            type: 'user',
+            text: message,
+            timestamp: new Date()
+        });
+        localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
+    }
+
+    await simulateAIResponse(message);
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function simulateAIResponse(userMessage) {
+    const chatMessages = document.getElementById('chatMessages');
+    
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message ai-message typing';
+    typingDiv.textContent = 'AI печатает...';
+    chatMessages.appendChild(typingDiv);
+
+    try {
+        const response = await fetch(AI_CONFIG.endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AI_CONFIG.apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [{
+                    role: 'user',
+                    content: userMessage
+                }]
+            })
+        });
+
+        const data = await response.json();
+        const aiResponse = data.choices[0].message.content;
+
+        typingDiv.remove();
+
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'message ai-message';
+        aiMsg.innerHTML = `
+            ${aiResponse}
+            <button class="copy-button" onclick="copyMessage(this)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                </svg>
+            </button>
+        `;
+        chatMessages.appendChild(aiMsg);
+
+        const userKey = currentTelegramId || 'default';
+        const history = JSON.parse(localStorage.getItem(`chatHistory_${userKey}`)) || [];
+        if (history.length > 0) {
+            history[0].messages.push({
+                type: 'ai',
+                text: aiResponse,
+                timestamp: new Date()
+            });
+            localStorage.setItem(`chatHistory_${userKey}`, JSON.stringify(history));
+        }
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } catch (error) {
+        console.error('Error getting AI response:', error);
+        typingDiv.textContent = 'Error: Could not get AI response';
+        typingDiv.classList.add('error');
+    }
+}
+
+function copyMessage(button) {
+    const messageText = button.parentElement.textContent.trim();
+    navigator.clipboard.writeText(messageText).then(() => {
+        showNotification('Сообщение скопировано', 'success');
+    });
+}
+
+function openChat(chat) {
+    const chatInterface = document.getElementById('chatInterface');
+    const chatMessages = document.getElementById('chatMessages');
+    
+    if (!chatInterface || !chatMessages) return;
+    
+    chatMessages.innerHTML = '';
+    
+    chat.messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.type}-message`;
+        
+        if (msg.type === 'ai') {
+            messageDiv.innerHTML = `
+                ${msg.text}
+                <button class="copy-button" onclick="copyMessage(this)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </button>
+            `;
+        } else {
+            messageDiv.textContent = msg.text;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+    });
+    
+    chatInterface.style.display = 'flex';
+}
+
 function closeChatInterface() {
     const chatInterface = document.getElementById('chatInterface');
     if (chatInterface) {
@@ -919,126 +1346,88 @@ function closeChatInterface() {
     }
 }
 
-// Enhance the openChat function to save current chat
-function openChat(chat) {
-    const chatInterface = document.getElementById('chatInterface');
-    const chatMessages = document.getElementById('chatMessages');
+// Snowflake functionality
+function createSnowflake() {
+    if (!isSnowing) return;
     
-    if (!chatInterface || !chatMessages) return;
+    const appContainer = document.querySelector('.app-container');
+    if (!appContainer) return;
     
-    // Clear existing messages
-    chatMessages.innerHTML = '';
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+    snowflake.innerHTML = '❄';
     
-    // Display all messages from chat history
-    chat.messages?.forEach(message => {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${message.type}-message`;
-        messageDiv.textContent = message.text;
-        
-        // Add copy button for AI messages
-        if (message.type === 'ai') {
-            const copyButton = document.createElement('button');
-            copyButton.className = 'copy-button';
-            copyButton.innerHTML = '📋';
-            copyButton.onclick = () => {
-                navigator.clipboard.writeText(message.text)
-                    .then(() => showNotification('Message copied to clipboard', 'success'))
-                    .catch(() => showNotification('Failed to copy message', 'error'));
-            };
-            messageDiv.appendChild(copyButton);
+    const containerWidth = appContainer.offsetWidth;
+    snowflake.style.left = Math.random() * (containerWidth - 20) + 'px';
+    
+    snowflake.style.fontSize = (Math.random() * 0.5 + 0.8) + 'em';
+    snowflake.style.opacity = Math.random() * 0.5 + 0.3;
+    
+    const duration = Math.max(5, 20 - (snowfallSpeed * 1.5));
+    snowflake.style.animation = `fall ${duration}s linear forwards`;
+    
+    snowflake.style.top = '-20px';
+    
+    appContainer.appendChild(snowflake);
+    
+    const containerHeight = appContainer.offsetHeight;
+    
+    setTimeout(() => {
+        if (snowflake && snowflake.parentNode) {
+            snowflake.remove();
         }
+    }, duration * 1000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const snowflakeToggle = document.getElementById('snowflakeToggle');
+    const speedSlider = document.getElementById('snowfallSpeed');
+    
+    isSnowing = localStorage.getItem('snowfall') === 'true';
+    snowfallSpeed = parseInt(localStorage.getItem('snowfallSpeed')) || 5;
+    
+    snowflakeToggle.checked = isSnowing;
+    speedSlider.value = snowfallSpeed;
+    
+    if (isSnowing) {
+        setInterval(createSnowflake, 200);
+    }
+    
+    snowflakeToggle.addEventListener('change', function() {
+        isSnowing = this.checked;
+        localStorage.setItem('snowfall', isSnowing);
+        showNotification(isSnowing ? 'Snowfall enabled' : 'Snowfall disabled');
         
-        chatMessages.appendChild(messageDiv);
+        if (isSnowing) {
+            setInterval(createSnowflake, 200);
+        }
     });
     
-    // Show chat interface
-    chatInterface.style.display = 'flex';
-    
-    // Save current chat ID
-    chatInterface.dataset.currentChatId = chat.id;
-    
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function initializeTelegram() {
-    window.addEventListener('load', () => {
-        if (window.Telegram?.WebApp) {
-            try {
-                // Initialize WebApp
-                window.Telegram.WebApp.ready();
-
-                // Get user data
-                const userData = window.Telegram.WebApp.initDataUnsafe;
-                const user = userData?.user;
-
-                if (user) {
-                    currentTelegramId = user.id;
-                    currentUsername = user.username || 'No Username';
-                    currentAvatar = user.photo_url;
-                    telegramInitialized = true;
-                    
-                    // Update the display
-                    updateProfileDisplay();
-                    initializeTokens();
-                    loadChatHistory();
-                } else {
-                    console.log('Telegram user data not available');
-                    setDefaultUserInfo();
-                }
-            } catch (error) {
-                console.error('Error initializing Telegram:', error);
-                setDefaultUserInfo();
-            }
-        } else {
-            console.log('Telegram WebApp not available');
-            setDefaultUserInfo();
-        }
+    speedSlider.addEventListener('input', function() {
+        updateSnowfallSpeed(this.value);
     });
-}
-
-// Update profile display function to show proper user info
-function updateProfileDisplay() {
-    const profileImage = document.querySelector('.profile-image');
-    const usernameEl = document.querySelector('.profile-info h2');
-    const telegramIdEl = document.getElementById('telegramId');
-    
-    // Update username
-    if (usernameEl) {
-        usernameEl.textContent = currentUsername;
-    }
-    
-    // Update Telegram ID
-    if (telegramIdEl) {
-        telegramIdEl.textContent = `Telegram ID: ${currentTelegramId}`;
-    }
-    
-    // Update profile image
-    if (profileImage) {
-        if (currentAvatar) {
-            // Create and set img element if we have a photo URL
-            profileImage.innerHTML = `<img src="${currentAvatar}" alt="Profile">`;
-        } else {
-            // Show default Telegram icon if no photo
-            profileImage.innerHTML = `
-                <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
-                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-                </svg>`;
-        }
-    }
-}
-
-// Remove the DOMContentLoaded call to initializeTelegram since we now use window.load
-document.addEventListener('DOMContentLoaded', function() {
-    // Other initialization code...
-    
-    // Get nav items
-    const homeNav = document.querySelector('.nav-item:nth-child(1)');
-    const chatsNav = document.querySelector('.nav-item:nth-child(2)');
-    const settingsNav = document.querySelector('.nav-item:nth-child(3)');
-    
-    // ... rest of the initialization code
 });
+
+function updateSnowfallSpeed(speed) {
+    snowfallSpeed = parseInt(speed);
+    localStorage.setItem('snowfallSpeed', snowfallSpeed);
+    
+    document.querySelectorAll('.snowflake').forEach(flake => flake.remove());
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
+});
+
+initializeTelegram();
 </script>
 </body>
 </html>
