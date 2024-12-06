@@ -1,37 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telegram Web App Example</title>
+  <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <h1>Авторизация через Telegram</h1>
-    <!-- Telegram Login Widget -->
-    <script async src="https://telegram.org/js/telegram-widget.js?7"
-        data-telegram-login="CookieClicket_Bot"
-        data-size="large"
-        data-radius="10"
-        data-auth-url="/auth"></script>
-    
-    <!-- Ваша информация будет отображаться здесь -->
-    <div id="userInfo"></div>
+  <h1>Telegram User Info</h1>
+  <div id="user-info">
+    <p id="telegram-id">ID: </p>
+    <p id="username">Username: </p>
+    <img id="user-photo" src="" alt="User Photo" width="100">
+  </div>
 
-    <script>
-        // Слушаем callback после авторизации через Telegram
-        window.addEventListener('message', function(event) {
-            if (event.origin !== "https://t.me") {
-                return;
-            }
-            const userData = event.data;
-            if (userData && userData.id) {
-                document.getElementById('userInfo').innerHTML = `
-                    <p><strong>Telegram ID:</strong> ${userData.id}</p>
-                    <p><strong>Username:</strong> ${userData.username}</p>
-                    <p><strong>Фото:</strong> <img src="https://t.me/${userData.username}" alt="User Photo" width="100"></p>
-                `;
-            }
-        });
-    </script>
+  <script>
+    window.addEventListener('load', () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        // Инициализация Telegram Web App
+        Telegram.WebApp.ready();
+
+        // Функция для получения данных пользователя
+        function getUserInfo() {
+          const user = Telegram.WebApp.initDataUnsafe;
+
+          const telegramId = user?.user?.id;  // Получение Telegram ID
+          const username = user?.user?.username;  // Получение Username
+          const photoUrl = user?.user?.photo_url;  // Получение URL фото
+
+          // Вывод данных на страницу
+          document.getElementById('telegram-id').textContent = `ID: ${telegramId || 'Нет данных'}`;
+          document.getElementById('username').textContent = `Username: ${username || 'Нет данных'}`;
+          if (photoUrl) {
+            document.getElementById('user-photo').src = photoUrl;
+          } else {
+            document.getElementById('user-photo').alt = 'Нет фото';
+          }
+        }
+
+        // Получить данные пользователя при загрузке
+        getUserInfo();
+      } else {
+        console.error("Telegram Web App API not loaded correctly.");
+      }
+    });
+  </script>
 </body>
 </html>
