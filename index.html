@@ -1,245 +1,990 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2048</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #faf8ef;
-        }
-        #game {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 10px;
-            background-color: #bbada0;
-            border-radius: 10px;
-            touch-action: none; /* Запрещает стандартное прокручивание на мобильных устройствах */
-        }
-        .cell {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            background-color: #ccc0b3;
-            border-radius: 5px;
-        }
-        .tile {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 5px;
-            font-size: 32px;
-            color: white;
-            text-align: center;
-            line-height: 80px;
-            font-weight: bold;
-            transform: scale(0);
-            transition: transform 0.2s ease, background-color 0.2s ease;
-        }
-        .tile-2 { background-color: #eee4da; }
-        .tile-4 { background-color: #ede0c8; }
-        .tile-8 { background-color: #f2b179; }
-        .tile-16 { background-color: #f59563; }
-        .tile-32 { background-color: #f67c5f; }
-        .tile-64 { background-color: #f65e3b; }
-        .tile-128 { background-color: #edcf72; }
-        .tile-256 { background-color: #edcc61; }
-        .tile-512 { background-color: #edc850; }
-        .tile-1024 { background-color: #edc53f; }
-        .tile-2048 { background-color: #edc22e; }
-    </style>
+<html><head><base href="." />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+:root {
+    --primary-color: #007AFF;
+    --background-color: #f5f5f5;
+    --card-background: #fff;
+    --text-color: #333;
+    --border-color: #e0e0e0;
+    --button-gray: #ffffff;
+}
+
+.dark-theme {
+    --primary-color: #0A84FF;
+    --background-color: #121212;
+    --card-background: #1E1E1E;
+    --text-color: #ffffff;
+    --border-color: #2D2D2D;
+}
+
+body {
+    background: var(--background-color);
+}
+
+.app-container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--card-background);
+    min-height: 100vh;
+    position: relative;
+    color: var(--text-color);
+}
+
+.tokens-display {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--background-color);
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+    border: 1px solid var(--border-color);
+}
+
+.profile-section {
+    padding: 20px;
+    background: var(--card-background);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.profile-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--background-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-info h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.telegram-id {
+    font-size: 14px;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+.subscription-section {
+    padding: 20px;
+    background: var(--background-color);
+    border-radius: 12px;
+    margin: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.subscription-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subscription-content {
+    flex: 1;
+}
+
+.subscription-header {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.subscription-details {
+    font-size: 15px;
+    color: var(--text-color);
+}
+
+.new-chat-button {
+    margin: 15px;
+    padding: 15px;
+    background: var(--primary-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.new-chat-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.new-chat-button:active {
+    transform: translateY(1px);
+}
+
+.action-button-container {
+    padding: 15px;
+}
+
+.button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.button-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.button-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.primary-button {
+    background: var(--button-gray);
+    color: black;
+    border: 1px solid var(--border-color);
+}
+
+.secondary-button {
+    background: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.chat-history {
+    padding: 15px;
+}
+
+.chat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--background-color);
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 480px;
+    background: var(--card-background);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-color);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.nav-item.active {
+    color: var(--primary-color);
+}
+
+.nav-item svg {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+}
+
+.app-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.chat-interface {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--card-background);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+}
+
+.chat-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+    padding: 10px;
+    border-radius: 12px;
+    animation: fadeIn 0.3s ease;
+    transition: transform 0.2s ease;
+}
+
+.user-message {
+    background: var(--primary-color);
+    color: white;
+    margin-left: auto;
+}
+
+.ai-message {
+    background: var(--background-color);
+    color: var(--text-color);
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.message.typing {
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.copy-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    font-size: 16px;
+}
+
+.copy-button:hover {
+    opacity: 1;
+}
+
+.message.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.chat-input {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: var(--background-color);
+    color: var(--text-color);
+}
+
+.send-button {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* New CSS for swipe functionality */
+.chat-messages {
+    touch-action: pan-y; /* Allows vertical scrolling */
+}
+
+.message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.message:hover {
+    cursor: grab;
+}
+
+.message:active {
+    cursor: grabbing;
+}
+
+/* Add transition for swipe effect */
+.swipe-left {
+    animation: swipeLeft 0.3s forwards;
+}
+
+@keyframes swipeLeft {
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+.swipe-right {
+    animation: swipeRight 0.3s forwards;
+}
+
+@keyframes swipeRight {
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
 </head>
 <body>
-    <div id="game"></div>
+<div class="app-container">
+    <div class="tokens-display">
+        500 токенов
+    </div>
+    
+    <div class="profile-section">
+        <div class="profile-image">
+            <svg class="app-icon" viewBox="0 0 24 24" fill="#007AFF">
+                <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.8L20 9v6l-8 4-8-4V9l8-4.2z"/>
+                <path d="M12 15c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+            </svg>
+        </div>
+        <div class="profile-info">
+            <h2>Ivan Braun</h2>
+            <div class="telegram-id">Telegram ID: <span id="telegramId">Not connected</span></div>
+        </div>
+    </div>
 
-    <script>
-        const size = 4;
-        const gameBoard = [];
-        let gameStarted = false;
+    <div class="subscription-section">
+        <div class="subscription-icon">
+            <svg viewBox="0 0 24 24" fill="#007AFF" width="32" height="32">
+                <rect x="3" y="6" width="18" height="2" rx="1"/>
+                <circle cx="16" cy="7" r="2" fill="white"/>
+                <rect x="3" y="11" width="18" height="2" rx="1"/>
+                <circle cx="8" cy="12" r="2" fill="white"/>
+                <rect x="3" y="16" width="18" height="2" rx="1"/>
+                <circle cx="12" cy="17" r="2" fill="white"/>
+            </svg>
+        </div>
+        <div class="subscription-content">
+            <div class="subscription-header">Подписка: 30 дней</div>
+            <div class="subscription-details">Завершится 11 декабря 2024</div>
+        </div>
+    </div>
 
-        // Генерация игрового поля
-        function createGameBoard() {
-            for (let i = 0; i < size; i++) {
-                gameBoard[i] = [];
-                for (let j = 0; j < size; j++) {
-                    gameBoard[i][j] = 0;
+    <div class="new-chat-button" style="cursor: pointer;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+        <span style="color: white">Новый чат</span>
+    </div>
+
+    <div class="action-button-container">
+        <button class="button primary-button button-with-icon">
+            <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="black">
+                <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.8L20 9v6l-8 4-8-4V9l8-4.2z"/>
+                <path d="M12 15c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+            </svg>
+            Купить комплект токенов
+        </button>
+        <button class="button secondary-button">Добавить на рабочий стол</button>
+    </div>
+
+    <div class="chat-history" id="chatHistory">
+        <div class="chat-item" id="empty-history">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+            </svg>
+            История запросов пуста
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            Главная
+        </div>
+        <div class="nav-item">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+            </svg>
+            Чаты
+        </div>
+        <div class="nav-item" onclick="toggleTheme()">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+            </svg>
+            Настройки
+        </div>
+    </div>
+
+    <div class="chat-interface" id="chatInterface">
+        <div class="chat-header">
+            <button class="back-button" onclick="closeChatInterface()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                </svg>
+            </button>
+            <span>Чат с AI</span>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Введите сообщение..." id="messageInput">
+            <button class="send-button" onclick="sendMessage()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTelegramId = localStorage.getItem('telegramId') || null;
+
+function setTelegramId() {
+    const id = prompt('Enter your Telegram ID:');
+    if (id) {
+        currentTelegramId = id;
+        localStorage.setItem('telegramId', id);
+        document.getElementById('telegramId').textContent = id;
+        loadChatHistory(); // Reload chats for this ID
+    }
+}
+
+function formatDate(date) {
+    return new Intl.DateTimeFormat('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(date);
+}
+
+function createNewChat() {
+    if (!currentTelegramId) {
+        alert('Please set your Telegram ID first');
+        setTelegramId();
+        return;
+    }
+
+    const timestamp = new Date();
+    const chatName = `Чат ${formatDate(timestamp)}`;
+    
+    const emptyHistory = document.getElementById('empty-history');
+    if (emptyHistory) {
+        emptyHistory.remove();
+    }
+    
+    const chatHistory = document.getElementById('chatHistory');
+    const newChatItem = createChatHistoryItem(chatName, timestamp);
+    
+    chatHistory.insertBefore(newChatItem, chatHistory.firstChild);
+    
+    if (!chatData[currentTelegramId]) {
+        chatData[currentTelegramId] = {};
+    }
+    chatData[currentTelegramId][chatName] = {
+        messages: [],
+        created: timestamp.toISOString()
+    };
+    
+    localStorage.setItem('chatHistory', JSON.stringify(chatData));
+    
+    openChatInterface(chatName);
+    updateChatsCounter();
+}
+
+function createChatHistoryItem(chatName, timestamp) {
+    const div = document.createElement('div');
+    div.className = 'chat-item';
+    
+    const mainContent = document.createElement('div');
+    mainContent.className = 'chat-main';
+    mainContent.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+        </svg>
+        ${chatName}
+        <span class="chat-date">${formatDate(timestamp)}</span>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'chat-actions';
+    actions.innerHTML = `
+        <button class="chat-action-btn" onclick="editChatName('${chatName}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            </svg>
+        </button>
+        <button class="chat-action-btn" onclick="deleteChat('${chatName}')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+        </button>
+    `;
+
+    div.appendChild(mainContent);
+    div.appendChild(actions);
+    
+    mainContent.addEventListener('click', () => openExistingChat(chatName));
+    
+    return div;
+}
+
+function editChatName(oldName) {
+    const newName = prompt('Enter new chat name:', oldName);
+    if (newName && newName !== oldName) {
+        const chatData = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+        if (chatData[currentTelegramId] && chatData[currentTelegramId][oldName]) {
+            chatData[currentTelegramId][newName] = chatData[currentTelegramId][oldName];
+            delete chatData[currentTelegramId][oldName];
+            localStorage.setItem('chatHistory', JSON.stringify(chatData));
+            loadChatHistory();
+        }
+    }
+}
+
+function deleteChat(chatName) {
+    if (confirm('Are you sure you want to delete this chat?')) {
+        const chatData = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+        if (chatData[currentTelegramId] && chatData[currentTelegramId][chatName]) {
+            delete chatData[currentTelegramId][chatName];
+            localStorage.setItem('chatHistory', JSON.stringify(chatData));
+            loadChatHistory();
+        }
+    }
+}
+
+function loadChatHistory() {
+    if (!currentTelegramId) {
+        document.getElementById('telegramId').textContent = 'Not connected';
+        return;
+    }
+    
+    document.getElementById('telegramId').textContent = currentTelegramId;
+    
+    const storedChats = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+    const userChats = storedChats[currentTelegramId] || {};
+    chatData = storedChats;
+    
+    const chatHistory = document.getElementById('chatHistory');
+    chatHistory.innerHTML = '';
+    
+    if (Object.keys(userChats).length === 0) {
+        chatHistory.innerHTML = `
+            <div class="chat-item" id="empty-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                </svg>
+                История запросов пуста
+            </div>
+        `;
+        return;
+    }
+
+    Object.entries(userChats).forEach(([chatName, chatData]) => {
+        const timestamp = new Date(chatData.created);
+        const chatItem = createChatHistoryItem(chatName, timestamp);
+        chatHistory.appendChild(chatItem);
+    });
+    
+    updateChatsCounter();
+}
+
+// Add event listener for Telegram ID setup
+document.querySelector('.profile-section').addEventListener('click', () => {
+    if (!currentTelegramId) {
+        setTelegramId();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!currentTelegramId) {
+        setTimeout(() => {
+            setTelegramId();
+        }, 1000);
+    }
+    loadChatHistory();
+});
+
+async function queryHuggingFaceAPI(message) {
+    const API_TOKEN = "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";
+    const API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill";
+
+    try {
+        // Enhanced math operations regex
+        const mathRegex = /(\d+(?:\.\d+)?)\s*([\+\-\*\/])\s*(\d+(?:\.\d+)?)/;
+        const mathMatch = message.match(mathRegex);
+        
+        if (mathMatch) {
+            const num1 = parseFloat(mathMatch[1]);
+            const operator = mathMatch[2];
+            const num2 = parseFloat(mathMatch[3]);
+            let result;
+            
+            switch(operator) {
+                case '+': result = num1 + num2; break;
+                case '-': result = num1 - num2; break;
+                case '*': result = num1 * num2; break;
+                case '/': result = num2 !== 0 ? num1 / num2 : "Деление на ноль невозможно"; break;
+            }
+            
+            return `Математическое решение:\n${num1} ${operator} ${num2} = ${result}`;
+        }
+
+        // Special handling for basic math word problems
+        if (message.toLowerCase().includes('реши') || 
+            message.toLowerCase().includes('вычисли') ||
+            message.toLowerCase().includes('посчитай')) {
+            
+            // Extract numbers and operation from text
+            const numbers = message.match(/\d+/g);
+            if (numbers && numbers.length >= 2) {
+                const num1 = parseInt(numbers[0]);
+                const num2 = parseInt(numbers[1]);
+                
+                if (message.includes('+') || message.toLowerCase().includes('плюс') || message.toLowerCase().includes('сложи')) {
+                    return `Решение: ${num1} + ${num2} = ${num1 + num2}`;
+                }
+                if (message.includes('-') || message.toLowerCase().includes('минус') || message.toLowerCase().includes('вычти')) {
+                    return `Решение: ${num1} - ${num2} = ${num1 - num2}`;
+                }
+                if (message.includes('*') || message.toLowerCase().includes('умножь')) {
+                    return `Решение: ${num1} * ${num2} = ${num1 * num2}`;
+                }
+                if (message.includes('/') || message.toLowerCase().includes('раздели')) {
+                    return num2 !== 0 ? `Решение: ${num1} / ${num2} = ${num1 / num2}` : "Деление на ноль невозможно";
                 }
             }
         }
 
-        // Добавление случайной плитки
-        function addRandomTile() {
-            const emptyTiles = [];
-            for (let i = 0; i < size; i++) {
-                for (let j = 0; j < size; j++) {
-                    if (gameBoard[i][j] === 0) {
-                        emptyTiles.push({ i, j });
-                    }
+        // Default API call for non-math queries
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${API_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                inputs: message,
+                parameters: {
+                    max_length: 500,
+                    temperature: 0.7,
+                    top_p: 0.9,
+                    do_sample: true
                 }
-            }
-            if (emptyTiles.length > 0) {
-                const { i, j } = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
-                gameBoard[i][j] = Math.random() < 0.9 ? 2 : 4;
-            }
-        }
-
-        // Обновление отображения игрового поля
-        function updateGameDisplay() {
-            const gameElement = document.getElementById('game');
-            gameElement.innerHTML = '';
-
-            for (let i = 0; i < size; i++) {
-                for (let j = 0; j < size; j++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell');
-                    gameElement.appendChild(cell);
-
-                    if (gameBoard[i][j] !== 0) {
-                        const tile = document.createElement('div');
-                        tile.classList.add('tile', `tile-${gameBoard[i][j]}`);
-                        tile.textContent = gameBoard[i][j];
-                        tile.style.transform = 'scale(1)';
-                        cell.appendChild(tile);
-                    }
-                }
-            }
-        }
-
-        // Перемещение плиток влево
-        function moveLeft() {
-            let moved = false;
-            for (let i = 0; i < size; i++) {
-                let row = gameBoard[i].filter(x => x !== 0);
-                for (let j = 0; j < row.length - 1; j++) {
-                    if (row[j] === row[j + 1]) {
-                        row[j] *= 2;
-                        row[j + 1] = 0;
-                        moved = true;
-                    }
-                }
-                row = row.filter(x => x !== 0);
-                while (row.length < size) row.push(0);
-                gameBoard[i] = row;
-            }
-            return moved;
-        }
-
-        // Перемещение плиток вправо
-        function moveRight() {
-            let moved = false;
-            for (let i = 0; i < size; i++) {
-                let row = gameBoard[i].filter(x => x !== 0).reverse();
-                for (let j = 0; j < row.length - 1; j++) {
-                    if (row[j] === row[j + 1]) {
-                        row[j] *= 2;
-                        row[j + 1] = 0;
-                        moved = true;
-                    }
-                }
-                row = row.filter(x => x !== 0);
-                while (row.length < size) row.push(0);
-                gameBoard[i] = row.reverse();
-            }
-            return moved;
-        }
-
-        // Перемещение плиток вверх
-        function moveUp() {
-            let moved = false;
-            for (let j = 0; j < size; j++) {
-                let column = [];
-                for (let i = 0; i < size; i++) column.push(gameBoard[i][j]);
-                column = column.filter(x => x !== 0);
-                for (let i = 0; i < column.length - 1; i++) {
-                    if (column[i] === column[i + 1]) {
-                        column[i] *= 2;
-                        column[i + 1] = 0;
-                        moved = true;
-                    }
-                }
-                column = column.filter(x => x !== 0);
-                while (column.length < size) column.push(0);
-                for (let i = 0; i < size; i++) gameBoard[i][j] = column[i];
-            }
-            return moved;
-        }
-
-        // Перемещение плиток вниз
-        function moveDown() {
-            let moved = false;
-            for (let j = 0; j < size; j++) {
-                let column = [];
-                for (let i = 0; i < size; i++) column.push(gameBoard[i][j]);
-                column = column.filter(x => x !== 0).reverse();
-                for (let i = 0; i < column.length - 1; i++) {
-                    if (column[i] === column[i + 1]) {
-                        column[i] *= 2;
-                        column[i + 1] = 0;
-                        moved = true;
-                    }
-                }
-                column = column.filter(x => x !== 0);
-                while (column.length < size) column.push(0);
-                column = column.reverse();
-                for (let i = 0; i < size; i++) gameBoard[i][j] = column[i];
-            }
-            return moved;
-        }
-
-        // Обработчик свайпов
-        let startX, startY, endX, endY;
-        document.addEventListener('touchstart', e => {
-            startX = e.touches[0].pageX;
-            startY = e.touches[0].pageY;
+            }),
         });
 
-        document.addEventListener('touchend', e => {
-            endX = e.changedTouches[0].pageX;
-            endY = e.changedTouches[0].pageY;
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
 
-            const diffX = endX - startX;
-            const diffY = endY - startY;
+        const result = await response.json();
+        return result[0]?.generated_text || "Извините, я не смог сформулировать ответ. Попробуйте переформулировать вопрос.";
 
-            let moved = false;
+    } catch (error) {
+        console.error("Error querying AI:", error);
+        
+        if (error.message.includes('API error: 429')) {
+            return "Превышен лимит запросов. Пожалуйста, подождите немного и повторите попытку.";
+        }
+        
+        if (error.message.includes('API error: 503') || error.message.includes('API error: 400')) {
+            return "Я могу помочь решить простые математические задачи. Например:\n- Сложение (2+2)\n- Вычитание (10-5)\n- Умножение (4*3)\n- Деление (8/2)\n\nПросто введите пример или опишите задачу словами.";
+        }
+        
+        return "Извините, произошла ошибка. Попробуйте задать вопрос иначе или введите математический пример.";
+    }
+}
 
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 30) {
-                    moved = moveRight();
-                } else if (diffX < -30) {
-                    moved = moveLeft();
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const currentChat = document.querySelector('.chat-header span').textContent;
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    // Add user message
+    const userMessage = document.createElement('div');
+    userMessage.className = 'message user-message';
+    userMessage.textContent = message;
+    messagesContainer.appendChild(userMessage);
+    
+    // Add to chat data
+    if (!chatData[currentChat]) {
+        chatData[currentChat] = [];
+    }
+    chatData[currentChat].push({
+        type: 'user',
+        message: message
+    });
+    
+    // Show typing indicator
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'message ai-message typing';
+    typingIndicator.innerHTML = '<span>AI печатает</span><span class="dots">...</span>';
+    messagesContainer.appendChild(typingIndicator);
+    
+    // Animate typing dots
+    let dots = 0;
+    const typingAnimation = setInterval(() => {
+        dots = (dots + 1) % 4;
+        typingIndicator.querySelector('.dots').textContent = '.'.repeat(dots);
+    }, 500);
+
+    try {
+        const aiResponse = await queryHuggingFaceAPI(message);
+        clearInterval(typingAnimation);
+        typingIndicator.remove();
+        
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'message ai-message';
+        aiMessage.textContent = aiResponse;
+        
+        // Add copy button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-button';
+        copyButton.innerHTML = '📋';
+        copyButton.onclick = () => {
+            navigator.clipboard.writeText(aiResponse);
+            copyButton.innerHTML = '✓';
+            setTimeout(() => copyButton.innerHTML = '📋', 1000);
+        };
+        aiMessage.appendChild(copyButton);
+        
+        messagesContainer.appendChild(aiMessage);
+        
+        // Add swipe functionality to AI message
+        let touchStartX = 0;
+        aiMessage.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+        
+        aiMessage.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > 50) { // Minimum swipe distance
+                if (diff > 0) {
+                    // Swipe left - delete message
+                    aiMessage.classList.add('swipe-left');
+                    setTimeout(() => aiMessage.remove(), 300);
                 }
-            } else {
-                if (diffY > 30) {
-                    moved = moveDown();
-                } else if (diffY < -30) {
-                    moved = moveUp();
-                }
-            }
-
-            if (moved) {
-                addRandomTile();
-                updateGameDisplay();
             }
         });
 
-        // Инициализация игры
-        function startGame() {
-            createGameBoard();
-            addRandomTile();
-            addRandomTile();
-            updateGameDisplay();
-        }
+        chatData[currentChat].push({
+            type: 'ai',
+            message: aiResponse
+        });
+        
+        localStorage.setItem('chatHistory', JSON.stringify(chatData));
+    } catch (error) {
+        clearInterval(typingAnimation);
+        typingIndicator.remove();
+        
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'message ai-message error';
+        errorMessage.textContent = "Произошла ошибка. Пожалуйста, попробуйте еще раз.";
+        messagesContainer.appendChild(errorMessage);
+    }
+    
+    input.value = '';
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
-        startGame();
-    </script>
-</body>
-</html>
+let chatData = {};
+
+document.querySelector('.new-chat-button').addEventListener('click', createNewChat);
+
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+document.querySelector('.nav-item:nth-child(2)').addEventListener('click', function() {
+    const chatHistory = document.getElementById('chatHistory');
+    const appContainer = document.querySelector('.app-container');
+    
+    Array.from(appContainer.children).forEach(child => {
+        if (child !== chatHistory && child !== document.querySelector('.bottom-nav')) {
+            child.style.display = 'none';
+        }
+    });
+    
+    chatHistory.style.display = 'block';
+    chatHistory.style.marginTop = '20px';
+});
+
+document.querySelector('.nav-item:nth-child(1)').addEventListener('click', function() {
+    const appContainer = document.querySelector('.app-container');
+    
+    Array.from(appContainer.children).forEach(child => {
+        child.style.display = '';
+    });
+});
+
+function openChatInterface(chatName) {
+    const chatInterface = document.getElementById('chatInterface');
+    chatInterface.style.display = 'flex';
+    document.querySelector('.chat-header span').textContent = chatName;
+    document.getElementById('messageInput').value = '';
+    document.getElementById('messageInput').focus();
+    
+    document.getElementById('chatMessages').innerHTML = '';
+}
+
+function closeChatInterface() {
+    document.getElementById('chatInterface').style.display = 'none';
+}
+
+function toggleTheme() {
+    const container = document.querySelector('body');
+    container.classList.toggle('dark-theme');
+}
+
+function loadChatHistory() {
+    const storedChats = JSON.parse(localStorage.getItem('chatHistory') || '{}');
+    chatData = storedChats;
+    
+    const chatHistory = document.getElementById('chatHistory');
+    const emptyHistory = document.getElementById('empty-history');
+    
+    if (Object.keys(storedChats).length > 0 && emptyHistory) {
+        emptyHistory.remove();
+    }
+
+    Object.keys(storedChats).forEach(chatName => {
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const newChatItem = document.createElement('div');
+        newChatItem.className = 'chat-item';
+        newChatItem.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+            </svg>
+            ${chatName} (${timestamp})
+        `;
+        
+        newChatItem.addEventListener('click', () => {
+            openExistingChat(chatName);
+        });
+        
+        chatHistory.insertBefore(newChatItem, chatHistory.firstChild);
+    });
+    
+    updateChatsCounter();
+}
+
+function updateChatsCounter() {
+    const totalChats = Object.keys(chatData).length;
+    
+    const chatsNavItem = document.querySelector('.nav-item:nth-child(2)');
+    chatsNavItem.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+        </svg>
+        Чаты${totalChats > 0 ? ` (${totalChats})` : ''}
+    `;
+}
+
+function openExistingChat(chatName) {
+    openChatInterface(chatName);
+    
+    const messages = chatData[chatName] || [];
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.innerHTML = '';
+    
+    messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${msg.type}-message`;
+        messageDiv.textContent = msg.message;
+        messagesContainer.appendChild(messageDiv);
+    });
+    
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function updateTokens(amount) {
+    const tokensDisplay = document.querySelector('.tokens-display');
+    const currentTokens = parseInt(tokensDisplay.textContent);
+    tokensDisplay.textContent = `${currentTokens + amount} токенов`;
+}
+
+document.addEventListener('DOMContentLoaded', loadChatHistory);
+</script>
+</body></html>
