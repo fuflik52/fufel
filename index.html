@@ -193,15 +193,127 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px;
+    padding: 12px 15px;
+    margin-bottom: 8px;
     border-radius: 8px;
     background: var(--background-color);
-    margin-bottom: 8px;
-    font-size: 14px;
+}
+
+.chat-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.chat-date {
+    font-size: 12px;
     color: var(--text-color);
+    opacity: 0.7;
+    margin-left: 10px;
+}
+
+.chat-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-action-btn {
+    background: none;
+    border: none;
+    padding: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    animation: fadeIn 0.3s ease-in;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.chat-action-btn:hover {
+    opacity: 1;
+}
+
+.message {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    max-width: 80%;
+    padding: 10px;
+    border-radius: 12px;
+    animation: fadeIn 0.3s ease;
+    transition: transform 0.2s ease;
+}
+
+.user-message {
+    background: var(--primary-color);
+    color: white;
+    margin-left: auto;
+}
+
+.ai-message {
+    background: var(--background-color);
+    color: var(--text-color);
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.message.typing {
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.copy-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    font-size: 16px;
+}
+
+.copy-button:hover {
+    opacity: 1;
+}
+
+.message.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.chat-input {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: var(--background-color);
+    color: var(--text-color);
+}
+
+.send-button {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    touch-action: pan-y; /* Allows vertical scrolling */
 }
 
 @keyframes fadeIn {
@@ -277,98 +389,6 @@ body {
     border: none;
     cursor: pointer;
     color: var(--text-color);
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-}
-
-.message {
-    margin-bottom: 15px;
-    max-width: 80%;
-    padding: 10px;
-    border-radius: 12px;
-    animation: fadeIn 0.3s ease;
-    transition: transform 0.2s ease;
-}
-
-.user-message {
-    background: var(--primary-color);
-    color: white;
-    margin-left: auto;
-}
-
-.ai-message {
-    background: var(--background-color);
-    color: var(--text-color);
-    margin-right: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.message.typing {
-    opacity: 0.7;
-    font-style: italic;
-}
-
-.copy-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: 8px;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    font-size: 16px;
-}
-
-.copy-button:hover {
-    opacity: 1;
-}
-
-.message.error {
-    background: #ffebee;
-    color: #c62828;
-}
-
-.chat-input {
-    padding: 15px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    gap: 10px;
-}
-
-.chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    background: var(--background-color);
-    color: var(--text-color);
-}
-
-.send-button {
-    background: var(--primary-color);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* New CSS for swipe functionality */
-.chat-messages {
-    touch-action: pan-y; /* Allows vertical scrolling */
-}
-
-.message {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
 .message:hover {
@@ -512,6 +532,19 @@ body {
 <script>
 let currentTelegramId = localStorage.getItem('telegramId') || null;
 
+function generateRandomTelegramId() {
+    return Math.floor(Math.random() * 1000000000) + 100000000;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!currentTelegramId) {
+        currentTelegramId = generateRandomTelegramId();
+        localStorage.setItem('telegramId', currentTelegramId);
+        document.getElementById('telegramId').textContent = currentTelegramId;
+    }
+    loadChatHistory();
+});
+
 function setTelegramId() {
     const id = prompt('Enter your Telegram ID:');
     if (id) {
@@ -570,37 +603,93 @@ function createChatHistoryItem(chatName, timestamp) {
     const div = document.createElement('div');
     div.className = 'chat-item';
     
-    const mainContent = document.createElement('div');
-    mainContent.className = 'chat-main';
-    mainContent.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-        </svg>
-        ${chatName}
-        <span class="chat-date">${formatDate(timestamp)}</span>
-    `;
-
-    const actions = document.createElement('div');
-    actions.className = 'chat-actions';
-    actions.innerHTML = `
-        <button class="chat-action-btn" onclick="editChatName('${chatName}')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-            </svg>
-        </button>
-        <button class="chat-action-btn" onclick="deleteChat('${chatName}')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-            </svg>
-        </button>
-    `;
-
-    div.appendChild(mainContent);
-    div.appendChild(actions);
+    const formattedDate = new Intl.DateTimeFormat('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(timestamp);
     
-    mainContent.addEventListener('click', () => openExistingChat(chatName));
+    div.innerHTML = `
+        <div class="chat-main">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+            </svg>
+            <span>${chatName}</span>
+            <span class="chat-date">${formattedDate}</span>
+        </div>
+        <div class="chat-actions">
+            <button class="chat-action-btn" onclick="editChatName('${chatName}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+            </button>
+            <button class="chat-action-btn" onclick="deleteChat('${chatName}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+            </button>
+        </div>
+    `;
     
+    div.querySelector('.chat-main').addEventListener('click', () => openExistingChat(chatName));
     return div;
+}
+
+async function queryHuggingFaceAPI(message) {
+    const API_TOKEN = "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";
+    const API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill";
+
+    try {
+        // Enhanced math operations handling
+        const mathPattern = /(\d+)\s*([\+\-\*\/])\s*(\d+)/;
+        const wordMathPattern = /(\d+)\s*(разделить на|умножить на|плюс|минус)\s*(\d+)/i;
+        
+        let mathMatch = message.match(mathPattern) || message.match(wordMathPattern);
+        
+        if (mathMatch) {
+            const num1 = parseFloat(mathMatch[1]);
+            let operator = mathMatch[2];
+            const num2 = parseFloat(mathMatch[3]);
+            
+            // Convert word operators to symbols
+            switch(operator.toLowerCase()) {
+                case 'разделить на': operator = '/'; break;
+                case 'умножить на': operator = '*'; break;
+                case 'плюс': operator = '+'; break;
+                case 'минус': operator = '-'; break;
+            }
+            
+            let result;
+            switch(operator) {
+                case '+': result = num1 + num2; break;
+                case '-': result = num1 - num2; break;
+                case '*': result = num1 * num2; break;
+                case '/': result = num2 !== 0 ? num1 / num2 : "Деление на ноль невозможно"; break;
+            }
+            
+            return `Математическое решение: ${num1} ${operator} ${num2} = ${result}`;
+        }
+
+        // Default API call for non-math queries
+        const response = await fetch(API_URL, {
+            headers: {
+                "Authorization": `Bearer ${API_TOKEN}`,
+                "Content-Type": "application/json",
+            },
+            method: "POST",
+            body: JSON.stringify({ inputs: message }),
+        });
+
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        
+        const result = await response.json();
+        return result[0]?.generated_text || "Извините, я не смог обработать ваш запрос. Попробуйте переформулировать.";
+    } catch (error) {
+        console.error("Error:", error);
+        return "Извините, произошла ошибка. Попробуйте еще раз или введите математический пример.";
+    }
 }
 
 function editChatName(oldName) {
@@ -672,103 +761,12 @@ document.querySelector('.profile-section').addEventListener('click', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!currentTelegramId) {
-        setTimeout(() => {
-            setTelegramId();
-        }, 1000);
+        currentTelegramId = generateRandomTelegramId();
+        localStorage.setItem('telegramId', currentTelegramId);
+        document.getElementById('telegramId').textContent = currentTelegramId;
     }
     loadChatHistory();
 });
-
-async function queryHuggingFaceAPI(message) {
-    const API_TOKEN = "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";
-    const API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill";
-
-    try {
-        // Enhanced math operations regex
-        const mathRegex = /(\d+(?:\.\d+)?)\s*([\+\-\*\/])\s*(\d+(?:\.\d+)?)/;
-        const mathMatch = message.match(mathRegex);
-        
-        if (mathMatch) {
-            const num1 = parseFloat(mathMatch[1]);
-            const operator = mathMatch[2];
-            const num2 = parseFloat(mathMatch[3]);
-            let result;
-            
-            switch(operator) {
-                case '+': result = num1 + num2; break;
-                case '-': result = num1 - num2; break;
-                case '*': result = num1 * num2; break;
-                case '/': result = num2 !== 0 ? num1 / num2 : "Деление на ноль невозможно"; break;
-            }
-            
-            return `Математическое решение:\n${num1} ${operator} ${num2} = ${result}`;
-        }
-
-        // Special handling for basic math word problems
-        if (message.toLowerCase().includes('реши') || 
-            message.toLowerCase().includes('вычисли') ||
-            message.toLowerCase().includes('посчитай')) {
-            
-            // Extract numbers and operation from text
-            const numbers = message.match(/\d+/g);
-            if (numbers && numbers.length >= 2) {
-                const num1 = parseInt(numbers[0]);
-                const num2 = parseInt(numbers[1]);
-                
-                if (message.includes('+') || message.toLowerCase().includes('плюс') || message.toLowerCase().includes('сложи')) {
-                    return `Решение: ${num1} + ${num2} = ${num1 + num2}`;
-                }
-                if (message.includes('-') || message.toLowerCase().includes('минус') || message.toLowerCase().includes('вычти')) {
-                    return `Решение: ${num1} - ${num2} = ${num1 - num2}`;
-                }
-                if (message.includes('*') || message.toLowerCase().includes('умножь')) {
-                    return `Решение: ${num1} * ${num2} = ${num1 * num2}`;
-                }
-                if (message.includes('/') || message.toLowerCase().includes('раздели')) {
-                    return num2 !== 0 ? `Решение: ${num1} / ${num2} = ${num1 / num2}` : "Деление на ноль невозможно";
-                }
-            }
-        }
-
-        // Default API call for non-math queries
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${API_TOKEN}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                inputs: message,
-                parameters: {
-                    max_length: 500,
-                    temperature: 0.7,
-                    top_p: 0.9,
-                    do_sample: true
-                }
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-
-        const result = await response.json();
-        return result[0]?.generated_text || "Извините, я не смог сформулировать ответ. Попробуйте переформулировать вопрос.";
-
-    } catch (error) {
-        console.error("Error querying AI:", error);
-        
-        if (error.message.includes('API error: 429')) {
-            return "Превышен лимит запросов. Пожалуйста, подождите немного и повторите попытку.";
-        }
-        
-        if (error.message.includes('API error: 503') || error.message.includes('API error: 400')) {
-            return "Я могу помочь решить простые математические задачи. Например:\n- Сложение (2+2)\n- Вычитание (10-5)\n- Умножение (4*3)\n- Деление (8/2)\n\nПросто введите пример или опишите задачу словами.";
-        }
-        
-        return "Извините, произошла ошибка. Попробуйте задать вопрос иначе или введите математический пример.";
-    }
-}
 
 async function sendMessage() {
     const input = document.getElementById('messageInput');
@@ -828,25 +826,6 @@ async function sendMessage() {
         
         messagesContainer.appendChild(aiMessage);
         
-        // Add swipe functionality to AI message
-        let touchStartX = 0;
-        aiMessage.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-        });
-        
-        aiMessage.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].clientX;
-            const diff = touchStartX - touchEndX;
-            
-            if (Math.abs(diff) > 50) { // Minimum swipe distance
-                if (diff > 0) {
-                    // Swipe left - delete message
-                    aiMessage.classList.add('swipe-left');
-                    setTimeout(() => aiMessage.remove(), 300);
-                }
-            }
-        });
-
         chatData[currentChat].push({
             type: 'ai',
             message: aiResponse
@@ -916,38 +895,6 @@ function closeChatInterface() {
 function toggleTheme() {
     const container = document.querySelector('body');
     container.classList.toggle('dark-theme');
-}
-
-function loadChatHistory() {
-    const storedChats = JSON.parse(localStorage.getItem('chatHistory') || '{}');
-    chatData = storedChats;
-    
-    const chatHistory = document.getElementById('chatHistory');
-    const emptyHistory = document.getElementById('empty-history');
-    
-    if (Object.keys(storedChats).length > 0 && emptyHistory) {
-        emptyHistory.remove();
-    }
-
-    Object.keys(storedChats).forEach(chatName => {
-        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const newChatItem = document.createElement('div');
-        newChatItem.className = 'chat-item';
-        newChatItem.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-            </svg>
-            ${chatName} (${timestamp})
-        `;
-        
-        newChatItem.addEventListener('click', () => {
-            openExistingChat(chatName);
-        });
-        
-        chatHistory.insertBefore(newChatItem, chatHistory.firstChild);
-    });
-    
-    updateChatsCounter();
 }
 
 function updateChatsCounter() {
