@@ -107,6 +107,14 @@ body {
     justify-content: center;
 }
 
+.profile-image img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
 .profile-info h2 {
     font-size: 18px;
     font-weight: 600;
@@ -956,29 +964,84 @@ function openChat(chat) {
 function initializeTelegram() {
     if (window.Telegram?.WebApp) {
         try {
+            // Initialize WebApp
+            window.Telegram.WebApp.ready();
+            
             const user = window.Telegram.WebApp.initDataUnsafe?.user;
             if (user) {
                 currentTelegramId = user.id;
-                currentUsername = user.username;
+                currentUsername = user.username || 'No Username';
+                currentAvatar = user.photo_url;
                 telegramInitialized = true;
+                
+                // Update the display
+                updateProfileDisplay();
                 initializeTokens();
                 loadChatHistory();
-                updateProfileDisplay();
             } else {
                 console.log('Telegram user data not available');
-                currentTelegramId = 'default';
-                currentUsername = 'Guest User';
+                setDefaultUserInfo();
             }
         } catch (error) {
             console.error('Error initializing Telegram:', error);
-            currentTelegramId = 'default';
-            currentUsername = 'Guest User';
+            setDefaultUserInfo();
         }
     } else {
         console.log('Telegram WebApp not available');
-        currentTelegramId = 'default';
-        currentUsername = 'Guest User';
+        setDefaultUserInfo();
     }
+}
+
+// Add new function to set default user info
+function setDefaultUserInfo() {
+    currentTelegramId = 'default';
+    currentUsername = 'No Username';
+    currentAvatar = null;
+    updateProfileDisplay();
+}
+
+// Add new function to update profile display
+function updateProfileDisplay() {
+    const profileImage = document.querySelector('.profile-image');
+    const usernameEl = document.querySelector('.profile-info h2');
+    const telegramIdEl = document.querySelector('#telegramId');
+    
+    // Update username
+    if (usernameEl) {
+        usernameEl.textContent = currentUsername || 'No Username';
+    }
+    
+    // Update Telegram ID
+    if (telegramIdEl) {
+        telegramIdEl.textContent = currentTelegramId || 'Not connected';
+    }
+    
+    // Update profile image
+    if (profileImage) {
+        if (currentAvatar) {
+            // If we have a photo URL, create and set an img element
+            profileImage.innerHTML = `<img src="${currentAvatar}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+        } else {
+            // If no photo, show default Telegram icon
+            profileImage.innerHTML = `
+                <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
+                    <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+                </svg>`;
+        }
+    }
+}
+
+// Initialize tokens
+function initializeTokens() {
+    const userKey = currentTelegramId || 'default';
+    const savedTokens = localStorage.getItem(`userTokens_${userKey}`);
+    if (savedTokens === null) {
+        userTokens = 500;
+        localStorage.setItem(`userTokens_${userKey}`, userTokens);
+    } else {
+        userTokens = parseInt(savedTokens);
+    }
+    updateTokensDisplay();
 }
 
 function updateTokens(amount) {
@@ -1228,19 +1291,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(createSnowflake, 200);
     }
 });
-
-// Update the token initialization to handle undefined cases
-function initializeTokens() {
-    const userKey = currentTelegramId || 'default';
-    const savedTokens = localStorage.getItem(`userTokens_${userKey}`);
-    if (savedTokens === null) {
-        userTokens = 500;
-        localStorage.setItem(`userTokens_${userKey}`, userTokens);
-    } else {
-        userTokens = parseInt(savedTokens);
-    }
-    updateTokensDisplay();
-}
 </script>
 </body>
 </html>
