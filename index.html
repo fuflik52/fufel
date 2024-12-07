@@ -578,6 +578,17 @@ body {
     box-shadow: 0 4px 12px var(--shadow-color);
 }
 
+.snowflake {
+    position: absolute; 
+    color: var(--primary-color);
+    text-shadow: 0 0 5px rgba(76, 158, 235, 0.5);
+    pointer-events: none;
+    z-index: 9999;
+    user-select: none;
+    animation-timing-function: linear;
+    top: -20px; 
+}
+
 .snowfall-speed {
     background: var(--gradient-primary);
     height: 8px;
@@ -603,160 +614,12 @@ body {
     box-shadow: 0 0 10px rgba(76, 158, 235, 0.5);
 }
 
-.snowflake {
-    position: absolute; 
-    color: var(--primary-color);
-    text-shadow: 0 0 5px rgba(76, 158, 235, 0.5);
-    pointer-events: none;
-    z-index: 9999;
-    user-select: none;
-    animation-timing-function: linear;
-    top: -20px; 
-}
-
 @keyframes fall {
     0% {
         transform: translateY(0) rotate(0deg); 
     }
     100% {
         transform: translateY(calc(100vh)) rotate(360deg); 
-    }
-}
-
-.section-container {
-    max-width: 480px;
-    margin: 0 auto;
-    background: var(--card-background);
-    min-height: calc(100vh - 60px);
-    position: relative;
-}
-
-.section-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--card-background);
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-.section-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .toggle-slider {
-    background-color: var(--primary-color);
-}
-
-input:checked + .toggle-slider:before {
-    transform: translateX(26px);
-}
-
-.notification {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    border-radius: 12px;
-    background: var(--card-background);
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 16px var(--shadow-color);
-    z-index: 1050;
-    animation: slideDown 0.3s ease;
-    color: var(--text-color);
-    font-size: 14px;
-    font-weight: 500;
-    min-width: 200px;
-    text-align: center;
-}
-
-.notification-success {
-    border-left: 4px solid #4CAF50;
-}
-
-.notification-error {
-    border-left: 4px solid #f44336;
-}
-
-.notification-info {
-    border-left: 4px solid var(--primary-color);
-}
-
-@keyframes slideDown {
-    from {
-        transform: translate(-50%, -100%);
-        opacity: 0;
-    }
-    to {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translate(-50%, 0);
-        opacity: 1;
-    }
-    to {
-        transform: translate(-50%, -100%);
-        opacity: 0;
-    }
-}
-
-.settings-panel, .chat-history-container {
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 
@@ -792,6 +655,23 @@ input:checked + .toggle-slider:before {
     display: flex;
     gap: 8px;
     margin-left: 10px;
+}
+
+/* Navigation functionality */
+.chat-history-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px;
+    background: var(--card-background);
+    z-index: 1000;
+    overflow-y: auto;
+    display: none;
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: 24px;
+    box-shadow: var(--space-glow);
 }
 </style>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -983,160 +863,29 @@ input:checked + .toggle-slider:before {
 </div>
 
 <script>
-function createNewChat() {
-    // Show chat interface
-    document.getElementById('chatInterface').style.display = 'flex';
-    
-    // Clear previous messages
-    document.getElementById('chatMessages').innerHTML = '';
-    
-    // Initialize chat state
-    const chatState = {
-        id: Date.now(),
-        title: '',
-        messages: []
-    };
-    
-    // Store chat in localStorage
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    chats.push(chatState);
-    localStorage.setItem('chats', JSON.stringify(chats));
-    
-    // Update chat history UI
-    updateChatHistory();
-}
-
-function closeChatInterface() {
-    document.getElementById('chatInterface').style.display = 'none';
-}
-
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    // Get current chat
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    const currentChat = chats[chats.length - 1];
-    
-    // Add message to chat
-    const messageObj = {
-        text: message,
-        type: 'user',
-        timestamp: Date.now()
-    };
-    
-    // Update chat title if this is the first message
-    if (currentChat.messages.length === 0) {
-        currentChat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
-    }
-    
-    currentChat.messages.push(messageObj);
-    
-    // Update localStorage
-    localStorage.setItem('chats', JSON.stringify(chats));
-    
-    // Update UI
-    displayMessage(messageObj);
-    updateChatHistory();
-    
-    // Clear input
-    input.value = '';
-}
-
-function displayMessage(message) {
-    const messagesContainer = document.getElementById('chatMessages');
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${message.type}-message`;
-    messageElement.textContent = message.text;
-    messagesContainer.appendChild(messageElement);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function updateChatHistory() {
-    const historyContainer = document.querySelector('.chat-history');
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Clear existing history except the empty-history element
-    const emptyHistory = document.getElementById('empty-history');
-    historyContainer.innerHTML = '';
-    
-    if (chats.length === 0) {
-        historyContainer.appendChild(emptyHistory);
-        return;
-    }
-    
-    chats.forEach((chat, index) => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item';
-        chatItem.innerHTML = `
-            <div class="chat-main">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-                </svg>
-                ${chat.title || 'Новый чат'}
-            </div>
-            <div class="chat-actions">
-                <button class="chat-action-btn delete-chat" onclick="deleteChat(${index})">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444">
-                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                    </svg>
-                </button>
-            </div>
-        `;
-        historyContainer.appendChild(chatItem);
-    });
-}
-
-function deleteChat(index) {
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    chats.splice(index, 1);
-    localStorage.setItem('chats', JSON.stringify(chats));
-    updateChatHistory();
-}
+let currentLanguage = localStorage.getItem('language') || 'ru';
 
 const translations = {
     ru: {
         home: 'Главная',
         chats: 'Чаты',
-        settings: 'Настройки',
-        newChat: 'Новый чат',
-        openTelegram: 'Открыть Telegram',
-        buyTokens: 'Купить комплект токенов',
-        addToDesktop: 'Добавить на рабочий стол',
-        chatHistory: 'История чатов',
-        emptyHistory: 'История запросов пуста',
-        chatWithAI: 'Чат с AI',
-        enterMessage: 'Введите сообщение...',
+        settings: 'Настройки', 
         darkTheme: 'Темная тема',
         toggleTheme: 'Переключить между светлой и темной темой',
         snowflakes: 'Снежинки',
         enableSnowflakes: 'Включить анимацию снежинок',
         snowfallSpeed: 'Скорость снежинок',
         adjustSpeed: 'Настроить скорость падения',
-        snowDensity: 'Интенсивность снега',
+        snowDensity: 'Интенсивность снега', 
         adjustDensity: 'Настроить количество снежинок',
-        language: 'Язык',
-        selectLanguage: 'Выберите язык интерфейса',
         notConnected: 'Не подключен',
-        subscription: 'Подписка',
-        days: 'дней',
-        expiresOn: 'Завершится',
-        tokens: 'токенов'
+        language: 'Язык',
+        selectLanguage: 'Выберите язык интерфейса'
     },
     en: {
         home: 'Home',
-        chats: 'Chats',
+        chats: 'Chats', 
         settings: 'Settings',
-        newChat: 'New Chat',
-        openTelegram: 'Open Telegram',
-        buyTokens: 'Buy Token Pack',
-        addToDesktop: 'Add to Desktop',
-        chatHistory: 'Chat History',
-        emptyHistory: 'Chat history is empty',
-        chatWithAI: 'Chat with AI',
-        enterMessage: 'Enter message...',
         darkTheme: 'Dark Theme',
         toggleTheme: 'Toggle between light and dark theme',
         snowflakes: 'Snowflakes',
@@ -1145,109 +894,55 @@ const translations = {
         adjustSpeed: 'Adjust falling speed',
         snowDensity: 'Snow Density',
         adjustDensity: 'Adjust number of snowflakes',
-        language: 'Language',
-        selectLanguage: 'Select interface language',
         notConnected: 'Not connected',
-        subscription: 'Subscription',
-        days: 'days',
-        expiresOn: 'Expires on',
-        tokens: 'tokens'
+        language: 'Language',
+        selectLanguage: 'Select interface language'
     }
 };
 
-// Snowfall state
-let isSnowing = localStorage.getItem('isSnowing') === 'true';
-let snowDensity = parseInt(localStorage.getItem('snowDensity')) || 5;
-let snowfallSpeed = parseInt(localStorage.getItem('snowfallSpeed')) || 5;
-let snowflakes = [];
+// Add language change listener
+document.getElementById('languageSelect').addEventListener('change', (e) => {
+    currentLanguage = e.target.value;
+    localStorage.setItem('language', currentLanguage);
+    updateUILanguage();
+});
 
-// Snowfall functions
-function createSnowflake() {
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
-    snowflake.style.left = Math.random() * 100 + '%';
-    snowflake.innerHTML = '❄';
-    snowflake.style.fontSize = (Math.random() * 14 + 10) + 'px';
-    snowflake.style.opacity = Math.random() * 0.7 + 0.3;
+let tg = window.Telegram?.WebApp;
+
+function initializeTelegram() {
+    tg = window.Telegram?.WebApp; // Ensure we have the latest reference
     
-    const animationDuration = (Math.random() * 3 + 2) * (11 - snowfallSpeed) + 's';
-    snowflake.style.animation = `fall ${animationDuration} linear forwards`;
+    const profileName = document.querySelector('.profile-info h2');
+    const telegramIdSpan = document.getElementById('telegramId');
     
-    document.querySelector('.app-container').appendChild(snowflake);
-    
-    snowflake.addEventListener('animationend', () => {
-        snowflake.remove();
-        if (isSnowing) {
-            createSnowflake();
+    try {
+        if (tg && tg.initDataUnsafe?.user) {
+            const user = tg.initDataUnsafe.user;
+            profileName.textContent = user.username || user.first_name || 'Username';
+            telegramIdSpan.textContent = user.id || (currentLanguage === 'ru' ? 'Не подключен' : 'Not connected');
+            localStorage.setItem('telegramUser', JSON.stringify(user));
+            
+            if (tg.expand) tg.expand();
+            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+        } else {
+            const storedUser = JSON.parse(localStorage.getItem('telegramUser'));
+            if (storedUser) {
+                profileName.textContent = storedUser.username || storedUser.first_name || 'Username';
+                telegramIdSpan.textContent = storedUser.id || (currentLanguage === 'ru' ? 'Не подключен' : 'Not connected');
+            } else {
+                telegramIdSpan.textContent = currentLanguage === 'ru' ? 'Не подключен' : 'Not connected';
+            }
         }
-    });
-    
-    snowflakes.push(snowflake);
-}
-
-function updateSnowfallDensity(density) {
-    // Clear existing snowflakes
-    snowflakes.forEach(flake => flake.remove());
-    snowflakes = [];
-    
-    if (isSnowing) {
-        // Create new snowflakes based on density
-        const numFlakes = density * 5; // 5 to 50 snowflakes
-        for (let i = 0; i < numFlakes; i++) {
-            setTimeout(createSnowflake, Math.random() * 2000);
-        }
-    }
-    
-    localStorage.setItem('snowDensity', density);
-}
-
-function updateSnowfallSpeed(speed) {
-    snowfallSpeed = speed;
-    localStorage.setItem('snowfallSpeed', speed);
-    
-    // Update animation duration for existing snowflakes
-    snowflakes.forEach(flake => {
-        const animationDuration = (Math.random() * 3 + 2) * (11 - speed) + 's';
-        flake.style.animation = `fall ${animationDuration} linear forwards`;
-    });
-}
-
-function toggleSnowfall() {
-    isSnowing = !isSnowing;
-    localStorage.setItem('isSnowing', isSnowing);
-    
-    if (isSnowing) {
-        updateSnowfallDensity(snowDensity);
-    } else {
-        snowflakes.forEach(flake => flake.remove());
-        snowflakes = [];
+    } catch (error) {
+        console.log('Error initializing Telegram:', error);
+        telegramIdSpan.textContent = currentLanguage === 'ru' ? 'Не подключен' : 'Not connected';
     }
 }
-
-// Add event listeners after document.addEventListener('DOMContentLoaded', () => {
-document.getElementById('snowflakeToggle').addEventListener('change', (e) => {
-    toggleSnowfall();
-});
-
-document.getElementById('snowfallSpeed').addEventListener('input', (e) => {
-    updateSnowfallSpeed(parseInt(e.target.value));
-});
-
-document.getElementById('snowDensity').addEventListener('input', (e) => {
-    updateSnowfallDensity(parseInt(e.target.value));
-});
-
-// Update initial states
-document.getElementById('snowflakeToggle').checked = isSnowing;
-document.getElementById('snowfallSpeed').value = snowfallSpeed;
-document.getElementById('snowDensity').value = snowDensity;
-
-let currentLanguage = 'ru';
 
 function updateUILanguage() {
     const lang = translations[currentLanguage];
     
-    // Update navigation
+    // Update navigation and existing elements
     document.querySelectorAll('.nav-item').forEach(item => {
         if (item.textContent.includes('Главная') || item.textContent.includes('Home')) {
             item.innerHTML = `
@@ -1270,135 +965,323 @@ function updateUILanguage() {
         }
     });
 
-    // Update buttons and text content
-    document.querySelector('.new-chat-button span').textContent = lang.newChat;
-    document.querySelector('.primary-button.button-with-icon').textContent = lang.openTelegram;
-    document.querySelectorAll('.button')[1].textContent = lang.buyTokens;
-    
-    // Update settings panel
-    document.querySelector('.section-header h3').textContent = lang.settings;
+    // Add translations for profile section
+    const telegramId = document.getElementById('telegramId');
+    if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
+        telegramId.textContent = currentLanguage === 'ru' ? 'Не подключен' : 'Not connected';
+    }
+
+    // Update settings translations
     document.querySelectorAll('.setting-item').forEach(item => {
         const titleSpan = item.querySelector('span');
-        if (titleSpan) {
-            if (titleSpan.textContent.includes('Темная тема') || titleSpan.textContent.includes('Dark Theme')) {
-                titleSpan.textContent = lang.darkTheme;
-                item.querySelector('div div').textContent = lang.toggleTheme;
-            } else if (titleSpan.textContent.includes('Снежинки') || titleSpan.textContent.includes('Snowflakes')) {
-                titleSpan.textContent = lang.snowflakes;
-                item.querySelector('div div').textContent = lang.enableSnowflakes;
-            } else if (titleSpan.textContent.includes('Скорость снежинок') || titleSpan.textContent.includes('Snowfall Speed')) {
-                titleSpan.textContent = lang.snowfallSpeed;
-                item.querySelector('div div').textContent = lang.adjustSpeed;
-            } else if (titleSpan.textContent.includes('Интенсивность снега') || titleSpan.textContent.includes('Snow Density')) {
-                titleSpan.textContent = lang.snowDensity;
-                item.querySelector('div div').textContent = lang.adjustDensity;
-            } else if (titleSpan.textContent.includes('Язык') || titleSpan.textContent.includes('Language')) {
-                titleSpan.textContent = lang.language;
-                item.querySelector('div div').textContent = lang.selectLanguage;
+        const descriptionDiv = item.querySelector('div div');
+        
+        if (titleSpan && descriptionDiv) {
+            switch(titleSpan.textContent.trim()) {
+                case 'Темная тема':
+                case 'Dark Theme':
+                    titleSpan.textContent = lang.darkTheme;
+                    descriptionDiv.textContent = lang.toggleTheme;
+                    break;
+                case 'Снежинки':
+                case 'Snowflakes':
+                    titleSpan.textContent = lang.snowflakes;
+                    descriptionDiv.textContent = lang.enableSnowflakes;
+                    break;
+                case 'Скорость снежинок':
+                case 'Snowfall Speed':
+                    titleSpan.textContent = lang.snowfallSpeed;
+                    descriptionDiv.textContent = lang.adjustSpeed;
+                    break;
+                case 'Интенсивность снега':
+                case 'Snow Density':
+                    titleSpan.textContent = lang.snowDensity;
+                    descriptionDiv.textContent = lang.adjustDensity;
+                    break;
             }
         }
     });
 
-    // Update other elements
-    document.querySelector('.chat-header span').textContent = lang.chatWithAI;
-    document.querySelector('.chat-input input').placeholder = lang.enterMessage;
-    document.querySelector('.tokens-display').textContent = `${localStorage.getItem('tokens') || 500} ${lang.tokens}`;
-    
-    // Save language preference
-    localStorage.setItem('language', currentLanguage);
+    // Update Telegram section text
+    const telegramIdLabel = document.querySelector('.telegram-id');
+    telegramIdLabel.textContent = `${currentLanguage === 'ru' ? 'Telegram ID: ' : 'Telegram ID: '}`; 
 }
 
-// Add language change event listener
-document.getElementById('languageSelect').addEventListener('change', (e) => {
-    currentLanguage = e.target.value;
-    updateUILanguage();
-});
-
-let tg = window.Telegram?.WebApp;
-
-function initializeTelegram() {
-    if (tg) {
-        // Update profile with Telegram data
-        const profileName = document.querySelector('.profile-info h2');
-        const telegramIdSpan = document.getElementById('telegramId');
-        
-        if (tg.initDataUnsafe?.user) {
-            const user = tg.initDataUnsafe.user;
-            profileName.textContent = user.username || user.first_name || 'Username';
-            telegramIdSpan.textContent = user.id || translations[currentLanguage].notConnected;
-            
-            // Store Telegram data
-            localStorage.setItem('telegramUser', JSON.stringify(user));
-        } else {
-            // Use stored data if available
-            const storedUser = JSON.parse(localStorage.getItem('telegramUser'));
-            if (storedUser) {
-                profileName.textContent = storedUser.username || storedUser.first_name || 'Username';
-                telegramIdSpan.textContent = storedUser.id || translations[currentLanguage].notConnected;
-            }
-        }
-
-        // Enable Telegram features
-        tg.expand();
-        tg.enableClosingConfirmation();
-    }
-}
-
+// Initialize Telegram when the document loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Telegram integration
     initializeTelegram();
-    
-    // Initialize theme from localStorage
-    if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.classList.add('dark-theme');
-        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
-        if (themeToggleSwitch) {
-            themeToggleSwitch.checked = true;
-        }
-    }
+    const navItems = document.querySelectorAll('.nav-item');
+    const mainSection = document.querySelector('.app-container');
+    const chatHistorySection = document.querySelector('.chat-history-container');
+    const settingsPanel = document.querySelector('.settings-panel');
 
-    // Initialize language
-    currentLanguage = localStorage.getItem('language') || 'ru';
-    updateUILanguage();
-    
-    // Initialize snowfall with density
-    if (isSnowing) {
-        updateSnowfallDensity(snowDensity);
-    }
-
-    // Add click handlers for nav items
-    document.querySelectorAll('.nav-item').forEach(item => {
+    // Add click handlers to nav items
+    navItems.forEach(item => {
         item.addEventListener('click', () => {
-            // Remove active class from all nav items
-            document.querySelectorAll('.nav-item').forEach(navItem => {
-                navItem.classList.remove('active');
-            });
-            
-            // Add active class to clicked item
+            navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
             
-            // Handle navigation based on text content
+            mainSection.style.display = 'block';
+            chatHistorySection.style.display = 'none';
+            settingsPanel.style.display = 'none';
+            
             const text = item.textContent.trim();
-            
-            // Hide all panels first
-            document.getElementById('chatHistory').style.display = 'none';
-            document.getElementById('settingsPanel').style.display = 'none';
-            document.getElementById('chatInterface').style.display = 'none';
-            
             if (text.includes('Чаты') || text.includes('Chats')) {
-                document.getElementById('chatHistory').style.display = 'block';
+                chatHistorySection.style.display = 'block';
+                updateChatHistory();
             } else if (text.includes('Настройки') || text.includes('Settings')) {
-                document.getElementById('settingsPanel').style.display = 'block';
+                settingsPanel.style.display = 'block';
             }
         });
     });
+
+    mainSection.style.display = 'block';
+    chatHistorySection.style.display = 'none';
+    settingsPanel.style.display = 'none';
 });
 
-// Add this function to handle theme toggling
-function toggleTheme() {
-    const isDark = document.documentElement.classList.toggle('dark-theme');
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+// New functions for chat management
+function updateChatHistory() {
+    const chatHistory = document.querySelector('.chat-history');
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    
+    // Clear existing chat history
+    chatHistory.innerHTML = '';
+    
+    if (chats.length === 0) {
+        // Show empty state message
+        chatHistory.innerHTML = `
+            <div class="chat-item" id="empty-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                </svg>
+                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
+            </div>`;
+        return;
+    }
+
+    // Add each chat to history
+    chats.forEach((chat, index) => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.innerHTML = `
+            <div class="chat-main">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+                <span>${chat.title || 'Chat ' + (index + 1)}</span>
+            </div>
+            <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
+            <div class="chat-actions">
+                <button class="chat-action-btn delete-chat" onclick="deleteChat(${index})">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>`;
+        chatHistory.appendChild(chatItem);
+    });
 }
+
+function createNewChat() {
+    const chatInterface = document.getElementById('chatInterface');
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    
+    const newChat = {
+        id: Date.now(),
+        title: '',
+        created: new Date(),
+        messages: []
+    };
+    
+    chats.push(newChat);
+    localStorage.setItem('chats', JSON.stringify(chats));
+    
+    chatInterface.style.display = 'flex';
+    updateChatHistory();
+}
+
+function deleteChat(index) {
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    chats.splice(index, 1);
+    localStorage.setItem('chats', JSON.stringify(chats));
+    updateChatHistory();
+}
+
+function closeChatInterface() {
+    const chatInterface = document.getElementById('chatInterface');
+    chatInterface.style.display = 'none';
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (message) {
+        const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+        const currentChat = chats[chats.length - 1];
+        
+        if (!currentChat.title) {
+            // Set the chat title from the first message
+            currentChat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+        }
+        
+        currentChat.messages.push({
+            text: message,
+            sender: 'user',
+            timestamp: new Date()
+        });
+        
+        localStorage.setItem('chats', JSON.stringify(chats));
+        messageInput.value = '';
+        updateChatHistory();
+        
+        // Here you would typically handle the AI response
+        // For now, we'll just show the message was sent
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML += `
+            <div class="message user-message">
+                ${message}
+            </div>`;
+    }
+}
+
+let isSnowing = false;
+let snowflakes = [];
+const snowflakeCount = 50;
+
+function createSnowflake() {
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+    snowflake.innerHTML = '❄';
+    snowflake.style.left = Math.random() * 100 + 'vw';
+    snowflake.style.opacity = Math.random();
+    snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+    
+    const animationDuration = (Math.random() * 3 + 2) * (11 - Number(document.getElementById('snowfallSpeed').value));
+    snowflake.style.animation = `fall ${animationDuration}s linear forwards`;
+    
+    document.querySelector('.app-container').appendChild(snowflake);
+    
+    snowflake.addEventListener('animationend', () => {
+        snowflake.remove();
+        if (isSnowing) {
+            createSnowflake();
+        }
+    });
+    
+    snowflakes.push(snowflake);
+}
+
+function toggleSnow() {
+    const snowToggle = document.getElementById('snowflakeToggle');
+    isSnowing = snowToggle.checked;
+    
+    if (isSnowing) {
+        // Create initial snowflakes
+        const density = Number(document.getElementById('snowDensity').value);
+        const flakeCount = Math.floor(snowflakeCount * (density / 5));
+        for (let i = 0; i < flakeCount; i++) {
+            setTimeout(createSnowflake, Math.random() * 3000);
+        }
+    } else {
+        // Remove all snowflakes
+        snowflakes.forEach(flake => flake.remove());
+        snowflakes = [];
+    }
+}
+
+// Add event listeners for snow controls
+document.addEventListener('DOMContentLoaded', () => {
+    const snowToggle = document.getElementById('snowflakeToggle');
+    const speedSlider = document.getElementById('snowfallSpeed');
+    const densitySlider = document.getElementById('snowDensity');
+    
+    // Load saved preferences
+    const savedSnowState = localStorage.getItem('snowEnabled') === 'true';
+    snowToggle.checked = savedSnowState;
+    isSnowing = savedSnowState;
+    
+    if (savedSnowState) {
+        toggleSnow();
+    }
+    
+    snowToggle.addEventListener('change', () => {
+        localStorage.setItem('snowEnabled', snowToggle.checked);
+        toggleSnow();
+    });
+    
+    speedSlider.addEventListener('input', () => {
+        // Update speed of existing snowflakes
+        const newSpeed = 11 - Number(speedSlider.value);
+        snowflakes.forEach(flake => {
+            const currentAnimation = flake.style.animation;
+            if (currentAnimation) {
+                const duration = (Math.random() * 3 + 2) * newSpeed;
+                flake.style.animation = `fall ${duration}s linear forwards`;
+            }
+        });
+    });
+    
+    densitySlider.addEventListener('input', () => {
+        if (isSnowing) {
+            // Remove existing snowflakes
+            snowflakes.forEach(flake => flake.remove());
+            snowflakes = [];
+            
+            // Create new snowflakes with updated density
+            const density = Number(densitySlider.value);
+            const flakeCount = Math.floor(snowflakeCount * (density / 5));
+            for (let i = 0; i < flakeCount; i++) {
+                setTimeout(createSnowflake, Math.random() * 3000);
+            }
+        }
+    });
+});
+
+// Initialize the snow effect
+document.addEventListener('DOMContentLoaded', () => {
+    const snowToggle = document.getElementById('snowflakeToggle');
+    const speedSlider = document.getElementById('snowfallSpeed');
+    const densitySlider = document.getElementById('snowDensity');
+    
+    // Load saved preferences
+    const savedSnowState = localStorage.getItem('snowEnabled') === 'true';
+    snowToggle.checked = savedSnowState;
+    isSnowing = savedSnowState;
+    
+    if (savedSnowState) {
+        toggleSnow();
+    }
+    
+    snowToggle.addEventListener('change', () => {
+        localStorage.setItem('snowEnabled', snowToggle.checked);
+        toggleSnow();
+    });
+    
+    speedSlider.addEventListener('input', () => {
+        const newSpeed = 11 - Number(speedSlider.value);
+        snowflakes.forEach(flake => {
+            const currentAnimation = flake.style.animation;
+            if (currentAnimation) {
+                const duration = (Math.random() * 3 + 2) * newSpeed;
+                flake.style.animation = `fall ${duration}s linear forwards`;
+            }
+        });
+    });
+    
+    densitySlider.addEventListener('input', () => {
+        if (isSnowing) {
+            snowflakes.forEach(flake => flake.remove());
+            snowflakes = [];
+            const density = Number(densitySlider.value);
+            const flakeCount = Math.floor(snowflakeCount * (density / 5));
+            for (let i = 0; i < flakeCount; i++) {
+                setTimeout(createSnowflake, Math.random() * 3000);
+            }
+        }
+    });
+});
 </script>
 </body>
 </html>
