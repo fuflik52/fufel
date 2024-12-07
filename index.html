@@ -11,26 +11,27 @@
 }
 
 :root {
-    --primary-color: #4C9EEB;
-    --background-color: #0B1021;
-    --card-background: #1A2038;
-    --text-color: #E4E8F7;
-    --border-color: #2A3552;
-    --button-gray: #2A3552;
-    --shadow-color: rgba(76, 158, 235, 0.1);
-    --gradient-primary: linear-gradient(135deg, #4C9EEB 0%, #2B6DB1 100%);
-    --space-glow: 0 0 20px rgba(76, 158, 235, 0.2);
+    --primary-color: #86B5E5;  /* Softer blue */
+    --background-color: #F0F7FF; /* Light icy blue background */
+    --card-background: #FFFFFF;
+    --text-color: #34495E;
+    --border-color: #E1EEF7;
+    --button-gray: #EDF2F7;
+    --shadow-color: rgba(134, 181, 229, 0.15);
+    --gradient-primary: linear-gradient(135deg, #86B5E5 0%, #A7D2F0 100%);
+    --space-glow: 0 0 20px rgba(134, 181, 229, 0.25);
     transition: all 0.3s ease;
 }
 
 .dark-theme {
-    --primary-color: #4C9EEB;
-    --background-color: #0B1021;
-    --card-background: #1A2038;
-    --text-color: #E4E8F7;
-    --border-color: #2A3552;
-    --button-gray: #2A3552;
-    --shadow-color: rgba(76, 158, 235, 0.2);
+    --primary-color: #86B5E5;
+    --background-color: #1A2634;
+    --card-background: #243447;
+    --text-color: #E4EBF1;
+    --border-color: #34455E;
+    --button-gray: #2C3E50;
+    --shadow-color: rgba(134, 181, 229, 0.2);
+    --gradient-primary: linear-gradient(135deg, #86B5E5 0%, #6497D1 100%);
     transition: all 0.3s ease;
 }
 
@@ -41,14 +42,15 @@ body {
 .app-container {
     max-width: 480px;
     margin: 0 auto;
-    background: linear-gradient(180deg, var(--card-background) 0%, #131829 100%);
+    background: linear-gradient(180deg, var(--card-background) 0%, #F7FAFD 100%);
     min-height: 100vh;
     position: relative;
     color: var(--text-color);
     overflow: hidden;
     padding-bottom: 60px;
+    border: 1px solid rgba(134, 181, 229, 0.2);
     border-radius: 24px;
-    box-shadow: var(--space-glow);
+    box-shadow: var(--space-glow), 0 8px 32px rgba(134, 181, 229, 0.1);
 }
 
 .app-container::-webkit-scrollbar {
@@ -63,9 +65,9 @@ body {
     padding: 8px 12px;
     border-radius: 16px;
     font-size: 14px;
-    color: var(--text-color);
+    color: white;
     font-weight: 500;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: var(--space-glow);
     animation: fadeInSlide 0.3s ease;
     transition: transform 0.3s ease;
@@ -94,10 +96,10 @@ body {
 
 .profile-section {
     padding: 20px;
-    background: rgba(76, 158, 235, 0.05);
+    background: rgba(134, 181, 229, 0.08);
+    border: 1px solid rgba(134, 181, 229, 0.2);
     border-radius: 20px;
     margin: 15px;
-    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: 15px;
@@ -136,7 +138,8 @@ body {
 
 .subscription-section {
     padding: 20px;
-    background: var(--gradient-primary);
+    background: linear-gradient(135deg, #86B5E5 0%, #A7D2F0 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: white;
     border-radius: 20px;
     margin: 15px;
@@ -180,7 +183,7 @@ body {
     gap: 12px;
     cursor: pointer;
     border: none;
-    box-shadow: var(--space-glow);
+    backdrop-filter: blur(8px);
     transition: all 0.2s ease;
 }
 
@@ -201,14 +204,14 @@ body {
     width: 100%;
     padding: 12px;
     border-radius: 16px;
-    border: none;
+    border: 1px solid rgba(134, 181, 229, 0.2);
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-align: center;
     margin-bottom: 10px;
-    box-shadow: var(--space-glow);
+    backdrop-filter: blur(8px);
 }
 
 .button:hover {
@@ -246,19 +249,19 @@ body {
 }
 
 .chat-history-container {
-    position: absolute; 
+    position: fixed; 
     top: 0;
     left: 0;
     right: 0;
     bottom: 60px; 
-    background: var(--card-background);
+    background: var(--background-color);
     z-index: 1000;
     overflow-y: auto;
     display: none;
     max-width: 480px; 
     margin: 0 auto;
-    box-shadow: 0 2px 12px var(--shadow-color);
-    scrollbar-width: none; 
+    border: 1px solid rgba(134, 181, 229, 0.2);
+    box-shadow: var(--space-glow);
 }
 
 .chat-history-container::-webkit-scrollbar {
@@ -276,10 +279,11 @@ body {
     padding: 15px;
     margin: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    background: rgba(76, 158, 235, 0.05);
+    transition: all 0.3s ease;
+    background: rgba(134, 181, 229, 0.05);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(134, 181, 229, 0.15);
     border-radius: 16px;
-    border: 1px solid var(--border-color);
 }
 
 .chat-item:last-child {
@@ -338,19 +342,23 @@ body {
 
 .user-message {
     background: var(--gradient-primary);
+    backdrop-filter: blur(8px);
     color: white;
     margin-left: auto;
     border-radius: 20px 20px 4px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ai-message {
-    background: rgba(76, 158, 235, 0.1);
+    background: rgba(134, 181, 229, 0.08);
+    backdrop-filter: blur(8px);
     color: var(--text-color);
     margin-right: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-radius: 20px 20px 20px 4px;
+    border: 1px solid rgba(134, 181, 229, 0.2);
 }
 
 .message.typing {
@@ -427,8 +435,8 @@ body {
     bottom: 0;
     width: 100%;
     max-width: 480px;
-    background: rgba(26, 32, 56, 0.95);
-    backdrop-filter: blur(10px);
+    background: var(--card-background);
+    border-top: 1px solid rgba(134, 181, 229, 0.2);
     border-radius: 20px 20px 0 0;
     display: flex;
     justify-content: space-around;
@@ -533,7 +541,8 @@ body {
     left: 0;
     right: 0;
     bottom: 60px; 
-    background: linear-gradient(180deg, var(--card-background) 0%, #131829 100%);
+    background: linear-gradient(180deg, var(--card-background) 0%, #F7FAFD 100%);
+    backdrop-filter: blur(12px);
     z-index: 1000;
     padding: 20px;
     overflow-y: auto;
@@ -555,18 +564,20 @@ body {
 
 .settings-content {
     padding: 20px;
-    background: rgba(76, 158, 235, 0.05);
+    background: rgba(134, 181, 229, 0.05);
+    backdrop-filter: blur(8px);
     border-radius: 20px;
     margin: 15px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(134, 181, 229, 0.2);
 }
 
 .setting-item {
-    background: rgba(76, 158, 235, 0.1);
+    background: rgba(134, 181, 229, 0.05);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(134, 181, 229, 0.15);
     margin: 15px 0;
     padding: 20px;
     border-radius: 16px;
-    border: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -580,8 +591,8 @@ body {
 
 .snowflake {
     position: absolute; 
-    color: var(--primary-color);
-    text-shadow: 0 0 5px rgba(76, 158, 235, 0.5);
+    color: #86B5E5;
+    text-shadow: 0 0 8px rgba(134, 181, 229, 0.5);
     pointer-events: none;
     z-index: 9999;
     user-select: none;
@@ -620,7 +631,7 @@ body {
     border-radius: 50%;
     background: white;
     cursor: pointer;
-    box-shadow: 0 0 10px rgba(76, 158, 235, 0.5);
+    box-shadow: 0 0 10px rgba(134, 181, 229, 0.5);
 }
 
 @keyframes pulseButton {
@@ -664,7 +675,7 @@ body {
     left: 0;
     right: 0;
     bottom: 60px;
-    background: var(--card-background);
+    background: var(--background-color);
     z-index: 1000;
     overflow-y: auto;
     display: none;
@@ -676,6 +687,22 @@ body {
 </style>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
+// Theme handling
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+    
+    // Set initial theme state
+    const isDarkTheme = localStorage.getItem('darkTheme') === 'true';
+    document.body.classList.toggle('dark-theme', isDarkTheme);
+    themeToggleSwitch.checked = isDarkTheme;
+
+    // Theme toggle handler
+    themeToggleSwitch.addEventListener('change', (e) => {
+        document.body.classList.toggle('dark-theme', e.target.checked);
+        localStorage.setItem('darkTheme', e.target.checked);
+    });
+});
+
 // Existing JavaScript code
 
 // Snowflake management
@@ -922,6 +949,19 @@ function sendMessage() {
             </div>`;
     }
 }
+
+// Close chat interface function
+function closeChatInterface() {
+    const chatInterface = document.getElementById('chatInterface');
+    chatInterface.style.display = 'none';
+}
+
+// Initialize token display when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    const tokenBalance = getTokenBalance(telegramId);
+    updateTokenDisplay(tokenBalance);
+});
 </script>
 </head>
 <body>
