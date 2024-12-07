@@ -17,8 +17,8 @@
     // Проверка, если пользователь в мини-приложении Telegram
     function checkTelegram() {
       // Проверка наличия Telegram API на устройстве
-      if (window.Telegram.WebApp) {
-        // Выводим информацию о пользователе, если приложение Telegram
+      if (window.Telegram && window.Telegram.WebApp) {
+        // Инициализация Telegram WebApp
         const user = window.Telegram.WebApp.initDataUnsafe; // Получаем данные, которые передаются в mini-app
         if (user) {
           const userId = user.user.id;
