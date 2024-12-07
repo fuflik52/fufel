@@ -271,6 +271,7 @@ body {
 
 .chat-item {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     padding: 15px;
     margin: 10px;
@@ -307,6 +308,7 @@ body {
 .chat-actions {
     display: flex;
     gap: 8px;
+    margin-left: 10px;
 }
 
 .chat-action-btn {
@@ -773,6 +775,24 @@ input:checked + .toggle-slider:before {
 .install-button:hover {
     animation: none;
 }
+
+/* Add styles for delete button */
+.chat-action-btn.delete-chat {
+    color: #ff4444;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.chat-action-btn.delete-chat:hover {
+    opacity: 1;
+}
+
+/* Update chat item styles to accommodate delete button */
+.chat-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 10px;
+}
 </style>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -963,302 +983,380 @@ input:checked + .toggle-slider:before {
 </div>
 
 <script>
+function createNewChat() {
+    // Show chat interface
+    document.getElementById('chatInterface').style.display = 'flex';
+    
+    // Clear previous messages
+    document.getElementById('chatMessages').innerHTML = '';
+    
+    // Initialize chat state
+    const chatState = {
+        id: Date.now(),
+        title: '',
+        messages: []
+    };
+    
+    // Store chat in localStorage
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    chats.push(chatState);
+    localStorage.setItem('chats', JSON.stringify(chats));
+    
+    // Update chat history UI
+    updateChatHistory();
+}
+
+function closeChatInterface() {
+    document.getElementById('chatInterface').style.display = 'none';
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Get current chat
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    const currentChat = chats[chats.length - 1];
+    
+    // Add message to chat
+    const messageObj = {
+        text: message,
+        type: 'user',
+        timestamp: Date.now()
+    };
+    
+    // Update chat title if this is the first message
+    if (currentChat.messages.length === 0) {
+        currentChat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+    }
+    
+    currentChat.messages.push(messageObj);
+    
+    // Update localStorage
+    localStorage.setItem('chats', JSON.stringify(chats));
+    
+    // Update UI
+    displayMessage(messageObj);
+    updateChatHistory();
+    
+    // Clear input
+    input.value = '';
+}
+
+function displayMessage(message) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${message.type}-message`;
+    messageElement.textContent = message.text;
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function updateChatHistory() {
+    const historyContainer = document.querySelector('.chat-history');
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    
+    // Clear existing history except the empty-history element
+    const emptyHistory = document.getElementById('empty-history');
+    historyContainer.innerHTML = '';
+    
+    if (chats.length === 0) {
+        historyContainer.appendChild(emptyHistory);
+        return;
+    }
+    
+    chats.forEach((chat, index) => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.innerHTML = `
+            <div class="chat-main">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+                </svg>
+                ${chat.title || 'Новый чат'}
+            </div>
+            <div class="chat-actions">
+                <button class="chat-action-btn delete-chat" onclick="deleteChat(${index})">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+        historyContainer.appendChild(chatItem);
+    });
+}
+
+function deleteChat(index) {
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    chats.splice(index, 1);
+    localStorage.setItem('chats', JSON.stringify(chats));
+    updateChatHistory();
+}
+
 const translations = {
-  ru: {
-    tokens: "500 токенов",
-    username: "Username",
-    telegramId: "Telegram ID: ",
-    notConnected: "Не подключен",
-    subscription: "Подписка: 30 дней",
-    expiresOn: "Завершится 11 декабря 2024",
-    newChat: "Новый чат",
-    openTelegram: "Открыть Telegram",
-    buyTokens: "Купить комплект токенов",
-    home: "Главная",
-    chats: "Чаты",
-    settings: "Настройки",
-    darkTheme: "Темная тема",
-    darkThemeDesc: "Переключить между светлой и темной темой",
-    snowflakes: "Снежинки",
-    snowflakesDesc: "Включить анимацию снежинок",
-    snowSpeed: "Скорость снежинок",
-    snowSpeedDesc: "Настроить скорость падения",
-    snowDensity: "Интенсивность снега",
-    snowDensityDesc: "Настроить количество снежинок",
-    language: "Язык",
-    languageDesc: "Выберите язык интерфейса"
-  },
-  en: {
-    tokens: "500 tokens",
-    username: "Username",
-    telegramId: "Telegram ID: ",
-    notConnected: "Not connected",
-    subscription: "Subscription: 30 days",
-    expiresOn: "Expires on December 11, 2024",
-    newChat: "New Chat",
-    openTelegram: "Open Telegram",
-    buyTokens: "Buy Token Package",
-    home: "Home",
-    chats: "Chats",
-    settings: "Settings",
-    darkTheme: "Dark Theme",
-    darkThemeDesc: "Toggle between light and dark theme",
-    snowflakes: "Snowflakes",
-    snowflakesDesc: "Enable snowfall animation",
-    snowSpeed: "Snowfall Speed",
-    snowSpeedDesc: "Adjust falling speed",
-    snowDensity: "Snow Intensity",
-    snowDensityDesc: "Adjust number of snowflakes",
-    language: "Language",
-    languageDesc: "Choose interface language"
-  }
+    ru: {
+        home: 'Главная',
+        chats: 'Чаты',
+        settings: 'Настройки',
+        newChat: 'Новый чат',
+        openTelegram: 'Открыть Telegram',
+        buyTokens: 'Купить комплект токенов',
+        addToDesktop: 'Добавить на рабочий стол',
+        chatHistory: 'История чатов',
+        emptyHistory: 'История запросов пуста',
+        chatWithAI: 'Чат с AI',
+        enterMessage: 'Введите сообщение...',
+        darkTheme: 'Темная тема',
+        toggleTheme: 'Переключить между светлой и темной темой',
+        snowflakes: 'Снежинки',
+        enableSnowflakes: 'Включить анимацию снежинок',
+        snowfallSpeed: 'Скорость снежинок',
+        adjustSpeed: 'Настроить скорость падения',
+        snowDensity: 'Интенсивность снега',
+        adjustDensity: 'Настроить количество снежинок',
+        language: 'Язык',
+        selectLanguage: 'Выберите язык интерфейса',
+        notConnected: 'Не подключен',
+        subscription: 'Подписка',
+        days: 'дней',
+        expiresOn: 'Завершится',
+        tokens: 'токенов'
+    },
+    en: {
+        home: 'Home',
+        chats: 'Chats',
+        settings: 'Settings',
+        newChat: 'New Chat',
+        openTelegram: 'Open Telegram',
+        buyTokens: 'Buy Token Pack',
+        addToDesktop: 'Add to Desktop',
+        chatHistory: 'Chat History',
+        emptyHistory: 'Chat history is empty',
+        chatWithAI: 'Chat with AI',
+        enterMessage: 'Enter message...',
+        darkTheme: 'Dark Theme',
+        toggleTheme: 'Toggle between light and dark theme',
+        snowflakes: 'Snowflakes',
+        enableSnowflakes: 'Enable snowflake animation',
+        snowfallSpeed: 'Snowfall Speed',
+        adjustSpeed: 'Adjust falling speed',
+        snowDensity: 'Snow Density',
+        adjustDensity: 'Adjust number of snowflakes',
+        language: 'Language',
+        selectLanguage: 'Select interface language',
+        notConnected: 'Not connected',
+        subscription: 'Subscription',
+        days: 'days',
+        expiresOn: 'Expires on',
+        tokens: 'tokens'
+    }
 };
 
-let currentLanguage = localStorage.getItem('language') || 'ru';
-let chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-
-let isSnowing = localStorage.getItem('snowfall') === 'true';
-let snowfallSpeed = parseInt(localStorage.getItem('snowfallSpeed')) || 5;
+// Snowfall state
+let isSnowing = localStorage.getItem('isSnowing') === 'true';
 let snowDensity = parseInt(localStorage.getItem('snowDensity')) || 5;
-let snowInterval;
+let snowfallSpeed = parseInt(localStorage.getItem('snowfallSpeed')) || 5;
+let snowflakes = [];
 
+// Snowfall functions
 function createSnowflake() {
-    if (!isSnowing) return;
-    
     const snowflake = document.createElement('div');
     snowflake.className = 'snowflake';
-    snowflake.innerHTML = '❄';
     snowflake.style.left = Math.random() * 100 + '%';
-    snowflake.style.opacity = Math.random();
-    snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+    snowflake.innerHTML = '❄';
+    snowflake.style.fontSize = (Math.random() * 14 + 10) + 'px';
+    snowflake.style.opacity = Math.random() * 0.7 + 0.3;
+    
+    const animationDuration = (Math.random() * 3 + 2) * (11 - snowfallSpeed) + 's';
+    snowflake.style.animation = `fall ${animationDuration} linear forwards`;
     
     document.querySelector('.app-container').appendChild(snowflake);
-
-    const animationDuration = (20 - snowfallSpeed) + Math.random() * 10;
-    snowflake.style.animation = `fall ${animationDuration}s linear`;
-
-    setTimeout(() => {
-        if (snowflake && snowflake.parentNode) {
-            snowflake.parentNode.removeChild(snowflake);
-        }
-    }, animationDuration * 1000);
-}
-
-// Initialize snowfall if enabled
-if (isSnowing) {
-    updateSnowfallDensity(snowDensity);
-}
-
-// Update the createSnowflake interval based on density
-function updateSnowfallDensity(density) {
-    snowDensity = parseInt(density);
-    localStorage.setItem('snowDensity', density);
     
-    // Clear existing interval
-    if (snowInterval) {
-        clearInterval(snowInterval);
-    }
-    
-    // Calculate interval based on density (inverse relationship)
-    const interval = 1000 / (snowDensity * 2); // More density = shorter interval
-    
-    if (isSnowing) {
-        snowInterval = setInterval(createSnowflake, interval);
-    }
-}
-
-// Add function to update snowfall speed
-function updateSnowfallSpeed(speed) {
-    snowfallSpeed = parseInt(speed);
-    localStorage.setItem('snowfallSpeed', speed);
-    
-    // Remove all existing snowflakes
-    document.querySelectorAll('.snowflake').forEach(snowflake => {
+    snowflake.addEventListener('animationend', () => {
         snowflake.remove();
+        if (isSnowing) {
+            createSnowflake();
+        }
     });
     
-    // If snowing is enabled, restart with new speed
+    snowflakes.push(snowflake);
+}
+
+function updateSnowfallDensity(density) {
+    // Clear existing snowflakes
+    snowflakes.forEach(flake => flake.remove());
+    snowflakes = [];
+    
     if (isSnowing) {
-        // Clear existing interval and start new one
-        if (snowInterval) {
-            clearInterval(snowInterval);
+        // Create new snowflakes based on density
+        const numFlakes = density * 5; // 5 to 50 snowflakes
+        for (let i = 0; i < numFlakes; i++) {
+            setTimeout(createSnowflake, Math.random() * 2000);
         }
+    }
+    
+    localStorage.setItem('snowDensity', density);
+}
+
+function updateSnowfallSpeed(speed) {
+    snowfallSpeed = speed;
+    localStorage.setItem('snowfallSpeed', speed);
+    
+    // Update animation duration for existing snowflakes
+    snowflakes.forEach(flake => {
+        const animationDuration = (Math.random() * 3 + 2) * (11 - speed) + 's';
+        flake.style.animation = `fall ${animationDuration} linear forwards`;
+    });
+}
+
+function toggleSnowfall() {
+    isSnowing = !isSnowing;
+    localStorage.setItem('isSnowing', isSnowing);
+    
+    if (isSnowing) {
         updateSnowfallDensity(snowDensity);
+    } else {
+        snowflakes.forEach(flake => flake.remove());
+        snowflakes = [];
     }
 }
 
-// Add function to update all UI text
+// Add event listeners after document.addEventListener('DOMContentLoaded', () => {
+document.getElementById('snowflakeToggle').addEventListener('change', (e) => {
+    toggleSnowfall();
+});
+
+document.getElementById('snowfallSpeed').addEventListener('input', (e) => {
+    updateSnowfallSpeed(parseInt(e.target.value));
+});
+
+document.getElementById('snowDensity').addEventListener('input', (e) => {
+    updateSnowfallDensity(parseInt(e.target.value));
+});
+
+// Update initial states
+document.getElementById('snowflakeToggle').checked = isSnowing;
+document.getElementById('snowfallSpeed').value = snowfallSpeed;
+document.getElementById('snowDensity').value = snowDensity;
+
+let currentLanguage = 'ru';
+
 function updateUILanguage() {
     const lang = translations[currentLanguage];
     
-    // Update tokens display
-    document.querySelector('.tokens-display').textContent = lang.tokens;
-    
-    // Update profile section
-    document.querySelector('.profile-info h2').textContent = lang.username;
-    document.querySelector('.telegram-id').innerHTML = `${lang.telegramId}<span id="telegramId">${lang.notConnected}</span>`;
-    
-    // Update subscription section
-    document.querySelector('.subscription-header').textContent = lang.subscription;
-    document.querySelector('.subscription-details').textContent = lang.expiresOn;
-    
-    // Update buttons
-    document.querySelector('.new-chat-button span').textContent = lang.newChat;
-    document.querySelectorAll('.button-with-icon').forEach(button => {
-        if (button.textContent.includes('Telegram')) {
-            button.textContent = lang.openTelegram;
-        } else if (button.textContent.includes('токенов') || button.textContent.includes('Token')) {
-            button.textContent = lang.buyTokens;
-        }
-    });
-    
     // Update navigation
     document.querySelectorAll('.nav-item').forEach(item => {
-        const text = item.textContent.trim();
-        if (text === 'Главная' || text === 'Home') {
-            item.lastChild.textContent = lang.home;
-        } else if (text === 'Чаты' || text === 'Chats') {
-            item.lastChild.textContent = lang.chats;
-        } else if (text === 'Настройки' || text === 'Settings') {
-            item.lastChild.textContent = lang.settings;
+        if (item.textContent.includes('Главная') || item.textContent.includes('Home')) {
+            item.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                ${lang.home}`;
+        } else if (item.textContent.includes('Чаты') || item.textContent.includes('Chats')) {
+            item.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                ${lang.chats}`;
+        } else if (item.textContent.includes('Настройки') || item.textContent.includes('Settings')) {
+            item.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zm-7.43 2.52c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+                </svg>
+                ${lang.settings}`;
         }
     });
+
+    // Update buttons and text content
+    document.querySelector('.new-chat-button span').textContent = lang.newChat;
+    document.querySelector('.primary-button.button-with-icon').textContent = lang.openTelegram;
+    document.querySelectorAll('.button')[1].textContent = lang.buyTokens;
     
     // Update settings panel
-    updateSettingsPanel();
-}
-
-// Update the settings panel HTML to include density control
-function updateSettingsPanel() {
-    const settingsContent = document.querySelector('.settings-content');
-    if (!settingsContent) return;
-    
-    const currentLang = translations[currentLanguage];
-    
-    settingsContent.innerHTML = `
-        <div class="setting-item">
-            <div>
-                <span style="font-weight: 500;">${currentLang.darkTheme}</span>
-                <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                    ${currentLang.darkThemeDesc}
-                </div>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="themeToggleSwitch">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-        
-        <div class="setting-item">
-            <div>
-                <span style="font-weight: 500;">${currentLang.snowflakes}</span>
-                <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                    ${currentLang.snowflakesDesc}
-                </div>
-            </div>
-            <label class="toggle-switch">
-                <input type="checkbox" id="snowflakeToggle">
-                <span class="toggle-slider"></span>
-            </label>
-        </div>
-        
-        <div class="setting-item">
-            <div>
-                <span style="font-weight: 500;">${currentLang.snowSpeed}</span>
-                <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                    ${currentLang.snowSpeedDesc}
-                </div>
-            </div>
-            <input type="range" id="snowfallSpeed" class="snowfall-speed" min="1" max="10" value="${snowfallSpeed}">
-        </div>
-
-        <div class="setting-item">
-            <div>
-                <span style="font-weight: 500;">${currentLang.snowDensity}</span>
-                <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                    ${currentLang.snowDensityDesc}
-                </div>
-            </div>
-            <input type="range" id="snowDensity" class="snowfall-speed" min="1" max="10" value="${snowDensity}">
-        </div>
-
-        <div class="setting-item">
-            <div>
-                <span style="font-weight: 500;">${currentLang.language}</span>
-                <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                    ${currentLang.languageDesc}
-                </div>
-            </div>
-            <select id="languageSelect" style="padding: 8px; border-radius: 8px; background: var(--card-background); color: var(--text-color); border: 1px solid var(--border-color);">
-                <option value="ru">Русский</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-    `;
-
-    // Reinitialize event listeners
-    initializeSettingsListeners();
-}
-
-// Initialize settings listeners
-function initializeSettingsListeners() {
-    // Theme toggle
-    const themeToggleSwitch = document.getElementById('themeToggleSwitch');
-    if (themeToggleSwitch) {
-        themeToggleSwitch.checked = localStorage.getItem('theme') === 'dark';
-        themeToggleSwitch.addEventListener('change', () => {
-            document.body.classList.toggle('dark-theme');
-            localStorage.setItem('theme', themeToggleSwitch.checked ? 'dark' : 'light');
-        });
-    }
-
-    // Snowfall toggle
-    const snowflakeToggle = document.getElementById('snowflakeToggle');
-    if (snowflakeToggle) {
-        snowflakeToggle.checked = isSnowing;
-        snowflakeToggle.addEventListener('change', () => {
-            isSnowing = snowflakeToggle.checked;
-            localStorage.setItem('snowfall', isSnowing);
-            if (isSnowing) {
-                updateSnowfallDensity(snowDensity);
-            } else if (snowInterval) {
-                clearInterval(snowInterval);
+    document.querySelector('.section-header h3').textContent = lang.settings;
+    document.querySelectorAll('.setting-item').forEach(item => {
+        const titleSpan = item.querySelector('span');
+        if (titleSpan) {
+            if (titleSpan.textContent.includes('Темная тема') || titleSpan.textContent.includes('Dark Theme')) {
+                titleSpan.textContent = lang.darkTheme;
+                item.querySelector('div div').textContent = lang.toggleTheme;
+            } else if (titleSpan.textContent.includes('Снежинки') || titleSpan.textContent.includes('Snowflakes')) {
+                titleSpan.textContent = lang.snowflakes;
+                item.querySelector('div div').textContent = lang.enableSnowflakes;
+            } else if (titleSpan.textContent.includes('Скорость снежинок') || titleSpan.textContent.includes('Snowfall Speed')) {
+                titleSpan.textContent = lang.snowfallSpeed;
+                item.querySelector('div div').textContent = lang.adjustSpeed;
+            } else if (titleSpan.textContent.includes('Интенсивность снега') || titleSpan.textContent.includes('Snow Density')) {
+                titleSpan.textContent = lang.snowDensity;
+                item.querySelector('div div').textContent = lang.adjustDensity;
+            } else if (titleSpan.textContent.includes('Язык') || titleSpan.textContent.includes('Language')) {
+                titleSpan.textContent = lang.language;
+                item.querySelector('div div').textContent = lang.selectLanguage;
             }
-        });
-    }
+        }
+    });
 
-    // Snowfall speed
-    const snowfallSpeedInput = document.getElementById('snowfallSpeed');
-    if (snowfallSpeedInput) {
-        snowfallSpeedInput.value = snowfallSpeed;
-        snowfallSpeedInput.addEventListener('input', (e) => {
-            updateSnowfallSpeed(e.target.value);
-        });
-    }
+    // Update other elements
+    document.querySelector('.chat-header span').textContent = lang.chatWithAI;
+    document.querySelector('.chat-input input').placeholder = lang.enterMessage;
+    document.querySelector('.tokens-display').textContent = `${localStorage.getItem('tokens') || 500} ${lang.tokens}`;
+    
+    // Save language preference
+    localStorage.setItem('language', currentLanguage);
+}
 
-    // Snow density
-    const snowDensityInput = document.getElementById('snowDensity');
-    if (snowDensityInput) {
-        snowDensityInput.value = snowDensity;
-        snowDensityInput.addEventListener('input', (e) => {
-            updateSnowfallDensity(e.target.value);
-        });
-    }
+// Add language change event listener
+document.getElementById('languageSelect').addEventListener('change', (e) => {
+    currentLanguage = e.target.value;
+    updateUILanguage();
+});
 
-    // Language select
-    const languageSelect = document.getElementById('languageSelect');
-    if (languageSelect) {
-        languageSelect.value = currentLanguage;
-        languageSelect.addEventListener('change', (e) => {
-            currentLanguage = e.target.value;
-            localStorage.setItem('language', currentLanguage);
-            updateUILanguage();
-        });
+let tg = window.Telegram?.WebApp;
+
+function initializeTelegram() {
+    if (tg) {
+        // Update profile with Telegram data
+        const profileName = document.querySelector('.profile-info h2');
+        const telegramIdSpan = document.getElementById('telegramId');
+        
+        if (tg.initDataUnsafe?.user) {
+            const user = tg.initDataUnsafe.user;
+            profileName.textContent = user.username || user.first_name || 'Username';
+            telegramIdSpan.textContent = user.id || translations[currentLanguage].notConnected;
+            
+            // Store Telegram data
+            localStorage.setItem('telegramUser', JSON.stringify(user));
+        } else {
+            // Use stored data if available
+            const storedUser = JSON.parse(localStorage.getItem('telegramUser'));
+            if (storedUser) {
+                profileName.textContent = storedUser.username || storedUser.first_name || 'Username';
+                telegramIdSpan.textContent = storedUser.id || translations[currentLanguage].notConnected;
+            }
+        }
+
+        // Enable Telegram features
+        tg.expand();
+        tg.enableClosingConfirmation();
     }
 }
 
-// Add event listener for DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Telegram integration
+    initializeTelegram();
+    
+    // Initialize theme from localStorage
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark-theme');
+        const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+        if (themeToggleSwitch) {
+            themeToggleSwitch.checked = true;
+        }
+    }
+
     // Initialize language
     currentLanguage = localStorage.getItem('language') || 'ru';
     updateUILanguage();
@@ -1292,198 +1390,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (text.includes('Настройки') || text.includes('Settings')) {
                 document.getElementById('settingsPanel').style.display = 'block';
             }
-            // Home/Главная just shows the main view by hiding other panels
         });
     });
 });
 
-// Add function to close the chat interface
-function closeChatInterface() {
-    const chatInterface = document.getElementById('chatInterface');
-    if (chatInterface) {
-        chatInterface.style.display = 'none';
-    }
+// Add this function to handle theme toggling
+function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
-
-// Modify the chat interface initialization
-function createNewChat() {
-    // Show chat interface
-    const chatInterface = document.getElementById('chatInterface');
-    chatInterface.style.display = 'flex';
-    
-    // Clear previous messages
-    const chatMessages = document.getElementById('chatMessages');
-    if (chatMessages) {
-        chatMessages.innerHTML = '';
-    }
-    
-    // Add the chat to history
-    const newChat = {
-        id: Date.now(),
-        date: new Date().toISOString(),
-        messages: []
-    };
-    
-    chatHistory.push(newChat);
-    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-    updateChatHistory();
-}
-
-// Add the updateChatHistory function
-function updateChatHistory() {
-    const chatHistoryContainer = document.querySelector('.chat-history');
-    chatHistoryContainer.innerHTML = '';
-
-    if (chatHistory.length === 0) {
-        chatHistoryContainer.innerHTML = `
-            <div class="chat-item" id="empty-history">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-                </svg>
-                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
-            </div>
-        `;
-        return;
-    }
-
-    chatHistory.forEach(chat => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item';
-        chatItem.innerHTML = `
-            <div class="chat-main">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-                </svg>
-                <span>${new Date(chat.date).toLocaleDateString()}</span>
-            </div>
-        `;
-        chatHistoryContainer.appendChild(chatItem);
-    });
-}
-
-// Add message sending functionality
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
-    
-    if (!message) return;
-
-    // Add user message to chat
-    addMessageToChat(message, 'user');
-    input.value = '';
-
-    // Get current chat from history
-    const currentChat = chatHistory[chatHistory.length - 1];
-    if (currentChat) {
-        currentChat.messages.push({
-            type: 'user',
-            content: message,
-            timestamp: new Date().toISOString()
-        });
-        
-        // Save to localStorage
-        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-    }
-
-    // Simulate AI response
-    simulateAIResponse(message);
-}
-
-function addMessageToChat(message, type) {
-    const chatMessages = document.getElementById('chatMessages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    
-    // Add copy button for AI messages
-    if (type === 'ai') {
-        messageDiv.innerHTML = `
-            <div class="message-content">${message}</div>
-            <button class="copy-button" onclick="copyMessage(this)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
-            </button>
-        `;
-    } else {
-        messageDiv.textContent = message;
-    }
-    
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function simulateAIResponse(userMessage) {
-    // Show typing indicator
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message ai-message typing';
-    typingDiv.textContent = currentLanguage === 'ru' ? 'AI печатает...' : 'AI is typing...';
-    document.getElementById('chatMessages').appendChild(typingDiv);
-
-    // Simulate API delay
-    setTimeout(() => {
-        // Remove typing indicator
-        typingDiv.remove();
-
-        // Add AI response
-        const response = generateAIResponse(userMessage);
-        addMessageToChat(response, 'ai');
-
-        // Save to chat history
-        const currentChat = chatHistory[chatHistory.length - 1];
-        if (currentChat) {
-            currentChat.messages.push({
-                type: 'ai',
-                content: response,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-        }
-    }, 1500);
-}
-
-function generateAIResponse(userMessage) {
-    // Simple response generation - in production, this would call the AI API
-    const responses = {
-        ru: [
-            'Я понимаю ваш запрос.',
-            'Интересный вопрос!',
-            'Давайте разберем это подробнее.',
-            'Могу помочь вам с этим.',
-        ],
-        en: [
-            'I understand your request.',
-            'Interesting question!',
-            'Let\'s analyze this in detail.',
-            'I can help you with that.',
-        ]
-    };
-
-    const randomIndex = Math.floor(Math.random() * responses[currentLanguage].length);
-    return responses[currentLanguage][randomIndex];
-}
-
-function copyMessage(button) {
-    const messageContent = button.parentElement.querySelector('.message-content').textContent;
-    navigator.clipboard.writeText(messageContent).then(() => {
-        // Show copy notification
-        const notification = document.createElement('div');
-        notification.className = 'notification notification-success';
-        notification.textContent = currentLanguage === 'ru' ? 'Скопировано!' : 'Copied!';
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.style.animation = 'slideUp 0.3s forwards';
-            setTimeout(() => notification.remove(), 300);
-        }, 2000);
-    });
-}
-
-// Add event listener for Enter key in message input
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
 </script>
 </body>
 </html>
