@@ -409,40 +409,28 @@ const translations = {
 };
 
 function initialize() {
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-    
-    async function checkTelegramConnection() {
-        let attempts = 0;
-        const maxAttempts = 5; 
+    // Add WebApp script if not already present
+    if (!document.getElementById('telegram-webapp')) {
+        const script = document.createElement('script');
+        script.id = 'telegram-webapp';
+        script.src = 'https://telegram.org/js/telegram-web-app.js';
+        document.head.appendChild(script);
         
-        while (attempts < maxAttempts) {
-            window.tg = window.Telegram?.WebApp;
-            
-            if (window.tg?.initDataUnsafe?.user) {
-                const user = window.tg.initDataUnsafe.user;
-                const profileName = document.querySelector('.profile-info h2');
-                const telegramIdSpan = document.getElementById('telegramId');
-                
-                profileName.textContent = user.username || user.first_name;
-                telegramIdSpan.textContent = user.id;
-                return true;
+        script.onload = () => {
+            checkTelegramConnection().then(connected => {
+                if (!connected) {
+                    console.log('Failed to connect to Telegram after multiple attempts');
+                }
+            });
+        };
+    } else {
+        checkTelegramConnection().then(connected => {
+            if (!connected) {
+                console.log('Failed to connect to Telegram after multiple attempts');
             }
-            
-            await delay(1000);
-            attempts++;
-        }
-        
-        const telegramIdSpan = document.getElementById('telegramId');
-        telegramIdSpan.textContent = translations.not_connected[currentLanguage];
-        return false;
+        });
     }
     
-    checkTelegramConnection().then(connected => {
-        if (!connected) {
-            console.log('Failed to connect to Telegram after multiple attempts');
-        }
-    });
-
     document.getElementById('newChatBtn').addEventListener('click', function() {
         document.getElementById('newChatModal').style.display = 'flex';
     });
@@ -515,6 +503,65 @@ function initialize() {
     }
 }
 
+async function checkTelegramConnection() {
+    let attempts = 0;
+    const maxAttempts = 5;
+    
+    const telegramIdSpan = document.getElementById('telegramId');
+    
+    // Try to wait for Telegram WebApp to initialize 
+    while (attempts < maxAttempts) {
+        try {
+            // Check if Telegram WebApp is available
+            if (window.Telegram?.WebApp) {
+                window.tg = window.Telegram.WebApp;
+                
+                // Wait for initialization
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Check if user data is available
+                if (window.tg.initDataUnsafe?.user?.id) {
+                    const userId = window.tg.initDataUnsafe.user.id;
+                    telegramIdSpan.textContent = userId;
+                    return true;
+                }
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+            
+            if (attempts === maxAttempts) {
+                telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+            }
+            
+        } catch (err) {
+            console.error('Error checking Telegram connection:', err);
+            telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+        }
+    }
+    
+    return false;
+}
+
+// Add this function to verify Telegram connection
+function verifyTelegramConnection() {
+    const telegramIdSpan = document.getElementById('telegramId');
+    
+    if (!window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+        telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+        return false;
+    }
+    
+    const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
+    telegramIdSpan.textContent = userId;
+    return true;
+}
+
+// Update the isTelegramConnected function
+function isTelegramConnected() {
+    return window.Telegram?.WebApp?.initDataUnsafe?.user?.id != null;
+}
+
 // Add this function to handle displaying chats
 function displayChats() {
     const chatsList = document.getElementById('chatsList');
@@ -568,10 +615,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const isDarkTheme = localStorage.getItem('darkTheme') === 'true';
     document.body.classList.toggle('dark-theme', isDarkTheme);
 });
-
-function isTelegramConnected() {
-    return window.tg?.initDataUnsafe?.user != null;
-}
 
 function createNewChat() {
     if (!isTelegramConnected()) {
