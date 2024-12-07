@@ -262,7 +262,7 @@ body {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#037ee5">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V11h2v6zm0-8h-2V7h2v2z"/>
                 </svg>
-                <div>Telegram ID: Checking...</div>
+                <div>Telegram ID: <span id="telegramId">Checking...</span></div>
             </div>
             <div class="tokens">450 токенов</div>
         </div>
@@ -333,19 +333,19 @@ body {
     </div>
 
     <nav class="bottom-nav">
-        <a href="#" class="nav-item active" data-page="home">
+        <a class="nav-item active" data-page="home">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
             </svg>
             Главная
         </a>
-        <a href="#" class="nav-item" data-page="chats">
+        <a class="nav-item" data-page="chats">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
             </svg>
             Чаты
         </a>
-        <a href="#" class="nav-item" data-page="settings">
+        <a class="nav-item" data-page="settings">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
             </svg>
@@ -355,112 +355,258 @@ body {
 </div>
 
 <script>
-let telegramId = null;
+let currentLanguage = 'ru';
 
-// Function to check and set Telegram ID
-function checkTelegramId() {
-  // First check if we have a real Telegram connection
-  // For now, we'll simulate no connection
-  const isTelegramConnected = false; // This would be replaced with actual Telegram connection check
-  
-  if (!isTelegramConnected) {
-    // Update header to show checking status
-    const headerText = document.querySelector('.header div div');
-    headerText.textContent = 'Telegram ID: Checking...';
-    
-    // Optional: Add a spinning animation to indicate checking
-    headerText.style.opacity = '0.7';
-    
-    return null;
-  }
-  
-  // This part would only run if actually connected to Telegram
-  let storedId = localStorage.getItem('telegram_id');
-  if (!storedId) {
-    storedId = Math.floor(Math.random() * 1000000000);
-    localStorage.setItem('telegram_id', storedId);
-  }
-  
-  const headerText = document.querySelector('.header div div');
-  headerText.textContent = `Telegram ID: ${storedId}`;
-  headerText.style.opacity = '1';
-  
-  return storedId;
-}
-
-// Modify the chat storage functions to handle no ID case
-function saveChat(chatName) {
-  const id = checkTelegramId();
-  if (!id) {
-    alert('Для создания чата необходимо подключение к Telegram');
-    return false;
-  }
-  
-  const storageKey = `chats_${id}`;
-  const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
-  chats.push({
-    name: chatName,
-    id: Date.now(),
-    messages: []
-  });
-  localStorage.setItem(storageKey, JSON.stringify(chats));
-  return true;
-}
-
-// Update the create chat handler
-document.getElementById('createNewChat').addEventListener('click', function() {
-  const chatName = document.getElementById('chatNameInput').value.trim();
-  if (chatName) {
-    if (saveChat(chatName)) {
-      document.getElementById('newChatModal').style.display = 'none';
-      document.getElementById('chatNameInput').value = '';
-      displayChats();
+const translations = {
+    'chat_empty': {
+        'ru': 'История чатов пуста',
+        'en': 'Chat history is empty'
+    },
+    'not_connected': {
+        'ru': 'Не подключен',
+        'en': 'Not Connected'
+    },
+    'telegram_connection_required': {
+        'ru': 'Для создания чата необходимо подключение к Telegram',
+        'en': 'Telegram connection required to create a chat'
+    },
+    'new_chat_title': {
+        'ru': 'Создать новый чат',
+        'en': 'Create New Chat'
+    },
+    'chat_name_placeholder': {
+        'ru': 'Введите название чата',
+        'en': 'Enter chat name'
+    },
+    'cancel': {
+        'ru': 'Отмена',
+        'en': 'Cancel'
+    },
+    'create': {
+        'ru': 'Создать',
+        'en': 'Create'
+    },
+    'subscription': {
+        'ru': 'Подписка: 5 дней',
+        'en': 'Subscription: 5 days'
+    },
+    'timer': {
+        'ru': 'Таймер до окончания:',
+        'en': 'Timer until expiration:'
+    },
+    'new_chat': {
+        'ru': 'Новый чат',
+        'en': 'New Chat'
+    },
+    'open_telegram': {
+        'ru': 'Открыть Telegram',
+        'en': 'Open Telegram'
+    },
+    'buy_tokens': {
+        'ru': 'Купить комплект токенов',
+        'en': 'Buy Tokens Pack'
     }
-  }
-});
+};
 
-// Modify chat storage functions to use Telegram ID
-function loadChats() {
-  const id = checkTelegramId();
-  const storageKey = `chats_${id}`;
-  return JSON.parse(localStorage.getItem(storageKey) || '[]');
+function initialize() {
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    
+    async function checkTelegramConnection() {
+        let attempts = 0;
+        const maxAttempts = 5; 
+        
+        while (attempts < maxAttempts) {
+            window.tg = window.Telegram?.WebApp;
+            
+            if (window.tg?.initDataUnsafe?.user) {
+                const user = window.tg.initDataUnsafe.user;
+                const profileName = document.querySelector('.profile-info h2');
+                const telegramIdSpan = document.getElementById('telegramId');
+                
+                profileName.textContent = user.username || user.first_name;
+                telegramIdSpan.textContent = user.id;
+                return true;
+            }
+            
+            await delay(1000);
+            attempts++;
+        }
+        
+        const telegramIdSpan = document.getElementById('telegramId');
+        telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+        return false;
+    }
+    
+    checkTelegramConnection().then(connected => {
+        if (!connected) {
+            console.log('Failed to connect to Telegram after multiple attempts');
+        }
+    });
+
+    document.getElementById('newChatBtn').addEventListener('click', function() {
+        document.getElementById('newChatModal').style.display = 'flex';
+    });
+
+    document.getElementById('cancelNewChat').addEventListener('click', function() {
+        document.getElementById('newChatModal').style.display = 'none';
+        document.getElementById('chatNameInput').value = '';
+    });
+
+    document.getElementById('sendMessage').addEventListener('click', sendMessageHandler);
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessageHandler();
+        }
+    });
+
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all nav items
+            navItems.forEach(nav => nav.classList.remove('active'));
+            // Add active class to clicked item
+            this.classList.add('active');
+            
+            // Get the page to show
+            const page = this.getAttribute('data-page');
+            
+            // Hide all content sections
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('chatContent').style.display = 'none';
+            document.getElementById('settingsContent').style.display = 'none';
+            
+            // Show the selected content
+            switch(page) {
+                case 'home':
+                    document.querySelector('.container').style.display = 'block';
+                    break;
+                case 'chats':
+                    document.getElementById('chatContent').style.display = 'block';
+                    displayChats(); // Function to show saved chats
+                    break;
+                case 'settings':
+                    document.getElementById('settingsContent').style.display = 'block';
+                    break;
+            }
+        });
+    });
+
+    function sendMessageHandler() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        if (message) {
+            addMessage('Вы', message);
+            input.value = '';
+            setTimeout(() => {
+                addMessage('AI', 'Спасибо за ваше сообщение! Я обрабатываю ваш запрос.');
+            }, 1000);
+        }
+    }
+
+    function addMessage(sender, text) {
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${sender === 'AI' ? 'ai' : ''}`;
+        messageDiv.textContent = `${sender}: ${text}`;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
 }
 
-// Update displayChats function
+// Add this function to handle displaying chats
 function displayChats() {
-    const chats = loadChats();
     const chatsList = document.getElementById('chatsList');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const chatInput = document.querySelector('.chat-input');
+    
+    // Hide messages container and chat input initially
+    messagesContainer.style.display = 'none';
+    chatInput.style.display = 'none';
+    
+    // Show chats list
+    chatsList.style.display = 'block';
+    
+    // Get chats for current user
+    const id = window.tg?.initDataUnsafe?.user?.id;
+    const storageKey = `chats_${id}`;
+    const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    
+    // Clear existing chats
     chatsList.innerHTML = '';
     
     if (chats.length === 0) {
         chatsList.innerHTML = `
             <div class="empty-state">
                 <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V11h2v6zm0-8h-2V7h2v2z"/>
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
                 </svg>
-                <div>История чатов пуста</div>
-            </div>
-        `;
+                <div>${translations.chat_empty[currentLanguage]}</div>
+            </div>`;
+    } else {
+        chats.forEach(chat => {
+            const chatElement = document.createElement('div');
+            chatElement.className = 'chat-list-item';
+            chatElement.innerHTML = `
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>
+                <div class="chat-name">${chat.name}</div>
+            `;
+            chatsList.appendChild(chatElement);
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initialize();
+    
+    updateTimer();
+    setInterval(updateTimer, 1000);
+    
+    const isDarkTheme = localStorage.getItem('darkTheme') === 'true';
+    document.body.classList.toggle('dark-theme', isDarkTheme);
+});
+
+function isTelegramConnected() {
+    return window.tg?.initDataUnsafe?.user != null;
+}
+
+function createNewChat() {
+    if (!isTelegramConnected()) {
+        alert(translations.telegram_connection_required[currentLanguage]);
         return;
     }
     
-    chats.forEach(chat => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-list-item';
-        chatItem.innerHTML = `
-            <svg width="24" height="24" viewBox="0 0 24 24">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-            </svg>
-            <div class="chat-name">${chat.name}</div>
-        `;
-        chatsList.appendChild(chatItem);
-    });
+    const chatName = document.getElementById('chatNameInput').value.trim();
+    if (chatName) {
+        if (saveChat(chatName)) {
+            document.getElementById('newChatModal').style.display = 'none';
+            document.getElementById('chatNameInput').value = '';
+            displayChats();
+        }
+    }
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    checkTelegramId(); // This will now create and display a persistent ID
-});
+function saveChat(chatName) {
+    if (!isTelegramConnected()) {
+        const telegramIdSpan = document.getElementById('telegramId');
+        telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+        return false;
+    }
+    
+    const id = window.tg.initDataUnsafe.user.id;
+    const storageKey = `chats_${id}`;
+    const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    chats.push({
+        name: chatName,
+        id: Date.now(),
+        messages: []
+    });
+    localStorage.setItem(storageKey, JSON.stringify(chats));
+    return true;
+}
 
 let hasChats = false;
 
@@ -492,43 +638,6 @@ function updateTimer() {
             clearInterval(interval);
         }
     }, 1000);
-}
-
-document.getElementById('newChatBtn').addEventListener('click', function() {
-    document.getElementById('newChatModal').style.display = 'flex';
-});
-
-document.getElementById('cancelNewChat').addEventListener('click', function() {
-    document.getElementById('newChatModal').style.display = 'none';
-    document.getElementById('chatNameInput').value = '';
-});
-
-document.getElementById('sendMessage').addEventListener('click', sendMessageHandler);
-document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessageHandler();
-    }
-});
-
-function sendMessageHandler() {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
-    if (message) {
-        addMessage('Вы', message);
-        input.value = '';
-        setTimeout(() => {
-            addMessage('AI', 'Спасибо за ваше сообщение! Я обрабатываю ваш запрос.');
-        }, 1000);
-    }
-}
-
-function addMessage(sender, text) {
-    const messagesContainer = document.getElementById('messagesContainer');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `chat-message ${sender === 'AI' ? 'ai' : ''}`;
-    messageDiv.textContent = `${sender}: ${text}`;
-    messagesContainer.appendChild(messageDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
 updateTimer();
