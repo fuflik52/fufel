@@ -589,6 +589,15 @@ body {
     top: -20px; 
 }
 
+@keyframes fall {
+    0% {
+        transform: translateY(0) rotate(0deg); 
+    }
+    100% {
+        transform: translateY(calc(100vh)) rotate(360deg); 
+    }
+}
+
 .snowfall-speed {
     background: var(--gradient-primary);
     height: 8px;
@@ -612,15 +621,6 @@ body {
     background: white;
     cursor: pointer;
     box-shadow: 0 0 10px rgba(76, 158, 235, 0.5);
-}
-
-@keyframes fall {
-    0% {
-        transform: translateY(0) rotate(0deg); 
-    }
-    100% {
-        transform: translateY(calc(100vh)) rotate(360deg); 
-    }
 }
 
 @keyframes pulseButton {
@@ -675,6 +675,102 @@ body {
 }
 </style>
 <script async src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+// Existing JavaScript code
+
+// Snowflake management
+let snowflakes = [];
+let snowflakeInterval;
+let isSnowEnabled = localStorage.getItem('snowEnabled') === 'true';
+let snowSpeed = parseInt(localStorage.getItem('snowSpeed')) || 5;
+let snowDensity = parseInt(localStorage.getItem('snowDensity')) || 5;
+
+function createSnowflake() {
+    const snowflake = document.createElement('div');
+    snowflake.className = 'snowflake';
+    snowflake.innerHTML = '❄';
+    snowflake.style.left = Math.random() * 100 + 'vw';
+    snowflake.style.animationDuration = (20 - snowSpeed) + 's';
+    document.body.appendChild(snowflake);
+
+    const animation = snowflake.animate([
+        { transform: 'translateY(-20px)' },
+        { transform: 'translateY(100vh)' }
+    ], {
+        duration: (20 - snowSpeed) * 1000,
+        iterations: 1
+    });
+
+    animation.onfinish = () => {
+        snowflake.remove();
+        const index = snowflakes.indexOf(snowflake);
+        if (index > -1) {
+            snowflakes.splice(index, 1);
+        }
+    };
+
+    snowflakes.push(snowflake);
+}
+
+function toggleSnow(enabled) {
+    isSnowEnabled = enabled;
+    localStorage.setItem('snowEnabled', enabled);
+    
+    if (enabled) {
+        if (!snowflakeInterval) {
+            snowflakeInterval = setInterval(() => {
+                if (snowflakes.length < snowDensity * 10) {
+                    createSnowflake();
+                }
+            }, 500);
+        }
+    } else {
+        if (snowflakeInterval) {
+            clearInterval(snowflakeInterval);
+            snowflakeInterval = null;
+        }
+        snowflakes.forEach(snowflake => snowflake.remove());
+        snowflakes = [];
+    }
+}
+
+// Initialize snowflake controls
+document.addEventListener('DOMContentLoaded', () => {
+    const snowflakeToggle = document.getElementById('snowflakeToggle');
+    const snowfallSpeed = document.getElementById('snowfallSpeed');
+    const snowDensityControl = document.getElementById('snowDensity');
+
+    // Set initial states
+    snowflakeToggle.checked = isSnowEnabled;
+    snowfallSpeed.value = snowSpeed;
+    snowDensityControl.value = snowDensity;
+
+    // Add event listeners
+    snowflakeToggle.addEventListener('change', (e) => {
+        toggleSnow(e.target.checked);
+    });
+
+    snowfallSpeed.addEventListener('input', (e) => {
+        snowSpeed = parseInt(e.target.value);
+        localStorage.setItem('snowSpeed', snowSpeed);
+        snowflakes.forEach(snowflake => {
+            snowflake.style.animationDuration = (20 - snowSpeed) + 's';
+        });
+    });
+
+    snowDensityControl.addEventListener('input', (e) => {
+        snowDensity = parseInt(e.target.value);
+        localStorage.setItem('snowDensity', snowDensity);
+    });
+
+    // Initialize snow if enabled
+    if (isSnowEnabled) {
+        toggleSnow(true);
+    }
+});
+
+// Existing JavaScript code continues...
+</script>
 </head>
 <body>
 <div class="app-container">
@@ -995,55 +1091,45 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsPanel.style.display = 'none';
 });
 
-// New functions for chat management
-function updateChatHistory() {
-    const chatHistory = document.querySelector('.chat-history');
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Clear existing chat history
-    chatHistory.innerHTML = '';
-    
-    if (chats.length === 0) {
-        // Show empty state message
-        chatHistory.innerHTML = `
-            <div class="chat-item" id="empty-history">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-                </svg>
-                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
-            </div>`;
-        return;
-    }
-
-    // Add each chat to history
-    chats.forEach((chat, index) => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item';
-        chatItem.innerHTML = `
-            <div class="chat-main">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-4H6V6h12v2z"/>
-                </svg>
-                <span>${chat.title || 'Chat ' + (index + 1)}</span>
-            </div>
-            <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
-            <div class="chat-actions">
-                <button class="chat-action-btn delete-chat" onclick="deleteChat(${index})">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                    </svg>
-                </button>
-            </div>`;
-        chatHistory.appendChild(chatItem);
-    });
+// Token management
+function updateTokenDisplay(tokens) {
+    const tokenDisplay = document.querySelector('.tokens-display');
+    tokenDisplay.textContent = `${tokens} ${currentLanguage === 'ru' ? 'токенов' : 'tokens'}`;
+    tokenDisplay.classList.add('tokens-updated');
+    setTimeout(() => tokenDisplay.classList.remove('tokens-updated'), 300);
 }
 
+function getTokenBalance(telegramId) {
+    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
+    return tokenBalances[telegramId] || 500; // Default 500 tokens
+}
+
+function updateTokenBalance(telegramId, newBalance) {
+    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
+    tokenBalances[telegramId] = newBalance;
+    localStorage.setItem('tokenBalances', JSON.stringify(tokenBalances));
+    updateTokenDisplay(newBalance);
+}
+
+function spendTokens(telegramId, amount) {
+    const currentBalance = getTokenBalance(telegramId);
+    if (currentBalance >= amount) {
+        updateTokenBalance(telegramId, currentBalance - amount);
+        return true;
+    }
+    return false;
+}
+
+// Modify createNewChat function
 function createNewChat() {
     const chatInterface = document.getElementById('chatInterface');
     const chats = JSON.parse(localStorage.getItem('chats') || '[]');
     
+    // Store chat with telegram ID
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
     const newChat = {
         id: Date.now(),
+        telegramId: telegramId,
         title: '',
         created: new Date(),
         messages: []
@@ -1056,28 +1142,89 @@ function createNewChat() {
     updateChatHistory();
 }
 
-function deleteChat(index) {
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    chats.splice(index, 1);
-    localStorage.setItem('chats', JSON.stringify(chats));
-    updateChatHistory();
+// Modify updateChatHistory function
+function updateChatHistory() {
+    const chatHistory = document.querySelector('.chat-history');
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    
+    // Filter chats for current user
+    chats = chats.filter(chat => chat.telegramId === telegramId);
+    
+    // Clear existing chat history
+    chatHistory.innerHTML = '';
+    
+    if (chats.length === 0) {
+        chatHistory.innerHTML = `
+            <div class="chat-item" id="empty-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                </svg>
+                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
+            </div>`;
+        return;
+    }
+
+    chats.forEach((chat, index) => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.onclick = () => openChat(chat.id);
+        chatItem.innerHTML = `
+            <div class="chat-main">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-4H6V6h12v2z"/>
+                </svg>
+                <span>${chat.title || `Chat ${index + 1}`}</span>
+            </div>
+            <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
+            <div class="chat-actions">
+                <button class="chat-action-btn delete-chat" onclick="event.stopPropagation(); deleteChat(${index})">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>`;
+        chatHistory.appendChild(chatItem);
+    });
 }
 
-function closeChatInterface() {
+// Add function to open existing chat
+function openChat(chatId) {
     const chatInterface = document.getElementById('chatInterface');
-    chatInterface.style.display = 'none';
+    const chatMessages = document.getElementById('chatMessages');
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    const chat = chats.find(c => c.id === chatId);
+    
+    if (chat) {
+        chatMessages.innerHTML = '';
+        chat.messages.forEach(message => {
+            chatMessages.innerHTML += `
+                <div class="message ${message.sender}-message">
+                    ${message.text}
+                </div>`;
+        });
+        chatInterface.style.display = 'flex';
+    }
 }
 
+// Modify sendMessage function to include token management
 function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
     
     if (message) {
+        // Check token balance and spend tokens
+        const tokenCost = 10; // Cost per message
+        if (!spendTokens(telegramId, tokenCost)) {
+            alert(currentLanguage === 'ru' ? 'Недостаточно токенов!' : 'Not enough tokens!');
+            return;
+        }
+        
         const chats = JSON.parse(localStorage.getItem('chats') || '[]');
         const currentChat = chats[chats.length - 1];
         
         if (!currentChat.title) {
-            // Set the chat title from the first message
             currentChat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
         }
         
@@ -1091,8 +1238,6 @@ function sendMessage() {
         messageInput.value = '';
         updateChatHistory();
         
-        // Here you would typically handle the AI response
-        // For now, we'll just show the message was sent
         const chatMessages = document.getElementById('chatMessages');
         chatMessages.innerHTML += `
             <div class="message user-message">
@@ -1101,141 +1246,17 @@ function sendMessage() {
     }
 }
 
-let isSnowing = false;
-let snowflakes = [];
-const snowflakeCount = 50;
-
-function createSnowflake() {
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
-    snowflake.innerHTML = '❄';
-    snowflake.style.left = Math.random() * 100 + 'vw';
-    snowflake.style.opacity = Math.random();
-    snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
-    
-    const animationDuration = (Math.random() * 3 + 2) * (11 - Number(document.getElementById('snowfallSpeed').value));
-    snowflake.style.animation = `fall ${animationDuration}s linear forwards`;
-    
-    document.querySelector('.app-container').appendChild(snowflake);
-    
-    snowflake.addEventListener('animationend', () => {
-        snowflake.remove();
-        if (isSnowing) {
-            createSnowflake();
-        }
-    });
-    
-    snowflakes.push(snowflake);
+// Close chat interface function
+function closeChatInterface() {
+    const chatInterface = document.getElementById('chatInterface');
+    chatInterface.style.display = 'none';
 }
 
-function toggleSnow() {
-    const snowToggle = document.getElementById('snowflakeToggle');
-    isSnowing = snowToggle.checked;
-    
-    if (isSnowing) {
-        // Create initial snowflakes
-        const density = Number(document.getElementById('snowDensity').value);
-        const flakeCount = Math.floor(snowflakeCount * (density / 5));
-        for (let i = 0; i < flakeCount; i++) {
-            setTimeout(createSnowflake, Math.random() * 3000);
-        }
-    } else {
-        // Remove all snowflakes
-        snowflakes.forEach(flake => flake.remove());
-        snowflakes = [];
-    }
-}
-
-// Add event listeners for snow controls
+// Initialize token display when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    const snowToggle = document.getElementById('snowflakeToggle');
-    const speedSlider = document.getElementById('snowfallSpeed');
-    const densitySlider = document.getElementById('snowDensity');
-    
-    // Load saved preferences
-    const savedSnowState = localStorage.getItem('snowEnabled') === 'true';
-    snowToggle.checked = savedSnowState;
-    isSnowing = savedSnowState;
-    
-    if (savedSnowState) {
-        toggleSnow();
-    }
-    
-    snowToggle.addEventListener('change', () => {
-        localStorage.setItem('snowEnabled', snowToggle.checked);
-        toggleSnow();
-    });
-    
-    speedSlider.addEventListener('input', () => {
-        // Update speed of existing snowflakes
-        const newSpeed = 11 - Number(speedSlider.value);
-        snowflakes.forEach(flake => {
-            const currentAnimation = flake.style.animation;
-            if (currentAnimation) {
-                const duration = (Math.random() * 3 + 2) * newSpeed;
-                flake.style.animation = `fall ${duration}s linear forwards`;
-            }
-        });
-    });
-    
-    densitySlider.addEventListener('input', () => {
-        if (isSnowing) {
-            // Remove existing snowflakes
-            snowflakes.forEach(flake => flake.remove());
-            snowflakes = [];
-            
-            // Create new snowflakes with updated density
-            const density = Number(densitySlider.value);
-            const flakeCount = Math.floor(snowflakeCount * (density / 5));
-            for (let i = 0; i < flakeCount; i++) {
-                setTimeout(createSnowflake, Math.random() * 3000);
-            }
-        }
-    });
-});
-
-// Initialize the snow effect
-document.addEventListener('DOMContentLoaded', () => {
-    const snowToggle = document.getElementById('snowflakeToggle');
-    const speedSlider = document.getElementById('snowfallSpeed');
-    const densitySlider = document.getElementById('snowDensity');
-    
-    // Load saved preferences
-    const savedSnowState = localStorage.getItem('snowEnabled') === 'true';
-    snowToggle.checked = savedSnowState;
-    isSnowing = savedSnowState;
-    
-    if (savedSnowState) {
-        toggleSnow();
-    }
-    
-    snowToggle.addEventListener('change', () => {
-        localStorage.setItem('snowEnabled', snowToggle.checked);
-        toggleSnow();
-    });
-    
-    speedSlider.addEventListener('input', () => {
-        const newSpeed = 11 - Number(speedSlider.value);
-        snowflakes.forEach(flake => {
-            const currentAnimation = flake.style.animation;
-            if (currentAnimation) {
-                const duration = (Math.random() * 3 + 2) * newSpeed;
-                flake.style.animation = `fall ${duration}s linear forwards`;
-            }
-        });
-    });
-    
-    densitySlider.addEventListener('input', () => {
-        if (isSnowing) {
-            snowflakes.forEach(flake => flake.remove());
-            snowflakes = [];
-            const density = Number(densitySlider.value);
-            const flakeCount = Math.floor(snowflakeCount * (density / 5));
-            for (let i = 0; i < flakeCount; i++) {
-                setTimeout(createSnowflake, Math.random() * 3000);
-            }
-        }
-    });
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    const tokenBalance = getTokenBalance(telegramId);
+    updateTokenDisplay(tokenBalance);
 });
 </script>
 </body>
