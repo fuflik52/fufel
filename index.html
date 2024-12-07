@@ -9,6 +9,7 @@
   <h1>Привет! Узнай свой Telegram ID</h1>
 
   <p id="userId">Телеграм ID: <span id="idResult">Не определён</span></p>
+  <pre id="debugInfo"></pre> <!-- Для вывода отладочной информации -->
 
   <script>
     // Функция для получения Telegram ID
@@ -17,6 +18,11 @@
       if (window.Telegram && window.Telegram.WebApp) {
         // Получаем данные пользователя
         const user = window.Telegram.WebApp.initDataUnsafe; // Данные передаются через initDataUnsafe
+
+        // Выводим все данные в консоль для отладки
+        console.log("initDataUnsafe:", user);
+        document.getElementById('debugInfo').innerText = JSON.stringify(user, null, 2); // Показываем отладочную информацию
+
         if (user && user.user) {
           const userId = user.user.id;
           // Обновляем на странице
