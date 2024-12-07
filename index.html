@@ -770,6 +770,158 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Existing JavaScript code continues...
+
+// Token management functions
+function updateTokenDisplay(tokens) {
+    const tokenDisplay = document.querySelector('.tokens-display');
+    tokenDisplay.textContent = `${tokens} ${currentLanguage === 'ru' ? 'токенов' : 'tokens'}`;
+    tokenDisplay.classList.add('tokens-updated');
+    setTimeout(() => tokenDisplay.classList.remove('tokens-updated'), 300);
+}
+
+function getTokenBalance(telegramId) {
+    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
+    return tokenBalances[telegramId] || 500; // Default 500 tokens
+}
+
+function updateTokenBalance(telegramId, newBalance) {
+    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
+    tokenBalances[telegramId] = newBalance;
+    localStorage.setItem('tokenBalances', JSON.stringify(tokenBalances));
+    updateTokenDisplay(newBalance);
+}
+
+function spendTokens(telegramId, amount) {
+    const currentBalance = getTokenBalance(telegramId);
+    if (currentBalance >= amount) {
+        updateTokenBalance(telegramId, currentBalance - amount);
+        return true;
+    }
+    return false;
+}
+
+// Modify createNewChat function to store chats by Telegram ID
+function createNewChat() {
+    const chatInterface = document.getElementById('chatInterface');
+    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    
+    // Store chat with telegram ID
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    const newChat = {
+        id: Date.now(),
+        telegramId: telegramId,
+        title: '',
+        created: new Date(),
+        messages: []
+    };
+    
+    chats.push(newChat);
+    localStorage.setItem('chats', JSON.stringify(chats));
+    
+    chatInterface.style.display = 'flex';
+    updateChatHistory();
+}
+
+// Update chat history display to show only current user's chats
+function updateChatHistory() {
+    const chatHistory = document.querySelector('.chat-history');
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    
+    // Filter chats for current user
+    chats = chats.filter(chat => chat.telegramId === telegramId);
+    
+    // Clear existing chat history
+    chatHistory.innerHTML = '';
+    
+    if (chats.length === 0) {
+        chatHistory.innerHTML = `
+            <div class="chat-item" id="empty-history">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                </svg>
+                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
+            </div>`;
+        return;
+    }
+
+    chats.forEach((chat, index) => {
+        const chatItem = document.createElement('div');
+        chatItem.className = 'chat-item';
+        chatItem.onclick = () => openChat(chat.id);
+        chatItem.innerHTML = `
+            <div class="chat-main">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-4H6V6h12v2z"/>
+                </svg>
+                <span>${chat.title || `Chat ${index + 1}`}</span>
+            </div>
+            <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
+            <div class="chat-actions">
+                <button class="chat-action-btn delete-chat" onclick="event.stopPropagation(); deleteChat(${chat.id})">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                    </svg>
+                </button>
+            </div>`;
+        chatHistory.appendChild(chatItem);
+    });
+}
+
+// Add deleteChat function that respects Telegram ID
+function deleteChat(chatId) {
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    chats = chats.filter(chat => !(chat.id === chatId && chat.telegramId === telegramId));
+    localStorage.setItem('chats', JSON.stringify(chats));
+    updateChatHistory();
+}
+
+// Initialize token display when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    const tokenBalance = getTokenBalance(telegramId);
+    updateTokenDisplay(tokenBalance);
+});
+
+// Modify sendMessage function to include token management by Telegram ID
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    
+    if (message) {
+        // Check token balance and spend tokens
+        const tokenCost = 10; // Cost per message
+        if (!spendTokens(telegramId, tokenCost)) {
+            alert(currentLanguage === 'ru' ? 'Недостаточно токенов!' : 'Not enough tokens!');
+            return;
+        }
+        
+        const chats = JSON.parse(localStorage.getItem('chats') || '[]');
+        const currentChat = chats[chats.length - 1];
+        
+        if (!currentChat.title) {
+            currentChat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+        }
+        
+        currentChat.messages.push({
+            text: message,
+            sender: 'user',
+            timestamp: new Date()
+        });
+        
+        localStorage.setItem('chats', JSON.stringify(chats));
+        messageInput.value = '';
+        updateChatHistory();
+        
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.innerHTML += `
+            <div class="message user-message">
+                ${message}
+            </div>`;
+    }
+}
 </script>
 </head>
 <body>
@@ -1120,7 +1272,7 @@ function spendTokens(telegramId, amount) {
     return false;
 }
 
-// Modify createNewChat function
+// Modify createNewChat function to store chats by Telegram ID
 function createNewChat() {
     const chatInterface = document.getElementById('chatInterface');
     const chats = JSON.parse(localStorage.getItem('chats') || '[]');
@@ -1142,7 +1294,7 @@ function createNewChat() {
     updateChatHistory();
 }
 
-// Modify updateChatHistory function
+// Update chat history display to show only current user's chats
 function updateChatHistory() {
     const chatHistory = document.querySelector('.chat-history');
     const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
@@ -1178,7 +1330,7 @@ function updateChatHistory() {
             </div>
             <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
             <div class="chat-actions">
-                <button class="chat-action-btn delete-chat" onclick="event.stopPropagation(); deleteChat(${index})">
+                <button class="chat-action-btn delete-chat" onclick="event.stopPropagation(); deleteChat(${chat.id})">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
                     </svg>
@@ -1188,26 +1340,23 @@ function updateChatHistory() {
     });
 }
 
-// Add function to open existing chat
-function openChat(chatId) {
-    const chatInterface = document.getElementById('chatInterface');
-    const chatMessages = document.getElementById('chatMessages');
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    const chat = chats.find(c => c.id === chatId);
-    
-    if (chat) {
-        chatMessages.innerHTML = '';
-        chat.messages.forEach(message => {
-            chatMessages.innerHTML += `
-                <div class="message ${message.sender}-message">
-                    ${message.text}
-                </div>`;
-        });
-        chatInterface.style.display = 'flex';
-    }
+// Add deleteChat function that respects Telegram ID
+function deleteChat(chatId) {
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
+    chats = chats.filter(chat => !(chat.id === chatId && chat.telegramId === telegramId));
+    localStorage.setItem('chats', JSON.stringify(chats));
+    updateChatHistory();
 }
 
-// Modify sendMessage function to include token management
+// Initialize token display when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
+    const tokenBalance = getTokenBalance(telegramId);
+    updateTokenDisplay(tokenBalance);
+});
+
+// Modify sendMessage function to include token management by Telegram ID
 function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const message = messageInput.value.trim();
