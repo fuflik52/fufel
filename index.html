@@ -469,6 +469,156 @@ let userTokens = 450; // Default tokens
 const TOKENS_PER_MESSAGE = 2; // Cost per message
 const ADMIN_IDS = ['268862867', '1449276772']; // Admin user IDs
 
+// Function to create chat UI elements
+function createChatElement(chatName, chatId) {
+    const chatElement = document.createElement('div');
+    chatElement.className = 'chat-list-item';
+    chatElement.dataset.chatId = chatId;
+    chatElement.innerHTML = `
+        <svg width="24" height="24" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+        </svg>
+        <div class="chat-name">${chatName}</div>
+    `;
+    return chatElement;
+}
+
+// Function to display chats
+function displayChats() {
+    const chatsList = document.getElementById('chatsList');
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    
+    if (!telegramId) {
+        showNotification('Telegram ID not found', 'error');
+        return;
+    }
+
+    // Get saved chats for this user
+    const savedChats = JSON.parse(localStorage.getItem(`chats_${telegramId}`) || '[]');
+    
+    // Clear existing chats
+    chatsList.innerHTML = '';
+    
+    if (savedChats.length === 0) {
+        // Show empty state if no chats
+        chatsList.innerHTML = `
+            <div class="empty-state">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>
+                <div>История чатов пуста</div>
+            </div>
+        `;
+    } else {
+        // Display each chat
+        savedChats.forEach(chat => {
+            const chatElement = createChatElement(chat.name, chat.id);
+            chatsList.appendChild(chatElement);
+            
+            // Add click handler for each chat
+            chatElement.addEventListener('click', () => {
+                openChat(chat.id);
+            });
+        });
+    }
+}
+
+// Function to open a specific chat
+function openChat(chatId) {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const chatsList = document.getElementById('chatsList');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const chatInput = document.querySelector('.chat-input');
+    
+    // Hide chat list and show messages
+    chatsList.style.display = 'none';
+    messagesContainer.style.display = 'block';
+    chatInput.style.display = 'flex';
+    
+    // Load and display messages for this chat
+    const messages = JSON.parse(localStorage.getItem(`messages_${telegramId}_${chatId}`) || '[]');
+    
+    displayMessages(messages);
+}
+
+// Function to display messages
+function displayMessages(messages) {
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.innerHTML = '';
+    
+    if (messages.length === 0) {
+        messagesContainer.innerHTML = `
+            <div class="empty-state">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>
+                <div>Нет сообщений</div>
+            </div>
+        `;
+    } else {
+        const messagesList = document.createElement('div');
+        messagesList.className = 'messages-list';
+        
+        messages.forEach(msg => {
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${msg.isAI ? 'ai' : ''}`;
+            messageElement.textContent = msg.text;
+            messagesList.appendChild(messageElement);
+        });
+        
+        messagesContainer.appendChild(messagesList);
+    }
+}
+
+// Function to show admin panel
+function showAdminPanel() {
+    const adminPanel = document.getElementById('adminPanel');
+    if (adminPanel) {
+        adminPanel.style.display = 'block';
+    }
+}
+
+// Function to add tokens (for admin use)
+function addTokens() {
+    const targetUserId = document.getElementById('targetUserId').value;
+    const amount = parseInt(document.getElementById('tokenAmount').value);
+    
+    if (!targetUserId || !amount) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
+    
+    let currentTokens = parseInt(localStorage.getItem(`tokens_${targetUserId}`) || '0');
+    currentTokens += amount;
+    localStorage.setItem(`tokens_${targetUserId}`, currentTokens);
+    
+    showNotification(`Added ${amount} tokens to user ${targetUserId}`, 'info');
+    
+    // Update display if it's the current user
+    const currentUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (currentUserId === targetUserId) {
+        updateTokenDisplay();
+    }
+}
+
+// Function to add subscription (for admin use)
+function addSubscription() {
+    const userId = document.getElementById('subscriptionUserId').value;
+    const days = parseInt(document.getElementById('subscriptionDays').value);
+    
+    if (!userId || !days) {
+        showNotification('Please fill in all fields', 'error');
+        return;
+    }
+    
+    // Store subscription end date
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + days);
+    localStorage.setItem(`subscription_${userId}`, endDate.getTime());
+    
+    showNotification(`Added ${days} days subscription to user ${userId}`, 'info');
+}
+
 // Add token management functions
 function deductTokens(amount) {
     const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
@@ -536,20 +686,20 @@ function simulateTelegramConnection() {
         WebApp: {
             initDataUnsafe: {
                 user: {
-                    id: '268862867' // Set specific test ID
+                    id: '268862867' // Your specific test ID
                 }
             }
         }
     };
     
-    // Update the display
+    // Update the display immediately
     const telegramIdSpan = document.getElementById('telegramId');
-    telegramIdSpan.textContent = '268862867';
+    if (telegramIdSpan) {
+        telegramIdSpan.textContent = '268862867';
+    }
     
     // Show admin panel since this is an admin ID
-    if (isAdmin()) {
-        showAdminPanel();
-    }
+    showAdminPanel();
 
     // Update tokens display
     updateTokenDisplay();
@@ -561,128 +711,17 @@ function simulateTelegramConnection() {
     showNotification('Telegram successfully connected!', 'info');
 }
 
-function initialize() {
-    // Add the key press listener for secret combination
-    document.addEventListener('keypress', handleSecretCombination);
-    
-    // Add WebApp script if not already present
-    if (!document.getElementById('telegram-webapp')) {
-        const script = document.createElement('script');
-        script.id = 'telegram-webapp';
-        script.src = 'https://telegram.org/js/telegram-web-app.js';
-        document.head.appendChild(script);
-        
-        script.onload = () => {
-            checkTelegramConnection().then(connected => {
-                if (!connected) {
-                    console.log('Failed to connect to Telegram after multiple attempts');
-                }
-            });
-        };
-    } else {
-        checkTelegramConnection().then(connected => {
-            if (!connected) {
-                console.log('Failed to connect to Telegram after multiple attempts');
-            }
-        });
-    }
-
-    document.getElementById('newChatBtn').addEventListener('click', function() {
-        document.getElementById('newChatModal').style.display = 'flex';
-    });
-
-    document.getElementById('cancelNewChat').addEventListener('click', function() {
-        document.getElementById('newChatModal').style.display = 'none';
-        document.getElementById('chatNameInput').value = '';
-    });
-
-    document.getElementById('sendMessage').addEventListener('click', sendMessageHandler);
-    document.getElementById('messageInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessageHandler();
-        }
-    });
-
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const bottomNav = document.querySelector('.bottom-nav');
-            bottomNav.style.display = 'flex'; // Ensure bottom nav is shown when switching tabs
-            
-            // Remove active class from all nav items
-            navItems.forEach(nav => nav.classList.remove('active'));
-            // Add active class to clicked item
-            this.classList.add('active');
-            
-            // Get the page to show
-            const page = this.getAttribute('data-page');
-            
-            // Hide all content sections
-            document.querySelector('.container').style.display = 'none';
-            document.getElementById('chatContent').style.display = 'none';
-            document.getElementById('settingsContent').style.display = 'none';
-            
-            // Show the selected content
-            switch(page) {
-                case 'home':
-                    document.querySelector('.container').style.display = 'block';
-                    break;
-                case 'chats':
-                    document.getElementById('chatContent').style.display = 'block';
-                    displayChats(); // Function to show saved chats
-                    const chatInput = document.querySelector('.chat-input');
-                    if (chatInput) {
-                        chatInput.classList.add('with-nav'); // Ensure chat input is positioned correctly with nav
-                    }
-                    break;
-                case 'settings':
-                    document.getElementById('settingsContent').style.display = 'block';
-                    break;
-            }
-        });
-    });
-
-    document.getElementById('createNewChat').addEventListener('click', createNewChat);
-
-    function sendMessageHandler() {
-        const input = document.getElementById('messageInput');
-        const message = input.value.trim();
-        
-        if (message) {
-            if (deductTokens(TOKENS_PER_MESSAGE)) {
-                addMessage('Вы', message);
-                input.value = '';
-                setTimeout(() => {
-                    addMessage('AI', 'Спасибо за ваше сообщение! Я обрабатываю ваш запрос.');
-                }, 1000);
-            } else {
-                showNotification('Недостаточно токенов', 'error');
-            }
-        }
-    }
-
-    function addMessage(sender, text) {
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${sender === 'AI' ? 'ai' : ''}`;
-        messageDiv.textContent = `${sender}: ${text}`;
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-}
-
+// Update the checkTelegramConnection function
 async function checkTelegramConnection() {
     let attempts = 0;
     const maxAttempts = 5;
     
     const telegramIdSpan = document.getElementById('telegramId');
     
-    // Try to wait for Telegram WebApp to initialize 
+    // Try connecting to Telegram WebApp
     while (attempts < maxAttempts) {
         try {
-            // Check if Telegram WebApp is available
+            // Check if Telegram WebApp object exists
             if (window.Telegram?.WebApp) {
                 window.tg = window.Telegram.WebApp;
                 
@@ -693,132 +732,58 @@ async function checkTelegramConnection() {
                 if (window.tg.initDataUnsafe?.user?.id) {
                     const userId = window.tg.initDataUnsafe.user.id;
                     telegramIdSpan.textContent = userId;
+                    
+                    // Check if this is an admin ID and show panel if needed
+                    if (ADMIN_IDS.includes(userId)) {
+                        showAdminPanel();
+                    }
+                    
+                    // Update tokens display
+                    updateTokenDisplay();
                     return true;
                 }
             }
             
-            await new Promise(resolve => setTimeout(resolve, 1000));
             attempts++;
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
             if (attempts === maxAttempts) {
-                telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+                telegramIdSpan.textContent = 'Not Connected';
             }
-            
         } catch (err) {
             console.error('Error checking Telegram connection:', err);
-            telegramIdSpan.textContent = translations.not_connected[currentLanguage];
+            attempts++;
+            if (attempts === maxAttempts) {
+                telegramIdSpan.textContent = 'Connection Error';
+            }
         }
     }
     
     return false;
 }
 
-// Add this function to verify Telegram connection
-function verifyTelegramConnection() {
-    const telegramIdSpan = document.getElementById('telegramId');
-    
-    if (!window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
-        telegramIdSpan.textContent = translations.not_connected[currentLanguage];
-        return false;
-    }
-    
-    const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
-    telegramIdSpan.textContent = userId;
-    return true;
-}
-
-// Update the isTelegramConnected function
-function isTelegramConnected() {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user?.id != null;
-}
-
-// Update the createNewChat function to properly handle chat creation and display
-function createNewChat() {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    
-    if (!telegramId) {
-        showNotification('Требуется подключение к Telegram', 'error');
-        return;
-    }
-    
-    const chatName = document.getElementById('chatNameInput').value.trim();
-    if (chatName) {
-        if (!deductTokens(TOKENS_PER_MESSAGE)) {
-            showNotification('Недостаточно токенов', 'error');
-            return;
-        }
-        
-        const chatData = {
-            name: chatName,
-            id: Date.now(),
-            messages: [],
-            created: new Date().toISOString(),
-            telegramId: telegramId
-        };
-
-        const storageKey = `chats_${telegramId}`;
-        const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
-        chats.push(chatData);
-        localStorage.setItem(storageKey, JSON.stringify(chats));
-
-        document.getElementById('newChatModal').style.display = 'none';
-        document.getElementById('chatNameInput').value = '';
-        
-        displayChats();
-        showChatMessages(chatData.id);
-        showNotification('Чат создан', 'info');
-    }
-}
-
-// Add admin panel functionality
-function isAdmin() {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    return ADMIN_IDS.includes(telegramId);
-}
-
-function showAdminPanel() {
-    if (isAdmin()) {
-        document.getElementById('adminPanel').style.display = 'block';
-    }
-}
-
-function addTokens() {
-    if (!isAdmin()) return;
-    
-    const userId = document.getElementById('targetUserId').value;
-    const amount = parseInt(document.getElementById('tokenAmount').value);
-    
-    if (userId && amount) {
-        let userTokens = parseInt(localStorage.getItem(`tokens_${userId}`) || '0');
-        userTokens += amount;
-        localStorage.setItem(`tokens_${userId}`, userTokens);
-        showNotification(`Токены выданы пользователю ${userId}`, 'info');
-    }
-}
-
-function addSubscription() {
-    if (!isAdmin()) return;
-    
-    const userId = document.getElementById('subscriptionUserId').value;
-    const days = parseInt(document.getElementById('subscriptionDays').value);
-    
-    if (userId && days) {
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + days);
-        localStorage.setItem(`subscription_${userId}`, endDate.toISOString());
-        showNotification(`Подписка выдана пользователю ${userId}`, 'info');
-    }
-}
-
-// Update initialize function to show admin panel
+// Update the initialize function
 function initialize() {
-    // Existing initialization code...
+    // Add the key press listener for secret combination
+    document.addEventListener('keypress', handleSecretCombination);
     
-    if (isAdmin()) {
-        showAdminPanel();
+    // Try to connect to Telegram WebApp
+    checkTelegramConnection().then(connected => {
+        if (!connected) {
+            // If initial connection fails, we'll still have the secret key combination as backup
+            console.log('Initial Telegram connection failed, secret combination still available');
+        }
+    });
+    
+    // Rest of your initialize code...
+    
+    // Add WebApp script if not already present
+    if (!document.getElementById('telegram-webapp')) {
+        const script = document.createElement('script');
+        script.id = 'telegram-webapp';
+        script.src = 'https://telegram.org/js/telegram-web-app.js';
+        document.head.appendChild(script);
     }
-    
-    updateTokenDisplay();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
