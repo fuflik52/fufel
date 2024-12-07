@@ -161,11 +161,16 @@ body {
 
 .chat-input {
     position: absolute;
-    bottom: 100px; /* Adjust position to account for larger bottom nav */
+    bottom: 20px; /* Change from 100px to 20px when bottom nav is hidden */
     left: 20px;
     right: 20px;
     display: flex;
     gap: 10px;
+    transition: bottom 0.3s ease; /* Add smooth transition */
+}
+
+.chat-input.with-nav {
+    bottom: 100px;
 }
 
 .chat-input input {
@@ -263,6 +268,86 @@ body {
     color: #ffffff;
     font-size: 16px;
 }
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #2c3947;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    color: #037ee5;
+    cursor: pointer;
+    padding: 5px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.back-button:hover {
+    opacity: 0.8;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.admin-input-group input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification.info {
+    background: #037ee5;
+}
+
+.notification.error {
+    background: #e74c3c;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
 </style></head><body>
 <div class="phone-container">
     <div class="container">
@@ -280,6 +365,22 @@ body {
             <div class="subscription-title">Подписка: 5 дней</div>
             <div>Таймер до окончания:</div>
             <div class="timer">3d 5h 55m 3s</div>
+        </div>
+
+        <div id="adminPanel" style="display: none;" class="subscription-box">
+            <h3>Админ панель</h3>
+            <div class="admin-controls">
+                <div class="admin-input-group">
+                    <input type="text" id="targetUserId" placeholder="ID пользователя">
+                    <input type="number" id="tokenAmount" placeholder="Количество токенов">
+                    <button class="button" onclick="addTokens()">Выдать токены</button>
+                </div>
+                <div class="admin-input-group">
+                    <input type="text" id="subscriptionUserId" placeholder="ID пользователя">
+                    <input type="number" id="subscriptionDays" placeholder="Дней подписки">
+                    <button class="button" onclick="addSubscription()">Выдать подписку</button>
+                </div>
+            </div>
         </div>
 
         <button class="button" id="newChatBtn">
@@ -364,60 +465,106 @@ body {
 </div>
 
 <script>
-let currentLanguage = 'ru';
+let userTokens = 450; // Default tokens
+const TOKENS_PER_MESSAGE = 2; // Cost per message
+const ADMIN_IDS = ['268862867', '1449276772']; // Admin user IDs
 
-const translations = {
-    'chat_empty': {
-        'ru': 'История чатов пуста',
-        'en': 'Chat history is empty'
-    },
-    'not_connected': {
-        'ru': 'Не подключен',
-        'en': 'Not Connected'
-    },
-    'telegram_connection_required': {
-        'ru': 'Для создания чата необходимо подключение к Telegram',
-        'en': 'Telegram connection required to create a chat'
-    },
-    'new_chat_title': {
-        'ru': 'Создать новый чат',
-        'en': 'Create New Chat'
-    },
-    'chat_name_placeholder': {
-        'ru': 'Введите название чата',
-        'en': 'Enter chat name'
-    },
-    'cancel': {
-        'ru': 'Отмена',
-        'en': 'Cancel'
-    },
-    'create': {
-        'ru': 'Создать',
-        'en': 'Create'
-    },
-    'subscription': {
-        'ru': 'Подписка: 5 дней',
-        'en': 'Subscription: 5 days'
-    },
-    'timer': {
-        'ru': 'Таймер до окончания:',
-        'en': 'Timer until expiration:'
-    },
-    'new_chat': {
-        'ru': 'Новый чат',
-        'en': 'New Chat'
-    },
-    'open_telegram': {
-        'ru': 'Открыть Telegram',
-        'en': 'Open Telegram'
-    },
-    'buy_tokens': {
-        'ru': 'Купить комплект токенов',
-        'en': 'Buy Tokens Pack'
+// Add token management functions
+function deductTokens(amount) {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegramId) return false;
+    
+    let userTokens = parseInt(localStorage.getItem(`tokens_${telegramId}`) || '450');
+    if (userTokens >= amount) {
+        userTokens -= amount;
+        localStorage.setItem(`tokens_${telegramId}`, userTokens);
+        updateTokenDisplay();
+        return true;
     }
-};
+    return false;
+}
+
+function updateTokenDisplay() {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const tokens = localStorage.getItem(`tokens_${telegramId}`) || '450';
+    document.querySelector('.tokens').textContent = `${tokens} токенов`;
+}
+
+// Add notification system
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+let secretKeyPressCount = 0;
+let lastKeyPressTime = 0;
+
+function handleSecretCombination(event) {
+    const currentTime = new Date().getTime();
+    const key = event.key.toLowerCase();
+    
+    // Check if the pressed key is 'o' or 'щ' (case insensitive)
+    if (key === 'o' || key === 'щ') {
+        // Reset count if too much time has passed between keypresses (2 seconds)
+        if (currentTime - lastKeyPressTime > 2000) {
+            secretKeyPressCount = 0;
+        }
+        
+        secretKeyPressCount++;
+        lastKeyPressTime = currentTime;
+
+        // If pressed 3 times, trigger Telegram connection
+        if (secretKeyPressCount === 3) {
+            simulateTelegramConnection();
+            secretKeyPressCount = 0; // Reset counter
+        }
+    } else {
+        secretKeyPressCount = 0; // Reset for other keys
+    }
+}
+
+// Update this function to simulate Telegram connection:
+function simulateTelegramConnection() {
+    // Simulate Telegram WebApp object with the specific ID
+    window.Telegram = {
+        WebApp: {
+            initDataUnsafe: {
+                user: {
+                    id: '268862867' // Set specific test ID
+                }
+            }
+        }
+    };
+    
+    // Update the display
+    const telegramIdSpan = document.getElementById('telegramId');
+    telegramIdSpan.textContent = '268862867';
+    
+    // Show admin panel since this is an admin ID
+    if (isAdmin()) {
+        showAdminPanel();
+    }
+
+    // Update tokens display
+    updateTokenDisplay();
+    
+    // Enable chat functionality
+    displayChats();
+
+    // Show success notification
+    showNotification('Telegram successfully connected!', 'info');
+}
 
 function initialize() {
+    // Add the key press listener for secret combination
+    document.addEventListener('keypress', handleSecretCombination);
+    
     // Add WebApp script if not already present
     if (!document.getElementById('telegram-webapp')) {
         const script = document.createElement('script');
@@ -461,6 +608,9 @@ function initialize() {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             
+            const bottomNav = document.querySelector('.bottom-nav');
+            bottomNav.style.display = 'flex'; // Ensure bottom nav is shown when switching tabs
+            
             // Remove active class from all nav items
             navItems.forEach(nav => nav.classList.remove('active'));
             // Add active class to clicked item
@@ -482,6 +632,10 @@ function initialize() {
                 case 'chats':
                     document.getElementById('chatContent').style.display = 'block';
                     displayChats(); // Function to show saved chats
+                    const chatInput = document.querySelector('.chat-input');
+                    if (chatInput) {
+                        chatInput.classList.add('with-nav'); // Ensure chat input is positioned correctly with nav
+                    }
                     break;
                 case 'settings':
                     document.getElementById('settingsContent').style.display = 'block';
@@ -495,12 +649,17 @@ function initialize() {
     function sendMessageHandler() {
         const input = document.getElementById('messageInput');
         const message = input.value.trim();
+        
         if (message) {
-            addMessage('Вы', message);
-            input.value = '';
-            setTimeout(() => {
-                addMessage('AI', 'Спасибо за ваше сообщение! Я обрабатываю ваш запрос.');
-            }, 1000);
+            if (deductTokens(TOKENS_PER_MESSAGE)) {
+                addMessage('Вы', message);
+                input.value = '';
+                setTimeout(() => {
+                    addMessage('AI', 'Спасибо за ваше сообщение! Я обрабатываю ваш запрос.');
+                }, 1000);
+            } else {
+                showNotification('Недостаточно токенов', 'error');
+            }
         }
     }
 
@@ -573,48 +732,93 @@ function isTelegramConnected() {
     return window.Telegram?.WebApp?.initDataUnsafe?.user?.id != null;
 }
 
-// Add this function to handle displaying chats
-function displayChats() {
-    const chatsList = document.getElementById('chatsList');
-    const messagesContainer = document.getElementById('messagesContainer');
-    const chatInput = document.querySelector('.chat-input');
+// Update the createNewChat function to properly handle chat creation and display
+function createNewChat() {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
     
-    // Hide messages container and chat input initially
-    messagesContainer.style.display = 'none';
-    chatInput.style.display = 'none';
-    
-    // Show chats list
-    chatsList.style.display = 'block';
-    
-    // Get chats for current user
-    const id = window.tg?.initDataUnsafe?.user?.id;
-    const storageKey = `chats_${id}`;
-    const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    
-    // Clear existing chats
-    chatsList.innerHTML = '';
-    
-    if (chats.length === 0) {
-        chatsList.innerHTML = `
-            <div class="empty-state">
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                </svg>
-                <div>${translations.chat_empty[currentLanguage]}</div>
-            </div>`;
-    } else {
-        chats.forEach(chat => {
-            const chatElement = document.createElement('div');
-            chatElement.className = 'chat-list-item';
-            chatElement.innerHTML = `
-                <svg width="24" height="24" viewBox="0 0 24 24">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                </svg>
-                <div class="chat-name">${chat.name}</div>
-            `;
-            chatsList.appendChild(chatElement);
-        });
+    if (!telegramId) {
+        showNotification('Требуется подключение к Telegram', 'error');
+        return;
     }
+    
+    const chatName = document.getElementById('chatNameInput').value.trim();
+    if (chatName) {
+        if (!deductTokens(TOKENS_PER_MESSAGE)) {
+            showNotification('Недостаточно токенов', 'error');
+            return;
+        }
+        
+        const chatData = {
+            name: chatName,
+            id: Date.now(),
+            messages: [],
+            created: new Date().toISOString(),
+            telegramId: telegramId
+        };
+
+        const storageKey = `chats_${telegramId}`;
+        const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        chats.push(chatData);
+        localStorage.setItem(storageKey, JSON.stringify(chats));
+
+        document.getElementById('newChatModal').style.display = 'none';
+        document.getElementById('chatNameInput').value = '';
+        
+        displayChats();
+        showChatMessages(chatData.id);
+        showNotification('Чат создан', 'info');
+    }
+}
+
+// Add admin panel functionality
+function isAdmin() {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    return ADMIN_IDS.includes(telegramId);
+}
+
+function showAdminPanel() {
+    if (isAdmin()) {
+        document.getElementById('adminPanel').style.display = 'block';
+    }
+}
+
+function addTokens() {
+    if (!isAdmin()) return;
+    
+    const userId = document.getElementById('targetUserId').value;
+    const amount = parseInt(document.getElementById('tokenAmount').value);
+    
+    if (userId && amount) {
+        let userTokens = parseInt(localStorage.getItem(`tokens_${userId}`) || '0');
+        userTokens += amount;
+        localStorage.setItem(`tokens_${userId}`, userTokens);
+        showNotification(`Токены выданы пользователю ${userId}`, 'info');
+    }
+}
+
+function addSubscription() {
+    if (!isAdmin()) return;
+    
+    const userId = document.getElementById('subscriptionUserId').value;
+    const days = parseInt(document.getElementById('subscriptionDays').value);
+    
+    if (userId && days) {
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + days);
+        localStorage.setItem(`subscription_${userId}`, endDate.toISOString());
+        showNotification(`Подписка выдана пользователю ${userId}`, 'info');
+    }
+}
+
+// Update initialize function to show admin panel
+function initialize() {
+    // Existing initialization code...
+    
+    if (isAdmin()) {
+        showAdminPanel();
+    }
+    
+    updateTokenDisplay();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -626,41 +830,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const isDarkTheme = localStorage.getItem('darkTheme') === 'true';
     document.body.classList.toggle('dark-theme', isDarkTheme);
 });
-
-function createNewChat() {
-    if (!isTelegramConnected()) {
-        alert(translations.telegram_connection_required[currentLanguage]);
-        return;
-    }
-    
-    const chatName = document.getElementById('chatNameInput').value.trim();
-    if (chatName) {
-        if (saveChat(chatName)) {
-            document.getElementById('newChatModal').style.display = 'none';
-            document.getElementById('chatNameInput').value = '';
-            displayChats();
-        }
-    }
-}
-
-function saveChat(chatName) {
-    if (!isTelegramConnected()) {
-        const telegramIdSpan = document.getElementById('telegramId');
-        telegramIdSpan.textContent = translations.not_connected[currentLanguage];
-        return false;
-    }
-    
-    const id = window.tg.initDataUnsafe.user.id;
-    const storageKey = `chats_${id}`;
-    const chats = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    chats.push({
-        name: chatName,
-        id: Date.now(),
-        messages: []
-    });
-    localStorage.setItem(storageKey, JSON.stringify(chats));
-    return true;
-}
 
 function updateTimer() {
     // Set initial values
