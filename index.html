@@ -249,33 +249,70 @@ body { font-family: Arial, sans-serif; background: #2c3e50; }
     transition: all 0.3s ease;
 }
 
-/* Add new styles for mobile optimization */
+/* Update mobile styles */
 @media (max-width: 768px) {
   .inventory {
     width: 95vw;
     height: 80vh;
-    top: 55%;
+    padding: 10px;
   }
   
   .grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
-    padding: 8px;
   }
   
   .slot {
-    width: 100%;
-    height: 0;
-    padding-bottom: 100%; /* Make slots square */
+    width: calc((95vw - 40px) / 4);
+    height: calc((95vw - 40px) / 4);
   }
   
   .item {
-    font-size: 14px;
+    font-size: 12px;
+  }
+  
+  .item-icon {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .quantity {
+    font-size: 10px;
+  }
+  
+  .context-menu {
+    min-width: 200px;
+  }
+}
+
+/* Add mobile-friendly context menu styles */
+@media (max-width: 768px) {
+  .context-menu {
+    position: fixed;
+    width: 90%;
+    max-width: 300px;
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
+  
+  .context-menu-item {
+    padding: 15px 20px;
+    font-size: 16px;
   }
   
   .split-dialog {
-    width: 90vw;
-    min-width: auto;
+    width: 90%;
+    max-width: 300px;
+  }
+  
+  .split-dialog input {
+    font-size: 16px;
+    padding: 15px;
+  }
+  
+  .split-dialog button {
+    padding: 15px 25px;
+    font-size: 16px;
   }
 }
 
@@ -518,15 +555,14 @@ document.addEventListener('touchend', (e) => {
     touchedItem.style.transform = '';
     
     if (!touchMoved) {
-      // Handle tap as right-click
+      // Handle tap as right-click for context menu
       const rect = touchedItem.getBoundingClientRect();
-      const fakeEvent = {
-        preventDefault: () => {},
+      showContextMenu({
         pageX: rect.left,
-        pageY: rect.bottom,
+        pageY: rect.bottom + 10,
+        preventDefault: () => {},
         target: touchedItem
-      };
-      handleContextMenu(fakeEvent);
+      });
     } else {
       // Find closest slot
       const slots = document.querySelectorAll('.slot');
@@ -548,11 +584,8 @@ document.addEventListener('touchend', (e) => {
         }
       });
       
-      if (closestSlot) {
-        const event = {
-          preventDefault: () => {},
-          target: closestSlot
-        };
+      if (closestSlot && minDistance < 100) {
+        const event = { preventDefault: () => {}, target: closestSlot };
         handleDrop(event, touchedItem);
       }
     }
@@ -565,57 +598,60 @@ document.addEventListener('touchend', (e) => {
 let contextMenu = null;
 let splitDialog = null;
 
-// Add event listener for right-click on items
-document.addEventListener('contextmenu', (e) => {
-    const item = e.target.closest('.item');
-    if (item) {
-        e.preventDefault();
-        
-        // Remove existing context menu if present
-        if (contextMenu) {
-            contextMenu.remove();
-        }
-        
-        const weight = parseFloat(item.dataset.weight);
-        const quantity = parseInt(item.dataset.quantity);
-        const totalWeight = (weight * quantity).toFixed(1);
-        
-        contextMenu = document.createElement('div');
-        contextMenu.className = 'context-menu';
-        contextMenu.innerHTML = `
-            <div class="context-menu-weight">${totalWeight} кг</div>
-            <div class="context-menu-item" data-action="split">Разделить предмет</div>
-            <div class="context-menu-item" data-action="drop">Выбросить предмет</div>
-        `;
-        
-        contextMenu.style.left = `${e.pageX}px`;
-        contextMenu.style.top = `${e.pageY}px`;
-        document.body.appendChild(contextMenu);
-        
-        // Keep context menu within viewport
-        const rect = contextMenu.getBoundingClientRect();
-        if (rect.right > window.innerWidth) {
-            contextMenu.style.left = `${window.innerWidth - rect.width - 10}px`;
-        }
-        if (rect.bottom > window.innerHeight) {
-            contextMenu.style.top = `${window.innerHeight - rect.height - 10}px`;
-        }
-        
-        // Add event listeners for context menu items
-        contextMenu.querySelectorAll('.context-menu-item').forEach(menuItem => {
-            menuItem.addEventListener('click', () => {
-                const action = menuItem.dataset.action;
-                if (action === 'split') {
-                    showSplitDialog(item);
-                } else if (action === 'drop') {
-                    item.remove();
-                    updateWeightBar();
-                }
-                contextMenu.remove();
-            });
-        });
+// Create a separate function for showing context menu
+function showContextMenu(e) {
+  const item = e.target.closest('.item');
+  if (item) {
+    e.preventDefault();
+    
+    if (contextMenu) {
+      contextMenu.remove();
     }
-});
+    
+    const weight = parseFloat(item.dataset.weight);
+    const quantity = parseInt(item.dataset.quantity);
+    const totalWeight = (weight * quantity).toFixed(1);
+    
+    contextMenu = document.createElement('div');
+    contextMenu.className = 'context-menu';
+    contextMenu.innerHTML = `
+      <div class="context-menu-weight">${totalWeight} кг</div>
+      <div class="context-menu-item" data-action="split">Разделить предмет</div>
+      <div class="context-menu-item" data-action="drop">Выбросить предмет</div>
+    `;
+    
+    // Position context menu
+    let left = e.pageX;
+    let top = e.pageY;
+    
+    // Adjust for mobile
+    if (window.innerWidth <= 768) {
+      left = Math.min(left, window.innerWidth - 220);
+      top = Math.min(top, window.innerHeight - 150);
+    }
+    
+    contextMenu.style.left = `${left}px`;
+    contextMenu.style.top = `${top}px`;
+    document.body.appendChild(contextMenu);
+    
+    // Add event listeners for context menu items
+    contextMenu.querySelectorAll('.context-menu-item').forEach(menuItem => {
+      menuItem.addEventListener('click', () => {
+        const action = menuItem.dataset.action;
+        if (action === 'split') {
+          showSplitDialog(item);
+        } else if (action === 'drop') {
+          item.remove();
+          updateWeightBar();
+        }
+        contextMenu.remove();
+      });
+    });
+  }
+}
+
+// Update context menu event listeners
+document.addEventListener('contextmenu', showContextMenu);
 
 // Add click event listener to close context menu when clicking outside
 document.addEventListener('click', (e) => {
