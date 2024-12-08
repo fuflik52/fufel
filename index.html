@@ -585,8 +585,29 @@ document.addEventListener('touchend', (e) => {
       });
       
       if (closestSlot && minDistance < 100) {
-        const event = { preventDefault: () => {}, target: closestSlot };
-        handleDrop(event, touchedItem);
+        const existingItem = closestSlot.querySelector('.item');
+        if (existingItem) {
+          // Check if items are of the same type
+          if (existingItem.dataset.id === touchedItem.dataset.id) {
+            // Merge items
+            const totalQuantity = parseInt(existingItem.dataset.quantity) + 
+                                parseInt(touchedItem.dataset.quantity);
+            existingItem.dataset.quantity = totalQuantity;
+            existingItem.querySelector('.quantity').textContent = `x${totalQuantity}`;
+            touchedItem.remove();
+          } else {
+            // Swap items
+            touchedItem.parentElement.appendChild(existingItem);
+            closestSlot.appendChild(touchedItem);
+          }
+        } else {
+          // Move item to empty slot
+          closestSlot.appendChild(touchedItem);
+        }
+        updateWeightBar();
+      } else {
+        // Return item to original position if no valid slot found
+        touchedItem.style.transform = '';
       }
     }
     
@@ -598,7 +619,7 @@ document.addEventListener('touchend', (e) => {
 let contextMenu = null;
 let splitDialog = null;
 
-// Create a separate function for showing context menu
+// Update showContextMenu function to better handle mobile positioning
 function showContextMenu(e) {
   const item = e.target.closest('.item');
   if (item) {
@@ -620,18 +641,23 @@ function showContextMenu(e) {
       <div class="context-menu-item" data-action="drop">Выбросить предмет</div>
     `;
     
-    // Position context menu
-    let left = e.pageX;
-    let top = e.pageY;
+    // Position context menu - handle both mobile and desktop
+    let left, top;
     
-    // Adjust for mobile
     if (window.innerWidth <= 768) {
-      left = Math.min(left, window.innerWidth - 220);
-      top = Math.min(top, window.innerHeight - 150);
+      // Center horizontally on mobile
+      left = '50%';
+      contextMenu.style.transform = 'translateX(-50%)';
+      // Position near the bottom of the screen
+      top = `${window.innerHeight - 200}px`;
+    } else {
+      left = `${e.pageX}px`;
+      top = `${e.pageY}px`;
+      contextMenu.style.transform = 'none';
     }
     
-    contextMenu.style.left = `${left}px`;
-    contextMenu.style.top = `${top}px`;
+    contextMenu.style.left = left;
+    contextMenu.style.top = top;
     document.body.appendChild(contextMenu);
     
     // Add event listeners for context menu items
@@ -648,69 +674,6 @@ function showContextMenu(e) {
       });
     });
   }
-}
-
-// Update context menu event listeners
-document.addEventListener('contextmenu', showContextMenu);
-
-// Add click event listener to close context menu when clicking outside
-document.addEventListener('click', (e) => {
-    if (contextMenu && !e.target.closest('.context-menu')) {
-        contextMenu.remove();
-    }
-});
-
-// Add split dialog functionality
-function showSplitDialog(item) {
-    if (splitDialog) {
-        splitDialog.remove();
-    }
-    
-    const quantity = parseInt(item.dataset.quantity);
-    
-    splitDialog = document.createElement('div');
-    splitDialog.className = 'split-dialog';
-    splitDialog.innerHTML = `
-        <h3>Разделить предмет</h3>
-        <p>Текущее количество: ${quantity}</p>
-        <input type="number" min="1" max="${quantity - 1}" value="1" class="split-amount">
-        <div class="buttons">
-            <button class="confirm">Подтвердить</button>
-            <button class="cancel">Отмена</button>
-        </div>
-    `;
-    document.body.appendChild(splitDialog);
-    
-    const input = splitDialog.querySelector('input');
-    const confirmBtn = splitDialog.querySelector('.confirm');
-    const cancelBtn = splitDialog.querySelector('.cancel');
-    
-    confirmBtn.addEventListener('click', () => {
-        const splitAmount = parseInt(input.value);
-        if (splitAmount >= 1 && splitAmount < quantity) {
-            // Create new item with split amount
-            const newItem = item.cloneNode(true);
-            newItem.dataset.quantity = splitAmount;
-            newItem.querySelector('.quantity').textContent = `x${splitAmount}`;
-            
-            // Update original item quantity
-            const remainingAmount = quantity - splitAmount;
-            item.dataset.quantity = remainingAmount;
-            item.querySelector('.quantity').textContent = `x${remainingAmount}`;
-            
-            // Find first empty slot
-            const emptySlot = Array.from(document.querySelectorAll('.slot')).find(slot => !slot.querySelector('.item'));
-            if (emptySlot) {
-                emptySlot.appendChild(newItem);
-                updateWeightBar();
-            }
-        }
-        splitDialog.remove();
-    });
-    
-    cancelBtn.addEventListener('click', () => {
-        splitDialog.remove();
-    });
 }
 
 // Keep the keyboard 'I' shortcut for PC
