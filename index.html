@@ -1,831 +1,687 @@
-<html><head><base href="./"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Telegram Style Menu - Dark Theme</title><style>
-body {
-    margin: 0;
-    padding: 20px; /* Added padding */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #1c2733;
-    min-height: 100vh;
-    color: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box; /* Added to include padding in height calculation */
-}
+<html><head><base href="." target="_blank"/>
+<meta charset="UTF-8"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: #2c3e50; }
 
-.phone-container {
-    width: 100%;
-    max-width: 450px;
-    height: 98vh; /* Increased from 95vh */
-    background: #151e27;
-    border-radius: 20px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 0 40px rgba(0,0,0,0.3);
-}
-
-.container {
-    padding: 20px;
-    height: calc(100% - 100px); /* Adjust height to account for larger bottom nav */
-    overflow-y: auto;
-}
-
-.header {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: space-between;
-}
-
-.tokens {
-    background: #037ee5;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 14px;
-    color: #ffffff;
-    margin-left: auto;
-}
-
-.subscription-box {
-    background: #2c3947;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 15px;
-    border: 1px solid rgba(3, 126, 229, 0.3);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.subscription-title {
-    color: #ffffff;
-    margin-bottom: 10px;
-}
-
-.timer {
-    color: #037ee5;
-    font-size: 24px;
-    font-weight: bold;
-    background: rgba(3, 126, 229, 0.1);
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-top: 10px;
-    text-align: center;
-    border: 1px solid rgba(3, 126, 229, 0.2);
-}
-
-.button {
-    background: #2c3947;
-    border: none;
-    width: 100%;
-    padding: 15px;
-    border-radius: 12px;
-    color: #ffffff;
-    font-size: 16px;
-    margin-bottom: 10px;
-    text-align: left;
-    cursor: pointer;
-    transition: background 0.3s;
-    display: flex;
-    align-items: center;
-}
-
-.button:hover {
-    background: #3c4957;
-}
-
-.bottom-nav {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #151e27;
-    display: flex;
-    justify-content: space-around;
-    padding: 30px 0; /* Increased padding */
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.nav-item {
-    color: #8e8e93;
-    text-decoration: none;
-    font-size: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.3s;
-}
-
-.nav-item:hover, .nav-item.active {
-    color: #037ee5;
-}
-
-.chat-content, .settings-content {
-    display: none;
-    height: calc(100% - 100px); /* Adjust height to account for larger bottom nav */
-    background: #151e27;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 20px;
-    color: #8e8e93;
-}
-
-.empty-state svg {
-    margin-bottom: 10px;
-    fill: #8e8e93;
-}
-
-.chat-message {
-    background: #2c3947;
-    border-radius: 12px;
-    padding: 10px;
-    margin-bottom: 10px;
-    max-width: 80%;
-}
-
-.chat-message.ai {
-    margin-left: auto;
-    background: #037ee5;
-}
-
-.chat-input {
-    position: absolute;
-    bottom: 20px; /* Change from 100px to 20px when bottom nav is hidden */
-    left: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    transition: bottom 0.3s ease; /* Add smooth transition */
-}
-
-.chat-input.with-nav {
-    bottom: 100px;
-}
-
-.chat-input input {
-    flex: 1;
-    background: #2c3947;
-    border: none;
-    padding: 10px;
-    border-radius: 20px;
-    color: white;
-}
-
-.chat-input button {
-    background: #037ee5;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    color: white;
-    cursor: pointer;
-}
-
-.modal {
-    display: none;
+.inventory {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 450px;
+    background: rgba(44, 62, 80, 0.95);
+    border: 2px solid #34495e;
+    border-radius: 15px;
+    display: none; /* Hidden by default */
+    padding: 20px;
+    color: white;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+/* Make inventory visible when active class is present */
+.inventory.active {
+    display: block;
+}
+
+/* Remove or comment out .weight-tooltip styles */
+.weight-tooltip {
+    display: none; /* Hide the permanent weight tooltip */
+}
+
+/* Update context menu styles */
+.context-menu {
+    position: fixed;
+    background: rgba(44, 62, 80, 0.98);
+    border: 2px solid #2ecc71;
+    border-radius: 10px;
+    padding: 8px 0;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    min-width: 150px;
+}
+
+.context-menu-weight {
+    padding: 10px 20px;
+    color: #95a5a6;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(46, 204, 113, 0.2);
+    margin-bottom: 5px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    padding: 10px;
+}
+
+.slot {
+    width: 80px;
+    height: 80px;
+    background: rgba(52, 73, 94, 0.8);
+    border: 2px solid #465c71;
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.slot:hover {
+    background: rgba(52, 73, 94, 1);
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+}
+
+.item {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    cursor: grab;
+    user-select: none;
+    border-radius: 10px;
+    position: relative;
 }
 
-.modal-content {
-    background: #2c3947;
-    padding: 20px;
-    border-radius: 12px;
-    width: 80%;
-    max-width: 300px;
-}
-
-.modal input {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: none;
+.item-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 5px;
     border-radius: 8px;
-    background: #1c2733;
-    color: white;
 }
 
-.modal-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
+.quantity {
+    font-size: 12px;
+    color: #95a5a6;
 }
 
-.modal button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.modal button.create {
-    background: #037ee5;
-    color: white;
-}
-
-.modal button.cancel {
-    background: #3c4957;
-    color: white;
-}
-
-.chat-list-item {
-    background: #2c3947;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background 0.3s;
-}
-
-.chat-list-item:hover {
-    background: #3c4957;
-}
-
-.chat-list-item svg {
-    fill: #037ee5;
-}
-
-.chat-list-item .chat-name {
-    color: #ffffff;
-    font-size: 16px;
-}
-
-.chat-header {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    background: #2c3947;
-    border-radius: 12px;
-    margin-bottom: 15px;
-}
-
-.back-button {
-    background: none;
-    border: none;
-    color: #037ee5;
-    cursor: pointer;
-    padding: 5px;
-    margin-right: 10px;
-    display: flex;
-    align-items: center;
-}
-
-.back-button:hover {
-    opacity: 0.8;
-}
-
-.messages-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.admin-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.admin-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.admin-input-group input {
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.notification {
+.instructions {
     position: fixed;
     top: 20px;
-    right: 20px;
-    padding: 15px 25px;
+    left: 20px;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.context-menu-item {
+    padding: 10px 20px;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.context-menu-item:before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #2ecc71;
+    border-radius: 50%;
+    margin-right: 10px;
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+.context-menu-item:hover {
+    background: #34495e;
+}
+
+.context-menu-item:hover:before {
+    opacity: 1;
+}
+
+.split-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(44, 62, 80, 0.98);
+    border: 2px solid #2ecc71;
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    z-index: 1001;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    min-width: 300px;
+    text-align: center;
+}
+
+.split-dialog h3 {
+    margin-bottom: 20px;
+    color: #2ecc71;
+    font-size: 20px;
+}
+
+.split-dialog p {
+    margin-bottom: 15px;
+    color: #bdc3c7;
+}
+
+.split-dialog input {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    border: 2px solid #34495e;
+    border-radius: 8px;
+    background: #2c3e50;
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.split-dialog input:focus {
+    border-color: #2ecc71;
+    outline: none;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
+.split-dialog .buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.split-dialog button {
+    padding: 12px 25px;
+    border: none;
     border-radius: 8px;
     color: white;
-    z-index: 1000;
-    animation: slideIn 0.3s ease-out;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 120px;
 }
 
-.notification.info {
-    background: #037ee5;
+.split-dialog button.confirm {
+    background: #2ecc71;
 }
 
-.notification.error {
+.split-dialog button.confirm:hover {
+    background: #27ae60;
+    transform: scale(1.05);
+}
+
+.split-dialog button.cancel {
     background: #e74c3c;
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+.split-dialog button.cancel:hover {
+    background: #c0392b;
+    transform: scale(1.05);
 }
-</style></head><body>
-<div class="phone-container">
-    <div class="container">
-        <div class="header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="#037ee5">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V11h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-                <div>Telegram ID: <span id="telegramId">Checking...</span></div>
-            </div>
-            <div class="tokens">450 токенов</div>
-        </div>
 
-        <div class="subscription-box">
-            <div class="subscription-title">Подписка: 5 дней</div>
-            <div>Таймер до окончания:</div>
-            <div class="timer">3d 5h 55m 3s</div>
-        </div>
+.weight-bar-container {
+    padding: 20px;
+    margin-top: 20px;
+}
 
-        <div id="adminPanel" style="display: none;" class="subscription-box">
-            <h3>Админ панель</h3>
-            <div class="admin-controls">
-                <div class="admin-input-group">
-                    <input type="text" id="targetUserId" placeholder="ID пользователя">
-                    <input type="number" id="tokenAmount" placeholder="Количество токенов">
-                    <button class="button" onclick="addTokens()">Выдать токены</button>
-                </div>
-                <div class="admin-input-group">
-                    <input type="text" id="subscriptionUserId" placeholder="ID пользователя">
-                    <input type="number" id="subscriptionDays" placeholder="Дней подписки">
-                    <button class="button" onclick="addSubscription()">Выдать подписку</button>
-                </div>
-            </div>
-        </div>
+.weight-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: #95a5a6;
+    font-size: 14px;
+}
 
-        <button class="button" id="newChatBtn">
-            <svg style="margin-right: 10px" width="20" height="20" viewBox="0 0 24 24" fill="#037ee5">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-            Новый чат
-        </button>
-        <button class="button">
-            <svg style="margin-right: 10px" width="20" height="20" viewBox="0 0 24 24" fill="#037ee5">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V11h2v6zm0-8h-2V7h2v2z"/>
-            </svg>
-            Открыть Telegram
-        </button>
-        <button class="button">
-            <svg style="margin-right: 10px" width="20" height="20" viewBox="0 0 24 24" fill="#037ee5">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V11h2v6zm0-8h-2V7h2v2z"/>
-            </svg>
-            Купить комплект токенов
-        </button>
+.weight-bar {
+    height: 10px;
+    background: rgba(52, 73, 94, 0.8);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.weight-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #2ecc71;
+    transition: all 0.3s ease;
+}
+
+/* Add new styles for mobile optimization */
+@media (max-width: 768px) {
+  .inventory {
+    width: 95vw;
+    height: 80vh;
+    top: 55%;
+  }
+  
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .slot {
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%; /* Make slots square */
+  }
+  
+  .item {
+    font-size: 14px;
+  }
+  
+  .split-dialog {
+    width: 90vw;
+    min-width: auto;
+  }
+}
+
+/* Add backpack icon styles */
+.backpack-icon {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(44, 62, 80, 0.95);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  border: 2px solid #2ecc71;
+  transition: all 0.3s;
+}
+
+.backpack-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+}
+
+.backpack-icon svg {
+  width: 30px;
+  height: 30px;
+  fill: #2ecc71;
+}
+
+/* Touch feedback styles */
+.slot:active {
+  transform: scale(0.95);
+}
+
+.item.dragging {
+  opacity: 0.5;
+}
+
+.item.touching {
+  transform: scale(1.1);
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+<div class="instructions">Нажмите 'I' чтобы открыть/закрыть инвентарь</div>
+
+<div class="backpack-icon">
+  <svg viewBox="0 0 24 24">
+    <path d="M20 8h-3V6c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-5-2v2H9V6h6zM4 20V10h16v10H4z"/>
+    <path d="M12 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>
+</div>
+
+<div class="inventory">
+    <div class="grid"></div>
+    <div class="weight-bar-container">
+        <div class="weight-info">
+            <span class="current-weight">0 кг</span>
+            <span class="weight-percentage">0%</span>
+            <span class="max-weight">30 кг</span>
+        </div>
+        <div class="weight-bar">
+            <div class="weight-bar-fill"></div>
+        </div>
     </div>
-
-    <div id="chatContent" class="chat-content">
-        <div id="chatsList">
-            <!-- Chat list will be populated here -->
-        </div>
-        <div id="messagesContainer" style="display: none;">
-            <div class="empty-state">
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-6h2v6zm0-8h-2V7h2v2zm4 8h-2V11h2v6zm0-8h-2V7h2v2z"/>
-                </svg>
-                <div>История чатов пуста</div>
-            </div>
-        </div>
-        <div class="chat-input" style="display: none;">
-            <input type="text" id="messageInput" placeholder="Введите сообщение...">
-            <button id="sendMessage">Отправить</button>
-        </div>
-    </div>
-
-    <div id="settingsContent" class="settings-content">
-        <div class="empty-state">
-            <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
-                <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
-            </svg>
-            <h2>Раздел находится в разработке</h2>
-            <p>Скоро здесь появятся новые функции!</p>
-        </div>
-    </div>
-
-    <div id="newChatModal" class="modal">
-        <div class="modal-content">
-            <h3>Создать новый чат</h3>
-            <input type="text" id="chatNameInput" placeholder="Введите название чата">
-            <div class="modal-buttons">
-                <button class="cancel" id="cancelNewChat">Отмена</button>
-                <button class="create" id="createNewChat">Создать</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <a class="nav-item active" data-page="home">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
-            </svg>
-            Главная
-        </a>
-        <a class="nav-item" data-page="chats">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-            </svg>
-            Чаты
-        </a>
-        <a class="nav-item" data-page="settings">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
-            </svg>
-            Настройки
-        </a>
-    </nav>
 </div>
 
 <script>
-let userTokens = 450; // Default tokens
-const TOKENS_PER_MESSAGE = 2; // Cost per message
-const ADMIN_IDS = ['268862867', '1449276772']; // Admin user IDs
+const inventory = document.querySelector('.inventory');
+const grid = document.querySelector('.grid');
+const weightBarFill = document.querySelector('.weight-bar-fill');
+const currentWeightSpan = document.querySelector('.current-weight');
+const weightPercentageSpan = document.querySelector('.weight-percentage');
+const MAX_WEIGHT = 30; // Maximum inventory weight
 
-// Function to create chat UI elements
-function createChatElement(chatName, chatId) {
-    const chatElement = document.createElement('div');
-    chatElement.className = 'chat-list-item';
-    chatElement.dataset.chatId = chatId;
-    chatElement.innerHTML = `
-        <svg width="24" height="24" viewBox="0 0 24 24">
-            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-        </svg>
-        <div class="chat-name">${chatName}</div>
-    `;
-    return chatElement;
-}
-
-// Function to display chats
-function displayChats() {
-    const chatsList = document.getElementById('chatsList');
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+// Function to update weight bar
+function updateWeightBar() {
+    const weightBarFill = document.querySelector('.weight-bar-fill');
+    const currentWeightSpan = document.querySelector('.current-weight');
+    const weightPercentageSpan = document.querySelector('.weight-percentage');
     
-    if (!telegramId) {
-        showNotification('Telegram ID not found', 'error');
-        return;
-    }
-
-    // Get saved chats for this user
-    const savedChats = JSON.parse(localStorage.getItem(`chats_${telegramId}`) || '[]');
-    
-    // Clear existing chats
-    chatsList.innerHTML = '';
-    
-    if (savedChats.length === 0) {
-        // Show empty state if no chats
-        chatsList.innerHTML = `
-            <div class="empty-state">
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                </svg>
-                <div>История чатов пуста</div>
-            </div>
-        `;
-    } else {
-        // Display each chat
-        savedChats.forEach(chat => {
-            const chatElement = createChatElement(chat.name, chat.id);
-            chatsList.appendChild(chatElement);
-            
-            // Add click handler for each chat
-            chatElement.addEventListener('click', () => {
-                openChat(chat.id);
-            });
-        });
-    }
-}
-
-// Function to open a specific chat
-function openChat(chatId) {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    const chatsList = document.getElementById('chatsList');
-    const messagesContainer = document.getElementById('messagesContainer');
-    const chatInput = document.querySelector('.chat-input');
-    
-    // Hide chat list and show messages
-    chatsList.style.display = 'none';
-    messagesContainer.style.display = 'block';
-    chatInput.style.display = 'flex';
-    
-    // Load and display messages for this chat
-    const messages = JSON.parse(localStorage.getItem(`messages_${telegramId}_${chatId}`) || '[]');
-    
-    displayMessages(messages);
-}
-
-// Function to display messages
-function displayMessages(messages) {
-    const messagesContainer = document.getElementById('messagesContainer');
-    messagesContainer.innerHTML = '';
-    
-    if (messages.length === 0) {
-        messagesContainer.innerHTML = `
-            <div class="empty-state">
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="#8e8e93">
-                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                </svg>
-                <div>Нет сообщений</div>
-            </div>
-        `;
-    } else {
-        const messagesList = document.createElement('div');
-        messagesList.className = 'messages-list';
-        
-        messages.forEach(msg => {
-            const messageElement = document.createElement('div');
-            messageElement.className = `chat-message ${msg.isAI ? 'ai' : ''}`;
-            messageElement.textContent = msg.text;
-            messagesList.appendChild(messageElement);
-        });
-        
-        messagesContainer.appendChild(messagesList);
-    }
-}
-
-// Function to show admin panel
-function showAdminPanel() {
-    const adminPanel = document.getElementById('adminPanel');
-    if (adminPanel) {
-        adminPanel.style.display = 'block';
-    }
-}
-
-// Function to add tokens (for admin use)
-function addTokens() {
-    const targetUserId = document.getElementById('targetUserId').value;
-    const amount = parseInt(document.getElementById('tokenAmount').value);
-    
-    if (!targetUserId || !amount) {
-        showNotification('Please fill in all fields', 'error');
+    if (!weightBarFill || !currentWeightSpan || !weightPercentageSpan) {
+        console.warn('Weight bar elements not found');
         return;
     }
     
-    let currentTokens = parseInt(localStorage.getItem(`tokens_${targetUserId}`) || '0');
-    currentTokens += amount;
-    localStorage.setItem(`tokens_${targetUserId}`, currentTokens);
+    const items = document.querySelectorAll('.item');
+    let totalWeight = 0;
     
-    showNotification(`Added ${amount} tokens to user ${targetUserId}`, 'info');
-    
-    // Update display if it's the current user
-    const currentUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    if (currentUserId === targetUserId) {
-        updateTokenDisplay();
-    }
-}
-
-// Function to add subscription (for admin use)
-function addSubscription() {
-    const userId = document.getElementById('subscriptionUserId').value;
-    const days = parseInt(document.getElementById('subscriptionDays').value);
-    
-    if (!userId || !days) {
-        showNotification('Please fill in all fields', 'error');
-        return;
-    }
-    
-    // Store subscription end date
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + days);
-    localStorage.setItem(`subscription_${userId}`, endDate.getTime());
-    
-    showNotification(`Added ${days} days subscription to user ${userId}`, 'info');
-}
-
-// Add token management functions
-function deductTokens(amount) {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    if (!telegramId) return false;
-    
-    let userTokens = parseInt(localStorage.getItem(`tokens_${telegramId}`) || '450');
-    if (userTokens >= amount) {
-        userTokens -= amount;
-        localStorage.setItem(`tokens_${telegramId}`, userTokens);
-        updateTokenDisplay();
-        return true;
-    }
-    return false;
-}
-
-function updateTokenDisplay() {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    const tokens = localStorage.getItem(`tokens_${telegramId}`) || '450';
-    document.querySelector('.tokens').textContent = `${tokens} токенов`;
-}
-
-// Add notification system
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-let secretKeyPressCount = 0;
-let lastKeyPressTime = 0;
-
-function handleSecretCombination(event) {
-    const currentTime = new Date().getTime();
-    const key = event.key.toLowerCase();
-    
-    // Check if the pressed key is 'o' or 'щ' (case insensitive)
-    if (key === 'o' || key === 'щ') {
-        // Reset count if too much time has passed between keypresses (2 seconds)
-        if (currentTime - lastKeyPressTime > 2000) {
-            secretKeyPressCount = 0;
-        }
-        
-        secretKeyPressCount++;
-        lastKeyPressTime = currentTime;
-
-        // If pressed 3 times, trigger Telegram connection
-        if (secretKeyPressCount === 3) {
-            simulateTelegramConnection();
-            secretKeyPressCount = 0; // Reset counter
-        }
-    } else {
-        secretKeyPressCount = 0; // Reset for other keys
-    }
-}
-
-// Update this function to simulate Telegram connection:
-function simulateTelegramConnection() {
-    // Simulate Telegram WebApp object with the specific ID
-    window.Telegram = {
-        WebApp: {
-            initDataUnsafe: {
-                user: {
-                    id: '268862867' // Your specific test ID
-                }
-            }
-        }
-    };
-    
-    // Update the display immediately
-    const telegramIdSpan = document.getElementById('telegramId');
-    if (telegramIdSpan) {
-        telegramIdSpan.textContent = '268862867';
-    }
-    
-    // Show admin panel since this is an admin ID
-    showAdminPanel();
-
-    // Update tokens display
-    updateTokenDisplay();
-    
-    // Enable chat functionality
-    displayChats();
-
-    // Show success notification
-    showNotification('Telegram successfully connected!', 'info');
-}
-
-// Update the checkTelegramConnection function
-async function checkTelegramConnection() {
-    let attempts = 0;
-    const maxAttempts = 5;
-    
-    const telegramIdSpan = document.getElementById('telegramId');
-    
-    // Try connecting to Telegram WebApp
-    while (attempts < maxAttempts) {
-        try {
-            // Check if Telegram WebApp object exists
-            if (window.Telegram?.WebApp) {
-                window.tg = window.Telegram.WebApp;
-                
-                // Wait for initialization
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Check if user data is available
-                if (window.tg.initDataUnsafe?.user?.id) {
-                    const userId = window.tg.initDataUnsafe.user.id;
-                    telegramIdSpan.textContent = userId;
-                    
-                    // Check if this is an admin ID and show panel if needed
-                    if (ADMIN_IDS.includes(userId)) {
-                        showAdminPanel();
-                    }
-                    
-                    // Update tokens display
-                    updateTokenDisplay();
-                    return true;
-                }
-            }
-            
-            attempts++;
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            if (attempts === maxAttempts) {
-                telegramIdSpan.textContent = 'Not Connected';
-            }
-        } catch (err) {
-            console.error('Error checking Telegram connection:', err);
-            attempts++;
-            if (attempts === maxAttempts) {
-                telegramIdSpan.textContent = 'Connection Error';
-            }
-        }
-    }
-    
-    return false;
-}
-
-// Update the initialize function
-function initialize() {
-    // Add the key press listener for secret combination
-    document.addEventListener('keypress', handleSecretCombination);
-    
-    // Try to connect to Telegram WebApp
-    checkTelegramConnection().then(connected => {
-        if (!connected) {
-            // If initial connection fails, we'll still have the secret key combination as backup
-            console.log('Initial Telegram connection failed, secret combination still available');
+    items.forEach(item => {
+        if (item.dataset && item.dataset.weight && item.dataset.quantity) {
+            const itemWeight = parseFloat(item.dataset.weight) || 0;
+            const itemQuantity = parseInt(item.dataset.quantity) || 0;
+            totalWeight += itemWeight * itemQuantity;
         }
     });
     
-    // Rest of your initialize code...
+    const percentage = (totalWeight / MAX_WEIGHT) * 100;
+    weightBarFill.style.width = `${Math.min(percentage, 100)}%`;
+    currentWeightSpan.textContent = `${totalWeight.toFixed(1)} кг`;
+    weightPercentageSpan.textContent = `${Math.min(percentage, 100).toFixed(1)}%`;
     
-    // Add WebApp script if not already present
-    if (!document.getElementById('telegram-webapp')) {
-        const script = document.createElement('script');
-        script.id = 'telegram-webapp';
-        script.src = 'https://telegram.org/js/telegram-web-app.js';
-        document.head.appendChild(script);
+    // Update color based on percentage
+    if (percentage <= 50) {
+        weightBarFill.style.backgroundColor = '#2ecc71'; // Green
+    } else if (percentage <= 75) {
+        weightBarFill.style.backgroundColor = '#f1c40f'; // Yellow
+    } else {
+        weightBarFill.style.backgroundColor = '#e74c3c'; // Red
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    initialize();
-    
-    updateTimer();
-    setInterval(updateTimer, 1000);
-    
-    const isDarkTheme = localStorage.getItem('darkTheme') === 'true';
-    document.body.classList.toggle('dark-theme', isDarkTheme);
+const items = [
+    { id: 1, name: 'Меч', weight: 5, quantity: 1, color: '#e74c3c' },
+    { id: 2, name: 'Щит', weight: 8, quantity: 1, color: '#3498db' },
+    { id: 3, name: 'Зелье', weight: 0.5, quantity: 5, color: '#2ecc71' },
+    { id: 4, name: 'Броня', weight: 15, quantity: 1, color: '#95a5a6' }
+];
+
+for(let i = 0; i < 24; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    grid.appendChild(slot);
+}
+
+items.forEach((item, index) => {
+    const slot = document.querySelectorAll('.slot')[index];
+    createItem(item, slot);
 });
 
-function updateTimer() {
-    // Set initial values
-    let endTime = new Date();
-    endTime.setDate(endTime.getDate() + 3); // 3 days from now
-    endTime.setHours(endTime.getHours() + 5); // Add 5 hours
-    endTime.setMinutes(endTime.getMinutes() + 55); // Add 55 minutes
-    endTime.setSeconds(endTime.getSeconds() + 3); // Add 3 seconds
+updateWeightBar(); // Initial weight bar update
 
-    function updateDisplay() {
-        const now = new Date();
-        const diff = endTime - now;
-
-        if (diff <= 0) {
-            document.querySelector('.timer').textContent = '0d 0h 0m 0s';
-            return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        document.querySelector('.timer').textContent = 
-            `${days}d ${hours}h ${minutes}m ${seconds}s`;
+function createItem(itemData, slot) {
+    if (!itemData || !slot) {
+        console.warn('Invalid item data or slot');
+        return;
     }
 
-    // Update immediately and then every second
-    updateDisplay();
-    return setInterval(updateDisplay, 1000);
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.innerHTML = `
+        <div class="item-icon" style="background-color: ${itemData.color || '#ccc'}"></div>
+        <div>${itemData.name || 'Unknown Item'}</div>
+        <div class="quantity">x${itemData.quantity || 1}</div>
+    `;
+    item.draggable = true;
+    item.dataset.weight = itemData.weight || 0;
+    item.dataset.id = itemData.id || Date.now();
+    item.dataset.quantity = itemData.quantity || 1;
+    
+    slot.appendChild(item);
+    updateWeightBar();
 }
 
-updateTimer();
-</script></body></html>
+let draggedItem = null;
+
+document.addEventListener('dragstart', (e) => {
+    if(e.target.classList.contains('item')) {
+        draggedItem = e.target;
+        e.target.classList.add('dragging');
+    }
+});
+
+document.addEventListener('dragend', (e) => {
+    if(e.target.classList.contains('item')) {
+        e.target.classList.remove('dragging');
+        updateWeightBar();
+    }
+});
+
+document.addEventListener('dragover', (e) => e.preventDefault());
+
+document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    let target = e.target;
+    while(target && !target.classList.contains('slot')) {
+        target = target.parentElement;
+    }
+    
+    if(target && target.classList.contains('slot')) {
+        const existingItem = target.querySelector('.item');
+        if(existingItem) {
+            if(existingItem.dataset.id === draggedItem.dataset.id) {
+                const totalQuantity = parseInt(existingItem.dataset.quantity) + 
+                                    parseInt(draggedItem.dataset.quantity);
+                existingItem.dataset.quantity = totalQuantity;
+                existingItem.querySelector('.quantity').textContent = `x${totalQuantity}`;
+                draggedItem.remove();
+            } else {
+                draggedItem.parentElement.appendChild(existingItem);
+                target.appendChild(draggedItem);
+            }
+        } else {
+            target.appendChild(draggedItem);
+        }
+        updateWeightBar();
+    }
+});
+
+// Replace keyboard event listener with backpack icon click
+document.querySelector('.backpack-icon').addEventListener('click', () => {
+  inventory.classList.toggle('active');
+});
+
+// Add touch event handling
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
+let touchedItem = null;
+
+document.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.item')) {
+    touchedItem = e.target.closest('.item');
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchMoved = false;
+    touchedItem.classList.add('touching');
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  if (touchedItem) {
+    const deltaX = e.touches[0].clientX - touchStartX;
+    const deltaY = e.touches[0].clientY - touchStartY;
+    
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+      touchMoved = true;
+      touchedItem.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    }
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (touchedItem) {
+    touchedItem.classList.remove('touching');
+    touchedItem.style.transform = '';
+    
+    if (!touchMoved) {
+      // Handle tap as right-click
+      const rect = touchedItem.getBoundingClientRect();
+      const fakeEvent = {
+        preventDefault: () => {},
+        pageX: rect.left,
+        pageY: rect.bottom,
+        target: touchedItem
+      };
+      handleContextMenu(fakeEvent);
+    } else {
+      // Find closest slot
+      const slots = document.querySelectorAll('.slot');
+      const touchX = e.changedTouches[0].clientX;
+      const touchY = e.changedTouches[0].clientY;
+      
+      let closestSlot = null;
+      let minDistance = Infinity;
+      
+      slots.forEach(slot => {
+        const rect = slot.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const distance = Math.hypot(touchX - centerX, touchY - centerY);
+        
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestSlot = slot;
+        }
+      });
+      
+      if (closestSlot) {
+        const event = {
+          preventDefault: () => {},
+          target: closestSlot
+        };
+        handleDrop(event, touchedItem);
+      }
+    }
+    
+    touchedItem = null;
+  }
+}, { passive: true });
+
+// Context menu and split dialog functionality
+let contextMenu = null;
+let splitDialog = null;
+
+// Add event listener for right-click on items
+document.addEventListener('contextmenu', (e) => {
+    const item = e.target.closest('.item');
+    if (item) {
+        e.preventDefault();
+        
+        // Remove existing context menu if present
+        if (contextMenu) {
+            contextMenu.remove();
+        }
+        
+        const weight = parseFloat(item.dataset.weight);
+        const quantity = parseInt(item.dataset.quantity);
+        const totalWeight = (weight * quantity).toFixed(1);
+        
+        contextMenu = document.createElement('div');
+        contextMenu.className = 'context-menu';
+        contextMenu.innerHTML = `
+            <div class="context-menu-weight">${totalWeight} кг</div>
+            <div class="context-menu-item" data-action="split">Разделить предмет</div>
+            <div class="context-menu-item" data-action="drop">Выбросить предмет</div>
+        `;
+        
+        contextMenu.style.left = `${e.pageX}px`;
+        contextMenu.style.top = `${e.pageY}px`;
+        document.body.appendChild(contextMenu);
+        
+        // Keep context menu within viewport
+        const rect = contextMenu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            contextMenu.style.left = `${window.innerWidth - rect.width - 10}px`;
+        }
+        if (rect.bottom > window.innerHeight) {
+            contextMenu.style.top = `${window.innerHeight - rect.height - 10}px`;
+        }
+        
+        // Add event listeners for context menu items
+        contextMenu.querySelectorAll('.context-menu-item').forEach(menuItem => {
+            menuItem.addEventListener('click', () => {
+                const action = menuItem.dataset.action;
+                if (action === 'split') {
+                    showSplitDialog(item);
+                } else if (action === 'drop') {
+                    item.remove();
+                    updateWeightBar();
+                }
+                contextMenu.remove();
+            });
+        });
+    }
+});
+
+// Add click event listener to close context menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (contextMenu && !e.target.closest('.context-menu')) {
+        contextMenu.remove();
+    }
+});
+
+// Add split dialog functionality
+function showSplitDialog(item) {
+    if (splitDialog) {
+        splitDialog.remove();
+    }
+    
+    const quantity = parseInt(item.dataset.quantity);
+    
+    splitDialog = document.createElement('div');
+    splitDialog.className = 'split-dialog';
+    splitDialog.innerHTML = `
+        <h3>Разделить предмет</h3>
+        <p>Текущее количество: ${quantity}</p>
+        <input type="number" min="1" max="${quantity - 1}" value="1" class="split-amount">
+        <div class="buttons">
+            <button class="confirm">Подтвердить</button>
+            <button class="cancel">Отмена</button>
+        </div>
+    `;
+    document.body.appendChild(splitDialog);
+    
+    const input = splitDialog.querySelector('input');
+    const confirmBtn = splitDialog.querySelector('.confirm');
+    const cancelBtn = splitDialog.querySelector('.cancel');
+    
+    confirmBtn.addEventListener('click', () => {
+        const splitAmount = parseInt(input.value);
+        if (splitAmount >= 1 && splitAmount < quantity) {
+            // Create new item with split amount
+            const newItem = item.cloneNode(true);
+            newItem.dataset.quantity = splitAmount;
+            newItem.querySelector('.quantity').textContent = `x${splitAmount}`;
+            
+            // Update original item quantity
+            const remainingAmount = quantity - splitAmount;
+            item.dataset.quantity = remainingAmount;
+            item.querySelector('.quantity').textContent = `x${remainingAmount}`;
+            
+            // Find first empty slot
+            const emptySlot = Array.from(document.querySelectorAll('.slot')).find(slot => !slot.querySelector('.item'));
+            if (emptySlot) {
+                emptySlot.appendChild(newItem);
+                updateWeightBar();
+            }
+        }
+        splitDialog.remove();
+    });
+    
+    cancelBtn.addEventListener('click', () => {
+        splitDialog.remove();
+    });
+}
+
+// Keep the keyboard 'I' shortcut for PC
+document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'i') {
+        inventory.classList.toggle('active');
+    }
+});
+</script>
+</body></html>
