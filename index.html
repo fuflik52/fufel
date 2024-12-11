@@ -1,631 +1,392 @@
-<html><head><base href="/" />
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Доставка Еды</title>
-<style>
-    body {
-        font-family: 'Arial', sans-serif;
-        margin: 0;
-        padding: 10px;
-        background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-        min-height: 100vh;
-        max-width: 480px;
-        margin: 0 auto;
-        padding-bottom: 70px; /* Space for checkout bar */
-    }
-    .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        padding: 10px;
-    }
-    .menu-item {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-        padding: 15px 10px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
-    }
-    .menu-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    }
-    .food-icon {
-        font-size: 30px;
-        margin-bottom: 5px;
-    }
-    h3 {
-        font-size: 14px;
-        margin: 5px 0;
-    }
-    .price {
-        color: #e65100;
-        font-weight: bold;
-        margin: 5px 0;
-        font-size: 14px;
-    }
-    .add-btn {
-        background: linear-gradient(45deg, #FF512F, #F09819);
-        border: none;
-        color: white;
-        padding: 8px 20px;
-        border-radius: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-size: 12px;
-    }
-    .add-btn:hover {
-        background: linear-gradient(45deg, #F09819, #FF512F);
-        transform: scale(1.05);
-    }
-    .cart-icon {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        background: linear-gradient(45deg, #FF512F, #F09819);
-        color: white;
-        padding: 12px;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 1000;
-        font-size: 14px;
-    }
-    .checkout-bar {
-        position: fixed;
-        bottom: 20px; /* Increased from 0 to give some space from bottom */
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(to right, #ffffff, #f8f8f8);
-        padding: 15px 25px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        display: none; /* Hidden by default */
-        justify-content: space-between;
-        align-items: center;
-        max-width: 420px;
-        width: 90%;
-        border-radius: 50px;
-    }
-    .checkout-btn {
-        background: linear-gradient(45deg, #FF512F, #F09819);
-        border: none;
-        color: white;
-        padding: 12px 30px;
-        border-radius: 25px;
-        cursor: pointer;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-    }
-    .checkout-btn:hover {
-        background: linear-gradient(45deg, #F09819, #FF512F);
-        transform: scale(1.05);
-    }
-    .total-amount {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-    }
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1001;
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        max-width: 320px;
-        width: 90%;
-    }
-    .cart-list {
-        margin: 15px 0;
-        max-height: 200px;
-        overflow-y: auto;
-    }
-    .cart-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-        border-bottom: 1px solid #eee;
-    }
-    @keyframes bounce {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-    .added {
-        animation: bounce 0.5s;
-    }
-    @media (max-width: 360px) {
-        .menu-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        .food-icon {
-            font-size: 24px;
-        }
-        h3 {
-            font-size: 12px;
-        }
-        .price {
-            font-size: 12px;
-        }
-        .add-btn {
-            padding: 6px 15px;
-            font-size: 10px;
-        }
-    }
-    .quantity-control {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 8px 0;
-        gap: 5px;
-    }
-    .qty-btn {
-        background: linear-gradient(45deg, #FF512F, #F09819);
-        border: none;
-        color: white;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        cursor: pointer;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-    }
-    .qty-btn:hover {
-        background: linear-gradient(45deg, #F09819, #FF512F);
-    }
-    .qty-input {
-        width: 40px;
-        text-align: center;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 4px;
-        font-size: 14px;
-    }
-    .qty-input::-webkit-inner-spin-button,
-    .qty-input::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-</style>
-</head>
-<body>
-    <div class="cart-icon">🛒</div>
-    
-    <!-- Checkout bar -->
-    <div class="checkout-bar">
-        <div class="total-amount">Итого: ₽0</div>
-        <button class="checkout-btn">Оплатить</button>
-    </div>
+<html><head><base href="https://developer.mozilla.org/"><title>Modern VPN UI</title><style>
+:root {
+  --accent: #54a0d5; 
+  --dark: #212121;
+}
 
-    <!-- Modal -->
-    <div class="modal">
-        <div class="modal-content">
-            <h2>Ваш заказ</h2>
-            <div class="cart-list"></div>
-            <div class="modal-total"></div>
-            <button class="checkout-btn">Перейти к оплате</button>
-        </div>
-    </div>
+body {
+  margin: 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #54a0d5 0%, #2d3436 100%);
+  font-family: system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
 
-    <div class="menu-grid">
-        <div class="menu-item">
-            <div class="food-icon">🍔</div>
-            <h3>Бургер</h3>
-            <p class="price">₽299</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍟</div>
-            <h3>Картошка фри</h3>
-            <p class="price">₽149</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🌭</div>
-            <h3>Хот-дог</h3>
-            <p class="price">₽199</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🌮</div>
-            <h3>Тако</h3>
-            <p class="price">₽249</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍕</div>
-            <h3>Пицца</h3>
-            <p class="price">₽499</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍩</div>
-            <h3>Пончик</h3>
-            <p class="price">₽89</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥤</div>
-            <h3>Газировка</h3>
-            <p class="price">₽129</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍦</div>
-            <h3>Мороженое</h3>
-            <p class="price">₽149</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥪</div>
-            <h3>Сэндвич</h3>
-            <p class="price">₽349</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍝</div>
-            <h3>Паста</h3>
-            <p class="price">₽449</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥗</div>
-            <h3>Салат</h3>
-            <p class="price">₽299</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍜</div>
-            <h3>Лапша</h3>
-            <p class="price">₽399</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥟</div>
-            <h3>Пельмени</h3>
-            <p class="price">₽329</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥘</div>
-            <h3>Плов</h3>
-            <p class="price">₽399</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍖</div>
-            <h3>Шашлык</h3>
-            <p class="price">₽549</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥨</div>
-            <h3>Крендель</h3>
-            <p class="price">₽129</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥯</div>
-            <h3>Бублик</h3>
-            <p class="price">₽79</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥐</div>
-            <h3>Круассан</h3>
-            <p class="price">₽149</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🫔</div>
-            <h3>Буррито</h3>
-            <p class="price">₽349</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥙</div>
-            <h3>Шаурма</h3>
-            <p class="price">₽299</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🧆</div>
-            <h3>Фалафель</h3>
-            <p class="price">₽249</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥞</div>
-            <h3>Блины</h3>
-            <p class="price">₽199</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🍲</div>
-            <h3>Борщ</h3>
-            <p class="price">₽299</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
-        <div class="menu-item">
-            <div class="food-icon">🥣</div>
-            <h3>Солянка</h3>
-            <p class="price">₽329</p>
-            <div class="quantity-control">
-                <button class="qty-btn minus">-</button>
-                <input type="number" class="qty-input" value="1" min="1" max="99">
-                <button class="qty-btn plus">+</button>
-            </div>
-            <button class="add-btn">Добавить</button>
-        </div>
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(45deg, rgba(84,160,213,0.1) 25%, transparent 25%),
+                    linear-gradient(-45deg, rgba(84,160,213,0.1) 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, rgba(84,160,213,0.1) 75%),
+                    linear-gradient(-45deg, transparent 75%, rgba(84,160,213,0.1) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+.vpn-app {
+  width: 350px;
+  background: linear-gradient(135deg, rgba(84,160,213,0.2), rgba(84,160,213,0.1));
+  border-radius: 20px;
+  padding: 25px;
+  color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(84,160,213,0.2);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  fill: var(--accent);
+}
+
+.ip-address {
+  background: rgba(255,255,255,0.1);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.3s;
+  border: 1px solid rgba(84,160,213,0.2);
+}
+
+.power-button {
+  width: 120px;
+  height: 120px;
+  background: #666;
+  border-radius: 50%;
+  margin: 30px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  box-shadow: 0 0 20px rgba(84,160,213,0.2);
+}
+
+.power-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(84,160,213,0.4);
+}
+
+.power-icon {
+  width: 50%;
+  height: 50%;
+  fill: white;
+}
+
+.status {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.server-select {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(84,160,213,0.2);
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  width: 100%;
+  margin: 15px 0;
+  cursor: pointer;
+  font-size: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.server-select::-webkit-scrollbar {
+  width: 8px;
+}
+
+.server-select::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+
+.server-select::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+}
+
+.server-select option {
+  padding: 12px;
+  background: rgba(33, 33, 33, 0.95);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(84,160,213,0.1);
+}
+
+.server-select option:hover {
+  background: rgba(84,160,213,0.2);
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 30px;
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  border-radius: 15px;
+  border: 1px solid rgba(84,160,213,0.2);
+}
+
+.stat-item {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+}
+
+.stat-value {
+  display: block;
+  color: white;
+  margin-top: 5px;
+  font-weight: bold;
+}
+
+.ripple {
+  position: absolute;
+  border: 4px solid var(--accent);
+  border-radius: 50%;
+  animation: ripple 2s infinite;
+  opacity: 0;
+}
+
+.settings-button {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(84,160,213,0.2);
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 15px;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+.settings-button:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+@keyframes ripple {
+  0% {
+    width: 120px;
+    height: 120px;
+    opacity: 0.5;
+  }
+  100% {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+</style></head><body>
+<div class="vpn-app">
+  <div class="header">
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 24 24">
+        <path d="M12,2L2,12h3v8h6v-6h2v6h6v-8h3L12,2z" fill="currentColor"/>
+      </svg>
+      SecureVPN
     </div>
+    <div class="ip-address" id="ipAddress">Loading IP...</div>
+  </div>
+
+  <select class="server-select" id="serverSelect">
+    <option value="us">🇺🇸 United States</option>
+    <option value="gb">🇬🇧 United Kingdom</option>
+    <option value="de">🇩🇪 Germany</option>
+    <option value="jp">🇯🇵 Japan</option>
+    <option value="fr">🇫🇷 France</option>
+    <option value="ca">🇨🇦 Canada</option>
+    <option value="nl">🇳🇱 Netherlands</option>
+    <option value="sg">🇸🇬 Singapore</option>
+    <option value="au">🇦🇺 Australia</option>
+    <option value="kr">🇰🇷 South Korea</option>
+  </select>
+
+  <div class="power-button" id="powerBtn">
+    <svg class="power-icon" viewBox="0 0 24 24">
+      <path d="M12,3 L12,13 M7,5.5 C4.5,7.5 3,10.5 3,14 C3,18.4183 6.5817,22 11,22 C15.4183,22 19,18.4183 19,14 C19,10.5 17.5,7.5 15,5.5" stroke="white" stroke-width="2" fill="none"/>
+    </svg>
+  </div>
+
+  <div class="status">VPN выключен</div>
+
+  <div class="stats">
+    <div class="stat-item">
+      <span>Получено</span>
+      <span class="stat-value">2.7 MB</span>
+    </div>
+    <div class="stat-item">
+      <span>Отправлено</span> 
+      <span class="stat-value">205 KB</span>
+    </div>
+    <div class="stat-item">
+      <span>Ping</span>
+      <span class="stat-value">45 ms</span>
+    </div>
+  </div>
+
+  <button class="settings-button">⚙️ Настройки</button>
+</div>
 
 <script>
-let cart = [];
-let total = 0;
+const powerBtn = document.getElementById('powerBtn');
+const ipDisplay = document.getElementById('ipAddress');
+const serverSelect = document.getElementById('serverSelect');
+let isConnected = false;
 
-function updateTotal() {
-    total = cart.reduce((sum, item) => sum + item.totalPrice, 0);
-    document.querySelector('.total-amount').textContent = `Итого: ₽${total.toFixed(0)}`;
-    
-    // Show/hide checkout bar based on cart content
-    const checkoutBar = document.querySelector('.checkout-bar');
-    if (cart.length > 0) {
-        checkoutBar.style.display = 'flex';
-    } else {
-        checkoutBar.style.display = 'none';
-    }
+const vpnIPs = {
+  'us': '103.21.244.',
+  'gb': '185.176.43.',
+  'de': '185.93.3.',
+  'jp': '45.89.174.',
+  'fr': '185.128.25.',
+  'ca': '169.150.196.',
+  'nl': '92.223.89.',
+  'sg': '128.199.77.',
+  'au': '45.248.77.',
+  'kr': '185.227.153.'
+};
+
+function generateRandomIP(country) {
+  return vpnIPs[country] + Math.floor(Math.random() * 255);
 }
 
-function updateCartList() {
-    const cartList = document.querySelector('.cart-list');
-    cartList.innerHTML = '';
-    cart.forEach(item => {
-        const cartItem = document.createElement('div');
-        cartItem.className = 'cart-item';
-        cartItem.innerHTML = `
-            <span>${item.name} x${item.quantity}</span>
-            <span>₽${item.totalPrice}</span>
-        `;
-        cartList.appendChild(cartItem);
-    });
-    document.querySelector('.modal-total').textContent = `Итого к оплате: ₽${total.toFixed(0)}`;
-}
-
-document.querySelectorAll('.add-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const menuItem = this.parentElement;
-        const itemName = menuItem.querySelector('h3').textContent;
-        const itemPrice = parseFloat(menuItem.querySelector('.price').textContent.replace('₽', ''));
-        const quantity = parseInt(menuItem.querySelector('.qty-input').value);
-        
-        cart.push({
-            name: itemName,
-            price: itemPrice,
-            quantity: quantity,
-            totalPrice: itemPrice * quantity
+function setupProxy(enabled) {
+  if (enabled) {
+    const proxyUrl = `http://${generateRandomIP(serverSelect.value)}:8080`;
+    try {
+      if (typeof chrome !== 'undefined' && chrome.proxy) {
+        chrome.proxy.settings.set({
+          value: {
+            mode: "fixed_servers",
+            rules: {
+              singleProxy: {
+                scheme: "http",
+                host: proxyUrl
+              }
+            }
+          }
         });
-        
-        updateTotal();
-        animateCartIcon();
-        
-        menuItem.classList.add('added');
-        setTimeout(() => {
-            menuItem.classList.remove('added');
-        }, 500);
-    });
-});
-
-document.querySelector('.cart-icon').addEventListener('click', function() {
-    if (cart.length === 0) {
-        alert('Ваша корзина пуста!');
-        return;
+      }
+    } catch (e) {
+      console.log('Proxy setting demonstration only');
     }
-    updateCartList();
-    document.querySelector('.modal').style.display = 'flex';
-});
-
-document.querySelector('.modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.style.display = 'none';
-    }
-});
-
-// Add payment button functionality
-document.querySelectorAll('.checkout-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        if (cart.length === 0) {
-            alert('Ваша корзина пуста!');
-            return;
-        }
-        
-        // Create form for payment
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'https://example.com/payment'; // Replace with actual payment endpoint
-
-        // Add hidden fields for cart data
-        const cartData = document.createElement('input');
-        cartData.type = 'hidden';
-        cartData.name = 'cart';
-        cartData.value = JSON.stringify(cart);
-        form.appendChild(cartData);
-
-        const totalData = document.createElement('input');
-        totalData.type = 'hidden';
-        totalData.name = 'total';
-        totalData.value = total;
-        form.appendChild(totalData);
-
-        // Submit form
-        document.body.appendChild(form);
-        form.submit();
-    });
-});
-
-// Update cart icon animation when items are added
-function animateCartIcon() {
-    const cartIcon = document.querySelector('.cart-icon');
-    cartIcon.style.animation = 'none';
-    cartIcon.offsetHeight; // Trigger reflow
-    cartIcon.style.animation = 'bounce 0.5s';
+  }
 }
 
-// Add quantity control functionality
-document.querySelectorAll('.quantity-control').forEach(control => {
-    const input = control.querySelector('.qty-input');
-    const minusBtn = control.querySelector('.minus');
-    const plusBtn = control.querySelector('.plus');
+fetch('https://api.ipify.org?format=json')
+  .then(response => response.json())
+  .then(data => {
+    ipDisplay.textContent = `IP: ${data.ip}`;
+  })
+  .catch(() => {
+    ipDisplay.textContent = 'IP: 192.168.1.1';
+  });
+
+powerBtn.addEventListener('click', () => {
+  isConnected = !isConnected;
+  
+  if (isConnected) {
+    const ripple = document.createElement('div');
+    ripple.className = 'ripple';
+    powerBtn.appendChild(ripple);
     
-    minusBtn.addEventListener('click', () => {
-        if (input.value > 1) {
-            input.value = parseInt(input.value) - 1;
-        }
-    });
+    setTimeout(() => {
+      ripple.remove();
+    }, 2000);
     
-    plusBtn.addEventListener('click', () => {
-        if (input.value < 99) {
-            input.value = parseInt(input.value) + 1;
-        }
-    });
+    document.querySelector('.status').textContent = 'VPN включен';
+    powerBtn.style.background = 'var(--accent)';
     
-    input.addEventListener('change', () => {
-        if (input.value < 1) input.value = 1;
-        if (input.value > 99) input.value = 99;
-    });
+    const newIP = generateRandomIP(serverSelect.value);
+    ipDisplay.textContent = `IP: ${newIP}`;
+    setupProxy(true);
+    
+  } else {
+    document.querySelector('.status').textContent = 'VPN выключен';
+    powerBtn.style.background = '#666';
+    setupProxy(false);
+    
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        ipDisplay.textContent = `IP: ${data.ip}`;
+      })
+      .catch(() => {
+        ipDisplay.textContent = 'IP: 192.168.1.1';
+      });
+  }
 });
+
+serverSelect.addEventListener('change', () => {
+  if (isConnected) {
+    const newIP = generateRandomIP(serverSelect.value);
+    ipDisplay.textContent = `IP: ${newIP}`;
+    setupProxy(true);
+  }
+});
+
+setInterval(() => {
+  if (isConnected) {
+    const receivedEl = document.querySelector('.stat-item:nth-child(1) .stat-value');
+    const sentEl = document.querySelector('.stat-item:nth-child(2) .stat-value');
+    const pingEl = document.querySelector('.stat-item:nth-child(3) .stat-value');
+    
+    const received = parseFloat(receivedEl.textContent) + Math.random() * 0.1;
+    const sent = parseFloat(sentEl.textContent) + Math.random() * 0.05;
+    const ping = Math.floor(30 + Math.random() * 30);
+    
+    receivedEl.textContent = received.toFixed(1) + ' MB';
+    sentEl.textContent = sent.toFixed(1) + ' KB';
+    pingEl.textContent = ping + ' ms';
+  }
+}, 2000);
 </script>
 </body></html>
