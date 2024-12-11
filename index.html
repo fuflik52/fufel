@@ -1,1857 +1,631 @@
-<html><head><base href="." />
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<html><head><base href="/" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Доставка Еды</title>
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-:root {
-    --primary-color: #86B5E5;  /* Softer blue */
-    --background-color: #F0F7FF; /* Light icy blue background */
-    --card-background: #FFFFFF;
-    --text-color: #34495E;
-    --border-color: #E1EEF7;
-    --button-gray: #EDF2F7;
-    --shadow-color: rgba(134, 181, 229, 0.15);
-    --gradient-primary: linear-gradient(135deg, #86B5E5 0%, #A7D2F0 100%);
-    --space-glow: 0 0 20px rgba(134, 181, 229, 0.25);
-}
-
-.dark-theme {
-    --primary-color: #86B5E5;
-    --background-color: #1A2634;
-    --card-background: #243447;
-    --text-color: #E4EBF1;
-    --border-color: #34455E;
-    --button-gray: #2C3E50;
-    --shadow-color: rgba(134, 181, 229, 0.2);
-    --gradient-primary: linear-gradient(135deg, #86B5E5 0%, #6497D1 100%);
-}
-
-body {
-    background: var(--background-color);
-}
-
-.app-container {
-    max-width: 480px;
-    margin: 0 auto;
-    background: linear-gradient(180deg, var(--card-background) 0%, #F7FAFD 100%);
-    min-height: 100vh;
-    position: relative; /* Ensure proper positioning context for snow */
-    color: var(--text-color);
-    overflow: hidden;
-    padding-bottom: 60px;
-    border: 1px solid rgba(134, 181, 229, 0.2);
-    border-radius: 24px;
-    box-shadow: var(--space-glow), 0 8px 32px rgba(134, 181, 229, 0.1);
-}
-
-.app-container::-webkit-scrollbar {
-    display: none; 
-}
-
-.tokens-display {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: var(--gradient-primary);
-    padding: 8px 12px;
-    border-radius: 16px;
-    font-size: 14px;
-    color: white;
-    font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: var(--space-glow);
-    animation: fadeInSlide 0.3s ease;
-    transition: transform 0.3s ease;
-}
-
-.tokens-updated {
-    animation: tokenUpdate 0.3s ease;
-}
-
-@keyframes tokenUpdate {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+    body {
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 10px;
+        background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        min-height: 100vh;
+        max-width: 480px;
+        margin: 0 auto;
+        padding-bottom: 70px; /* Space for checkout bar */
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 10px;
     }
-}
-
-.profile-section {
-    padding: 20px;
-    background: rgba(134, 181, 229, 0.08);
-    border: 1px solid rgba(134, 181, 229, 0.2);
-    border-radius: 20px;
-    margin: 15px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.profile-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--background-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.profile-image img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
-}
-
-.profile-info h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.telegram-id {
-    font-size: 14px;
-    color: var(--text-color);
-    opacity: 0.8;
-    margin-top: 4px;
-}
-
-.subscription-section {
-    padding: 20px;
-    background: linear-gradient(135deg, #86B5E5 0%, #A7D2F0 100%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    border-radius: 20px;
-    margin: 15px;
-    box-shadow: var(--space-glow);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.subscription-header {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: white;
-}
-
-.subscription-details {
-    font-size: 15px;
-    color: white;
-}
-
-.subscription-timer {
-    font-size: 24px;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 10px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.new-chat-button {
-    margin: 15px;
-    padding: 15px;
-    background: var(--gradient-primary);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    border: none;
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
-}
-
-.new-chat-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.new-chat-button:active {
-    transform: translateY(1px);
-}
-
-.action-button-container {
-    padding: 15px;
-}
-
-.button {
-    width: 100%;
-    padding: 12px;
-    border-radius: 16px;
-    border: 1px solid rgba(134, 181, 229, 0.2);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    margin-bottom: 10px;
-    backdrop-filter: blur(8px);
-}
-
-.button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-.button:active {
-    transform: translateY(1px);
-}
-
-.button-with-icon {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.button-icon {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.primary-button {
-    background: var(--gradient-primary);
-    color: white;
-}
-
-.secondary-button {
-    background: rgba(76, 158, 235, 0.1);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-}
-
-.chat-history-container {
-    position: fixed; 
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 60px; 
-    background: var(--background-color);
-    z-index: 1000;
-    overflow-y: auto;
-    display: none;
-    max-width: 480px; 
-    margin: 0 auto;
-    border: 1px solid rgba(134, 181, 229, 0.2);
-    box-shadow: var(--space-glow);
-}
-
-.chat-history-container::-webkit-scrollbar {
-    display: none; 
-}
-
-.chat-history {
-    padding: 15px;
-}
-
-.chat-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    margin: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: rgba(134, 181, 229, 0.05);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(134, 181, 229, 0.15);
-    border-radius: 16px;
-}
-
-.chat-item:last-child {
-    border-bottom: none;
-}
-
-.chat-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-.chat-main {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-}
-
-.chat-date {
-    font-size: 12px;
-    color: var(--text-color);
-    opacity: 0.7;
-    margin-left: 10px;
-}
-
-.chat-actions {
-    display: flex;
-    gap: 8px;
-    margin-left: 10px;
-}
-
-.chat-action-btn {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.chat-action-btn:hover {
-    opacity: 1;
-}
-
-.message {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    max-width: 80%;
-    padding: 12px 16px;
-    border-radius: 20px;
-    animation: fadeIn 0.3s ease;
-    transition: transform 0.2s ease;
-}
-
-.user-message {
-    background: var(--gradient-primary);
-    backdrop-filter: blur(8px);
-    color: white;
-    margin-left: auto;
-    border-radius: 20px 20px 4px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.ai-message {
-    background: rgba(134, 181, 229, 0.08);
-    backdrop-filter: blur(8px);
-    color: var(--text-color);
-    margin-right: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 20px 20px 20px 4px;
-    border: 1px solid rgba(134, 181, 229, 0.2);
-}
-
-.message.typing {
-    opacity: 0.7;
-    font-style: italic;
-}
-
-.copy-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: 8px;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-    font-size: 16px;
-}
-
-.copy-button:hover {
-    opacity: 1;
-}
-
-.message.error {
-    background: #ffebee;
-    color: #c62828;
-}
-
-.chat-input {
-    padding: 15px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    gap: 10px;
-}
-
-.chat-input input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    background: var(--background-color);
-    color: var(--text-color);
-}
-
-.send-button {
-    background: var(--primary-color);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 15px;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+    .menu-item {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 15px 10px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    .menu-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     }
-}
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    max-width: 480px;
-    background: var(--card-background);
-    border-top: 1px solid rgba(134, 181, 229, 0.2);
-    border-radius: 20px 20px 0 0;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    z-index: 1001;
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: var(--text-color);
-    font-size: 12px;
-    cursor: pointer;
-    padding: 5px;
-}
-
-.nav-item.active {
-    color: var(--primary-color);
-}
-
-.nav-item svg {
-    width: 24px;
-    height: 24px;
-    margin-bottom: 4px;
-}
-
-.app-icon {
-    width: 24px;
-    height: 24px;
-}
-
-.chat-interface {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--card-background);
-    z-index: 1002;
-    flex-direction: column;
-}
-
-.chat-header {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.back-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-color);
-}
-
-.message:hover {
-    cursor: grab;
-}
-
-.message:active {
-    cursor: grabbing;
-}
-
-.swipe-left {
-    animation: swipeLeft 0.3s forwards;
-}
-
-@keyframes swipeLeft {
-    to {
-        transform: translateX(-100%);
-        opacity: 0;
+    .food-icon {
+        font-size: 30px;
+        margin-bottom: 5px;
     }
-}
-
-.swipe-right {
-    animation: swipeRight 0.3s forwards;
-}
-
-@keyframes swipeRight {
-    to {
-        transform: translateX(100%);
-        opacity: 0;
+    h3 {
+        font-size: 14px;
+        margin: 5px 0;
     }
-}
-
-.telegram-icon {
-    fill: #0088cc !important;
-}
-
-.profile-image svg {
-    width: 60%;
-    height: 60%;
-}
-
-.settings-panel {
-    position: absolute; 
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 60px; 
-    background: linear-gradient(180deg, var(--card-background) 0%, #F7FAFD 100%);
-    backdrop-filter: blur(12px);
-    z-index: 1000;
-    padding: 20px;
-    overflow-y: auto;
-    display: none;
-    max-width: 480px; 
-    margin: 0 auto;
-    border-radius: 24px;
-    box-shadow: 0 2px 12px var(--shadow-color);
-    scrollbar-width: none; 
-}
-
-.settings-panel::-webkit-scrollbar {
-    display: none; 
-}
-
-.settings-header {
-    margin-bottom: 20px;
-}
-
-.settings-content {
-    padding: 20px;
-    background: rgba(134, 181, 229, 0.05);
-    backdrop-filter: blur(8px);
-    border-radius: 20px;
-    margin: 15px;
-    border: 1px solid rgba(134, 181, 229, 0.2);
-}
-
-.setting-item {
-    background: rgba(134, 181, 229, 0.05);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(134, 181, 229, 0.15);
-    margin: 15px 0;
-    padding: 20px;
-    border-radius: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s ease;
-}
-
-.setting-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow-color);
-}
-
-.snowflake {
-    position: absolute;
-    color: #86B5E5;
-    text-shadow: 0 0 8px rgba(134, 181, 229, 0.5);
-    pointer-events: none;
-    z-index: 9999;
-    user-select: none;
-    animation-timing-function: linear;
-    top: -20px;
-    left: 0;
-    width: 100%;
-}
-
-.snowfall-speed {
-    background: var(--gradient-primary);
-    height: 8px;
-    border-radius: 4px;
-    outline: none;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-    width: 200px;
-}
-
-.snowfall-speed:hover {
-    opacity: 1;
-}
-
-.snowfall-speed::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: white;
-    cursor: pointer;
-    box-shadow: 0 0 10px rgba(134, 181, 229, 0.5);
-}
-
-@keyframes pulseButton {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-
-.install-button {
-    animation: pulseButton 2s infinite;
-    background: var(--gradient-primary);
-    color: white;
-}
-
-.install-button:hover {
-    animation: none;
-}
-
-/* Add styles for delete button */
-.chat-action-btn.delete-chat {
-    color: #ff4444;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-}
-
-.chat-action-btn.delete-chat:hover {
-    opacity: 1;
-}
-
-/* Update chat item styles to accommodate delete button */
-.chat-actions {
-    display: flex;
-    gap: 8px;
-    margin-left: 10px;
-}
-
-/* Navigation functionality */
-.chat-history-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 60px;
-    background: var(--background-color);
-    z-index: 1000;
-    overflow-y: auto;
-    display: none;
-    max-width: 480px;
-    margin: 0 auto;
-    border-radius: 24px;
-    box-shadow: var(--space-glow);
-}
+    .price {
+        color: #e65100;
+        font-weight: bold;
+        margin: 5px 0;
+        font-size: 14px;
+    }
+    .add-btn {
+        background: linear-gradient(45deg, #FF512F, #F09819);
+        border: none;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 12px;
+    }
+    .add-btn:hover {
+        background: linear-gradient(45deg, #F09819, #FF512F);
+        transform: scale(1.05);
+    }
+    .cart-icon {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(45deg, #FF512F, #F09819);
+        color: white;
+        padding: 12px;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 1000;
+        font-size: 14px;
+    }
+    .checkout-bar {
+        position: fixed;
+        bottom: 20px; /* Increased from 0 to give some space from bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(to right, #ffffff, #f8f8f8);
+        padding: 15px 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        display: none; /* Hidden by default */
+        justify-content: space-between;
+        align-items: center;
+        max-width: 420px;
+        width: 90%;
+        border-radius: 50px;
+    }
+    .checkout-btn {
+        background: linear-gradient(45deg, #FF512F, #F09819);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+    .checkout-btn:hover {
+        background: linear-gradient(45deg, #F09819, #FF512F);
+        transform: scale(1.05);
+    }
+    .total-amount {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1001;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        max-width: 320px;
+        width: 90%;
+    }
+    .cart-list {
+        margin: 15px 0;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+    }
+    @keyframes bounce {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    .added {
+        animation: bounce 0.5s;
+    }
+    @media (max-width: 360px) {
+        .menu-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .food-icon {
+            font-size: 24px;
+        }
+        h3 {
+            font-size: 12px;
+        }
+        .price {
+            font-size: 12px;
+        }
+        .add-btn {
+            padding: 6px 15px;
+            font-size: 10px;
+        }
+    }
+    .quantity-control {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 8px 0;
+        gap: 5px;
+    }
+    .qty-btn {
+        background: linear-gradient(45deg, #FF512F, #F09819);
+        border: none;
+        color: white;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    .qty-btn:hover {
+        background: linear-gradient(45deg, #F09819, #FF512F);
+    }
+    .qty-input {
+        width: 40px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px;
+        font-size: 14px;
+    }
+    .qty-input::-webkit-inner-spin-button,
+    .qty-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 </style>
-<script async src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="cart-icon">🛒</div>
+    
+    <!-- Checkout bar -->
+    <div class="checkout-bar">
+        <div class="total-amount">Итого: ₽0</div>
+        <button class="checkout-btn">Оплатить</button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal">
+        <div class="modal-content">
+            <h2>Ваш заказ</h2>
+            <div class="cart-list"></div>
+            <div class="modal-total"></div>
+            <button class="checkout-btn">Перейти к оплате</button>
+        </div>
+    </div>
+
+    <div class="menu-grid">
+        <div class="menu-item">
+            <div class="food-icon">🍔</div>
+            <h3>Бургер</h3>
+            <p class="price">₽299</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍟</div>
+            <h3>Картошка фри</h3>
+            <p class="price">₽149</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🌭</div>
+            <h3>Хот-дог</h3>
+            <p class="price">₽199</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🌮</div>
+            <h3>Тако</h3>
+            <p class="price">₽249</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍕</div>
+            <h3>Пицца</h3>
+            <p class="price">₽499</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍩</div>
+            <h3>Пончик</h3>
+            <p class="price">₽89</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥤</div>
+            <h3>Газировка</h3>
+            <p class="price">₽129</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍦</div>
+            <h3>Мороженое</h3>
+            <p class="price">₽149</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥪</div>
+            <h3>Сэндвич</h3>
+            <p class="price">₽349</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍝</div>
+            <h3>Паста</h3>
+            <p class="price">₽449</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥗</div>
+            <h3>Салат</h3>
+            <p class="price">₽299</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍜</div>
+            <h3>Лапша</h3>
+            <p class="price">₽399</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥟</div>
+            <h3>Пельмени</h3>
+            <p class="price">₽329</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥘</div>
+            <h3>Плов</h3>
+            <p class="price">₽399</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍖</div>
+            <h3>Шашлык</h3>
+            <p class="price">₽549</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥨</div>
+            <h3>Крендель</h3>
+            <p class="price">₽129</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥯</div>
+            <h3>Бублик</h3>
+            <p class="price">₽79</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥐</div>
+            <h3>Круассан</h3>
+            <p class="price">₽149</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🫔</div>
+            <h3>Буррито</h3>
+            <p class="price">₽349</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥙</div>
+            <h3>Шаурма</h3>
+            <p class="price">₽299</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🧆</div>
+            <h3>Фалафель</h3>
+            <p class="price">₽249</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥞</div>
+            <h3>Блины</h3>
+            <p class="price">₽199</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🍲</div>
+            <h3>Борщ</h3>
+            <p class="price">₽299</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+        <div class="menu-item">
+            <div class="food-icon">🥣</div>
+            <h3>Солянка</h3>
+            <p class="price">₽329</p>
+            <div class="quantity-control">
+                <button class="qty-btn minus">-</button>
+                <input type="number" class="qty-input" value="1" min="1" max="99">
+                <button class="qty-btn plus">+</button>
+            </div>
+            <button class="add-btn">Добавить</button>
+        </div>
+    </div>
+
 <script>
-const gptCapabilities = {
-    ru: {
-        capabilities: [
-            "Отвечать на основные вопросы",
-            "Помогать с простыми задачами программирования",
-            "Объяснять концепции и термины",
-            "Помогать с переводами текста",
-            "Предоставлять базовую информацию",
-            "Помогать с математическими расчётами",
-            "Давать рекомендации по различным темам"
-        ],
-        greeting: "Привет! Я - базовая версия AI ассистента. Вот что я умею:"
-    },
-    en: {
-        capabilities: [
-            "Answer basic questions",
-            "Help with simple programming tasks",
-            "Explain concepts and terms", 
-            "Help with text translations",
-            "Provide basic information",
-            "Help with mathematical calculations",
-            "Give recommendations on various topics"
-        ],
-        greeting: "Hi! I'm a basic AI assistant. Here's what I can do:"
-    }
-};
+let cart = [];
+let total = 0;
 
-// Theme handling
-document.addEventListener('DOMContentLoaded', () => {
-    const themeToggleSwitch = document.getElementById('themeToggleSwitch');
+function updateTotal() {
+    total = cart.reduce((sum, item) => sum + item.totalPrice, 0);
+    document.querySelector('.total-amount').textContent = `Итого: ₽${total.toFixed(0)}`;
     
-    // Set initial theme state
-    const isDarkTheme = localStorage.getItem('darkTheme') === 'true';
-    document.body.classList.toggle('dark-theme', isDarkTheme);
-    themeToggleSwitch.checked = isDarkTheme;
-
-    // Theme toggle handler
-    themeToggleSwitch.addEventListener('change', (e) => {
-        document.body.classList.toggle('dark-theme', e.target.checked);
-        localStorage.setItem('darkTheme', e.target.checked);
-    });
-});
-
-// Existing JavaScript code
-
-// Snowflake management
-let snowflakes = [];
-let snowflakeInterval;
-let isSnowEnabled = localStorage.getItem('snowEnabled') === 'true';
-let snowSpeed = parseInt(localStorage.getItem('snowSpeed')) || 5;
-let snowDensity = parseInt(localStorage.getItem('snowDensity')) || 5;
-
-function createSnowflake() {
-    const appContainer = document.querySelector('.app-container');
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
-    snowflake.innerHTML = '❄';
-    
-    // Calculate random position within app container width
-    const containerWidth = appContainer.offsetWidth;
-    snowflake.style.left = Math.random() * containerWidth + 'px';
-    
-    appContainer.appendChild(snowflake);
-
-    const animation = snowflake.animate([
-        { transform: 'translateY(-20px)' },
-        { transform: `translateY(${appContainer.offsetHeight}px)` }
-    ], {
-        duration: (20 - snowSpeed) * 1000,
-        iterations: 1
-    });
-
-    animation.onfinish = () => {
-        snowflake.remove();
-        const index = snowflakes.indexOf(snowflake);
-        if (index > -1) {
-            snowflakes.splice(index, 1);
-        }
-    };
-
-    snowflakes.push(snowflake);
-}
-
-function toggleSnow(enabled) {
-    isSnowEnabled = enabled;
-    localStorage.setItem('snowEnabled', enabled);
-    
-    if (enabled) {
-        if (!snowflakeInterval) {
-            snowflakeInterval = setInterval(() => {
-                if (snowflakes.length < snowDensity * 10) {
-                    createSnowflake();
-                }
-            }, 500);
-        }
+    // Show/hide checkout bar based on cart content
+    const checkoutBar = document.querySelector('.checkout-bar');
+    if (cart.length > 0) {
+        checkoutBar.style.display = 'flex';
     } else {
-        if (snowflakeInterval) {
-            clearInterval(snowflakeInterval);
-            snowflakeInterval = null;
-        }
-        snowflakes.forEach(snowflake => snowflake.remove());
-        snowflakes = [];
+        checkoutBar.style.display = 'none';
     }
 }
 
-// Initialize snowflake controls
-document.addEventListener('DOMContentLoaded', () => {
-    const snowflakeToggle = document.getElementById('snowflakeToggle');
-    const snowfallSpeed = document.getElementById('snowfallSpeed');
-    const snowDensityControl = document.getElementById('snowDensity');
-
-    // Set initial states
-    snowflakeToggle.checked = isSnowEnabled;
-    snowfallSpeed.value = snowSpeed;
-    snowDensityControl.value = snowDensity;
-
-    // Add event listeners
-    snowflakeToggle.addEventListener('change', (e) => {
-        toggleSnow(e.target.checked);
+function updateCartList() {
+    const cartList = document.querySelector('.cart-list');
+    cartList.innerHTML = '';
+    cart.forEach(item => {
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+            <span>${item.name} x${item.quantity}</span>
+            <span>₽${item.totalPrice}</span>
+        `;
+        cartList.appendChild(cartItem);
     });
+    document.querySelector('.modal-total').textContent = `Итого к оплате: ₽${total.toFixed(0)}`;
+}
 
-    snowfallSpeed.addEventListener('input', (e) => {
-        snowSpeed = parseInt(e.target.value);
-        localStorage.setItem('snowSpeed', snowSpeed);
-        snowflakes.forEach(snowflake => {
-            snowflake.style.animationDuration = (20 - snowSpeed) + 's';
+document.querySelectorAll('.add-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const menuItem = this.parentElement;
+        const itemName = menuItem.querySelector('h3').textContent;
+        const itemPrice = parseFloat(menuItem.querySelector('.price').textContent.replace('₽', ''));
+        const quantity = parseInt(menuItem.querySelector('.qty-input').value);
+        
+        cart.push({
+            name: itemName,
+            price: itemPrice,
+            quantity: quantity,
+            totalPrice: itemPrice * quantity
         });
+        
+        updateTotal();
+        animateCartIcon();
+        
+        menuItem.classList.add('added');
+        setTimeout(() => {
+            menuItem.classList.remove('added');
+        }, 500);
     });
+});
 
-    snowDensityControl.addEventListener('input', (e) => {
-        snowDensity = parseInt(e.target.value);
-        localStorage.setItem('snowDensity', snowDensity);
-    });
+document.querySelector('.cart-icon').addEventListener('click', function() {
+    if (cart.length === 0) {
+        alert('Ваша корзина пуста!');
+        return;
+    }
+    updateCartList();
+    document.querySelector('.modal').style.display = 'flex';
+});
 
-    // Initialize snow if enabled
-    if (isSnowEnabled) {
-        toggleSnow(true);
+document.querySelector('.modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.style.display = 'none';
     }
 });
 
-// Existing JavaScript code continues...
-
-// Token management functions
-function updateTokenDisplay(tokens) {
-    const tokenDisplay = document.querySelector('.tokens-display');
-    tokenDisplay.textContent = `${tokens} ${currentLanguage === 'ru' ? 'токенов' : 'tokens'}`;
-    tokenDisplay.classList.add('tokens-updated');
-    setTimeout(() => tokenDisplay.classList.remove('tokens-updated'), 300);
-}
-
-function getTokenBalance(telegramId) {
-    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
-    return tokenBalances[telegramId] || 500; // Default 500 tokens
-}
-
-function updateTokenBalance(telegramId, newBalance) {
-    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
-    tokenBalances[telegramId] = newBalance;
-    localStorage.setItem('tokenBalances', JSON.stringify(tokenBalances));
-    updateTokenDisplay(newBalance);
-}
-
-function spendTokens(telegramId, amount) {
-    const currentBalance = getTokenBalance(telegramId);
-    if (currentBalance >= amount) {
-        updateTokenBalance(telegramId, currentBalance - amount);
-        return true;
-    }
-    return false;
-}
-
-// Modify createNewChat function to store chats by Telegram ID
-function createNewChat() {
-    const chatInterface = document.getElementById('chatInterface');
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Store chat with telegram ID
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    const newChat = {
-        id: Date.now(),
-        telegramId: telegramId,
-        title: '',
-        created: new Date(),
-        messages: []
-    };
-    
-    chats.push(newChat);
-    localStorage.setItem('chats', JSON.stringify(chats));
-    
-    chatInterface.style.display = 'flex';
-    updateChatHistory();
-}
-
-// Add openChat function to handle opening existing chats
-function openChat(chatId) {
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    const chat = chats.find(c => c.id === chatId);
-    
-    if (chat) {
-        const chatInterface = document.getElementById('chatInterface');
-        const chatMessages = document.getElementById('chatMessages');
-        
-        // Clear existing messages
-        chatMessages.innerHTML = '';
-        
-        // Display all messages from this chat
-        chat.messages.forEach(message => {
-            if (message.sender === 'user') {
-                chatMessages.innerHTML += `
-                    <div class="message user-message">
-                        ${message.text}
-                    </div>`;
-            } else {
-                chatMessages.innerHTML += `
-                    <div class="message ai-message">
-                        ${message.text}
-                        <button class="copy-button" onclick="copyMessage(this)">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                            </svg>
-                        </button>
-                    </div>`;
-            }
-        });
-        
-        // Show chat interface
-        chatInterface.style.display = 'flex';
-        
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Update chat history display
-        updateChatHistory();
-    }
-}
-
-// Modify sendMessage function to update current chat
-function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    const message = messageInput.value.trim();
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    
-    if (message) {
-        // Check token balance and spend tokens
-        const tokenCost = 10; // Cost per message
-        if (!spendTokens(telegramId, tokenCost)) {
-            alert(currentLanguage === 'ru' ? 'Недостаточно токенов!' : 'Not enough tokens!');
+// Add payment button functionality
+document.querySelectorAll('.checkout-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        if (cart.length === 0) {
+            alert('Ваша корзина пуста!');
             return;
         }
         
-        const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-        const currentChat = chats[chats.length - 1];
-        
-        if (!currentChat.title) {
-            currentChat.title = message.substring(0, 30) + (message.length > 30 ? '...' : '');
+        // Create form for payment
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://example.com/payment'; // Replace with actual payment endpoint
+
+        // Add hidden fields for cart data
+        const cartData = document.createElement('input');
+        cartData.type = 'hidden';
+        cartData.name = 'cart';
+        cartData.value = JSON.stringify(cart);
+        form.appendChild(cartData);
+
+        const totalData = document.createElement('input');
+        totalData.type = 'hidden';
+        totalData.name = 'total';
+        totalData.value = total;
+        form.appendChild(totalData);
+
+        // Submit form
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+
+// Update cart icon animation when items are added
+function animateCartIcon() {
+    const cartIcon = document.querySelector('.cart-icon');
+    cartIcon.style.animation = 'none';
+    cartIcon.offsetHeight; // Trigger reflow
+    cartIcon.style.animation = 'bounce 0.5s';
+}
+
+// Add quantity control functionality
+document.querySelectorAll('.quantity-control').forEach(control => {
+    const input = control.querySelector('.qty-input');
+    const minusBtn = control.querySelector('.minus');
+    const plusBtn = control.querySelector('.plus');
+    
+    minusBtn.addEventListener('click', () => {
+        if (input.value > 1) {
+            input.value = parseInt(input.value) - 1;
         }
-        
-        // Add user message
-        currentChat.messages.push({
-            text: message,
-            sender: 'user',
-            timestamp: new Date()
-        });
-        
-        const chatMessages = document.getElementById('chatMessages');
-        chatMessages.innerHTML += `
-            <div class="message user-message">
-                ${message}
-            </div>`;
-
-        // Handle special commands
-        if (message.toLowerCase() === '/help' || message.toLowerCase() === 'помощь') {
-            const capabilities = gptCapabilities[currentLanguage];
-            let response = `${capabilities.greeting}\n\n`;
-            capabilities.capabilities.forEach((cap, index) => {
-                response += `${index + 1}. ${cap}\n`;
-            });
-            
-            // Add AI response
-            currentChat.messages.push({
-                text: response,
-                sender: 'ai',
-                timestamp: new Date()
-            });
-            
-            chatMessages.innerHTML += `
-                <div class="message ai-message">
-                    ${response.replace(/\n/g, '<br>')}
-                    <button class="copy-button" onclick="copyMessage(this)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                        </svg>
-                    </button>
-                </div>`;
-        } else {
-            // Basic response for other messages
-            const responses = {
-                ru: [
-                    "Я понимаю ваш запрос. Чем могу помочь?",
-                    "Интересный вопрос. Давайте разберем его подробнее.",
-                    "Я могу предложить несколько вариантов решения.",
-                    "Позвольте мне обработать ваш запрос."
-                ],
-                en: [
-                    "I understand your request. How can I help?",
-                    "Interesting question. Let's examine it in detail.",
-                    "I can suggest several solutions.",
-                    "Let me process your request."
-                ]
-            };
-            
-            const randomResponse = responses[currentLanguage][Math.floor(Math.random() * responses[currentLanguage].length)];
-            
-            currentChat.messages.push({
-                text: randomResponse,
-                sender: 'ai',
-                timestamp: new Date()
-            });
-            
-            chatMessages.innerHTML += `
-                <div class="message ai-message">
-                    ${randomResponse}
-                    <button class="copy-button" onclick="copyMessage(this)">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                        </svg>
-                    </button>
-                </div>`;
+    });
+    
+    plusBtn.addEventListener('click', () => {
+        if (input.value < 99) {
+            input.value = parseInt(input.value) + 1;
         }
-        
-        localStorage.setItem('chats', JSON.stringify(chats));
-        messageInput.value = '';
-        updateChatHistory();
-        
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-}
-
-// Add copy message functionality
-function copyMessage(button) {
-    const messageText = button.parentElement.textContent.trim();
-    navigator.clipboard.writeText(messageText).then(() => {
-        button.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-            </svg>`;
-        setTimeout(() => {
-            button.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>`;
-        }, 2000);
     });
-}
-
-// Close chat interface function
-function closeChatInterface() {
-    const chatInterface = document.getElementById('chatInterface');
-    chatInterface.style.display = 'none';
-}
-
-// Add subscription timer functionality
-function updateSubscriptionTimer() {
-    const endDate = new Date('2024-12-11T00:00:00');
-    const now = new Date();
-    const diff = endDate - now;
     
-    // Check if subscription has expired
-    if (diff <= 0) {
-        const timerDisplay = document.querySelector('.subscription-timer');
-        if (timerDisplay) {
-            timerDisplay.innerHTML = 'Subscription expired';
-            // Update subscription section text and style
-            const subscriptionHeader = document.querySelector('.subscription-header');
-            const subscriptionDetails = document.querySelector('.subscription-details');
-            if (subscriptionHeader) {
-                subscriptionHeader.textContent = currentLanguage === 'ru' ? 'Подписка: истекла' : 'Subscription: expired';
-                subscriptionHeader.style.color = '#ff4444';
-            }
-            if (subscriptionDetails) {
-                subscriptionDetails.textContent = currentLanguage === 'ru' ? 'Необходимо продлить подписку' : 'Subscription needs renewal';
-            }
-        }
-        return;
-    }
-    
-    // Calculate remaining time only if not expired
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    const timerDisplay = document.querySelector('.subscription-timer');
-    if(timerDisplay) {
-        timerDisplay.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
-}
-
-// Initialize timer
-document.addEventListener('DOMContentLoaded', () => {
-    // Update timer immediately and then every second
-    updateSubscriptionTimer();
-    setInterval(updateSubscriptionTimer, 1000);
-});
-
-// Initialize Telegram when the document loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTelegram();
-    const navItems = document.querySelectorAll('.nav-item');
-    const mainSection = document.querySelector('.app-container');
-    const chatHistorySection = document.querySelector('.chat-history-container');
-    const settingsPanel = document.querySelector('.settings-panel');
-
-    // Add click handlers to nav items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            mainSection.style.display = 'block';
-            chatHistorySection.style.display = 'none';
-            settingsPanel.style.display = 'none';
-            
-            const text = item.textContent.trim();
-            if (text.includes('Чаты') || text.includes('Chats')) {
-                chatHistorySection.style.display = 'block';
-                updateChatHistory();
-            } else if (text.includes('Настройки') || text.includes('Settings')) {
-                settingsPanel.style.display = 'block';
-            }
-        });
+    input.addEventListener('change', () => {
+        if (input.value < 1) input.value = 1;
+        if (input.value > 99) input.value = 99;
     });
-
-    mainSection.style.display = 'block';
-    chatHistorySection.style.display = 'none';
-    settingsPanel.style.display = 'none';
-});
-
-// Token management
-function updateTokenDisplay(tokens) {
-    const tokenDisplay = document.querySelector('.tokens-display');
-    tokenDisplay.textContent = `${tokens} ${currentLanguage === 'ru' ? 'токенов' : 'tokens'}`;
-    tokenDisplay.classList.add('tokens-updated');
-    setTimeout(() => tokenDisplay.classList.remove('tokens-updated'), 300);
-}
-
-function getTokenBalance(telegramId) {
-    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
-    return tokenBalances[telegramId] || 500; // Default 500 tokens
-}
-
-function updateTokenBalance(telegramId, newBalance) {
-    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
-    tokenBalances[telegramId] = newBalance;
-    localStorage.setItem('tokenBalances', JSON.stringify(tokenBalances));
-    updateTokenDisplay(newBalance);
-}
-
-function spendTokens(telegramId, amount) {
-    const currentBalance = getTokenBalance(telegramId);
-    if (currentBalance >= amount) {
-        updateTokenBalance(telegramId, currentBalance - amount);
-        return true;
-    }
-    return false;
-}
-
-// Modify createNewChat function to store chats by Telegram ID
-function createNewChat() {
-    const chatInterface = document.getElementById('chatInterface');
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Store chat with telegram ID
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    const newChat = {
-        id: Date.now(),
-        telegramId: telegramId,
-        title: '',
-        created: new Date(),
-        messages: []
-    };
-    
-    chats.push(newChat);
-    localStorage.setItem('chats', JSON.stringify(chats));
-    
-    chatInterface.style.display = 'flex';
-    updateChatHistory();
-}
-
-// Update chat history display to show only current user's chats
-function updateChatHistory() {
-    const chatHistory = document.querySelector('.chat-history');
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Filter chats for current user
-    chats = chats.filter(chat => chat.telegramId === telegramId);
-    
-    // Clear existing chat history
-    chatHistory.innerHTML = '';
-    
-    if (chats.length === 0) {
-        chatHistory.innerHTML = `
-            <div class="chat-item" id="empty-history">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-                </svg>
-                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
-            </div>`;
-        return;
-    }
-
-    chats.forEach((chat, index) => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item';
-        chatItem.onclick = () => openChat(chat.id);
-        chatItem.innerHTML = `
-            <div class="chat-main">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-4H6V6h12v2z"/>
-                </svg>
-                <span>${chat.title || `Chat ${index + 1}`}</span>
-            </div>
-            <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
-            <div class="chat-actions">
-                <button class="chat-action-btn delete-chat" onclick="event.stopPropagation(); deleteChat(${chat.id})">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                    </svg>
-                </button>
-            </div>`;
-        chatHistory.appendChild(chatItem);
-    });
-}
-
-// Add deleteChat function that respects Telegram ID
-function deleteChat(chatId) {
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    chats = chats.filter(chat => !(chat.id === chatId && chat.telegramId === telegramId));
-    localStorage.setItem('chats', JSON.stringify(chats));
-    updateChatHistory();
-}
-
-// Initialize token display when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    const tokenBalance = getTokenBalance(telegramId);
-    updateTokenDisplay(tokenBalance);
-});
-
-// Initialize Telegram when the document loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTelegram();
-    const navItems = document.querySelectorAll('.nav-item');
-    const mainSection = document.querySelector('.app-container');
-    const chatHistorySection = document.querySelector('.chat-history-container');
-    const settingsPanel = document.querySelector('.settings-panel');
-
-    // Add click handlers to nav items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            mainSection.style.display = 'block';
-            chatHistorySection.style.display = 'none';
-            settingsPanel.style.display = 'none';
-            
-            const text = item.textContent.trim();
-            if (text.includes('Чаты') || text.includes('Chats')) {
-                chatHistorySection.style.display = 'block';
-                updateChatHistory();
-            } else if (text.includes('Настройки') || text.includes('Settings')) {
-                settingsPanel.style.display = 'block';
-            }
-        });
-    });
-
-    mainSection.style.display = 'block';
-    chatHistorySection.style.display = 'none';
-    settingsPanel.style.display = 'none';
-});
-
-// Add subscription timer functionality
-function updateSubscriptionTimer() {
-    const endDate = new Date('2024-12-11T00:00:00');
-    const now = new Date();
-    const diff = endDate - now;
-    
-    // Check if subscription has expired
-    if (diff <= 0) {
-        const timerDisplay = document.querySelector('.subscription-timer');
-        if (timerDisplay) {
-            timerDisplay.innerHTML = 'Subscription expired';
-            // Update subscription section text and style
-            const subscriptionHeader = document.querySelector('.subscription-header');
-            const subscriptionDetails = document.querySelector('.subscription-details');
-            if (subscriptionHeader) {
-                subscriptionHeader.textContent = currentLanguage === 'ru' ? 'Подписка: истекла' : 'Subscription: expired';
-                subscriptionHeader.style.color = '#ff4444';
-            }
-            if (subscriptionDetails) {
-                subscriptionDetails.textContent = currentLanguage === 'ru' ? 'Необходимо продлить подписку' : 'Subscription needs renewal';
-            }
-        }
-        return;
-    }
-    
-    // Calculate remaining time only if not expired
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    const timerDisplay = document.querySelector('.subscription-timer');
-    if(timerDisplay) {
-        timerDisplay.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
-}
-
-// Initialize timer
-document.addEventListener('DOMContentLoaded', () => {
-    // Update timer immediately and then every second
-    updateSubscriptionTimer();
-    setInterval(updateSubscriptionTimer, 1000);
-});
-
-// Initialize Telegram when the document loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTelegram();
-    const navItems = document.querySelectorAll('.nav-item');
-    const mainSection = document.querySelector('.app-container');
-    const chatHistorySection = document.querySelector('.chat-history-container');
-    const settingsPanel = document.querySelector('.settings-panel');
-
-    // Add click handlers to nav items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            mainSection.style.display = 'block';
-            chatHistorySection.style.display = 'none';
-            settingsPanel.style.display = 'none';
-            
-            const text = item.textContent.trim();
-            if (text.includes('Чаты') || text.includes('Chats')) {
-                chatHistorySection.style.display = 'block';
-                updateChatHistory();
-            } else if (text.includes('Настройки') || text.includes('Settings')) {
-                settingsPanel.style.display = 'block';
-            }
-        });
-    });
-
-    mainSection.style.display = 'block';
-    chatHistorySection.style.display = 'none';
-    settingsPanel.style.display = 'none';
-});
-
-// Token management
-function updateTokenDisplay(tokens) {
-    const tokenDisplay = document.querySelector('.tokens-display');
-    tokenDisplay.textContent = `${tokens} ${currentLanguage === 'ru' ? 'токенов' : 'tokens'}`;
-    tokenDisplay.classList.add('tokens-updated');
-    setTimeout(() => tokenDisplay.classList.remove('tokens-updated'), 300);
-}
-
-function getTokenBalance(telegramId) {
-    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
-    return tokenBalances[telegramId] || 500; // Default 500 tokens
-}
-
-function updateTokenBalance(telegramId, newBalance) {
-    const tokenBalances = JSON.parse(localStorage.getItem('tokenBalances') || '{}');
-    tokenBalances[telegramId] = newBalance;
-    localStorage.setItem('tokenBalances', JSON.stringify(tokenBalances));
-    updateTokenDisplay(newBalance);
-}
-
-function spendTokens(telegramId, amount) {
-    const currentBalance = getTokenBalance(telegramId);
-    if (currentBalance >= amount) {
-        updateTokenBalance(telegramId, currentBalance - amount);
-        return true;
-    }
-    return false;
-}
-
-// Modify createNewChat function to store chats by Telegram ID
-function createNewChat() {
-    const chatInterface = document.getElementById('chatInterface');
-    const chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Store chat with telegram ID
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    const newChat = {
-        id: Date.now(),
-        telegramId: telegramId,
-        title: '',
-        created: new Date(),
-        messages: []
-    };
-    
-    chats.push(newChat);
-    localStorage.setItem('chats', JSON.stringify(chats));
-    
-    chatInterface.style.display = 'flex';
-    updateChatHistory();
-}
-
-// Update chat history display to show only current user's chats
-function updateChatHistory() {
-    const chatHistory = document.querySelector('.chat-history');
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    
-    // Filter chats for current user
-    chats = chats.filter(chat => chat.telegramId === telegramId);
-    
-    // Clear existing chat history
-    chatHistory.innerHTML = '';
-    
-    if (chats.length === 0) {
-        chatHistory.innerHTML = `
-            <div class="chat-item" id="empty-history">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-                </svg>
-                ${currentLanguage === 'ru' ? 'История запросов пуста' : 'Chat history is empty'}
-            </div>`;
-        return;
-    }
-
-    chats.forEach((chat, index) => {
-        const chatItem = document.createElement('div');
-        chatItem.className = 'chat-item';
-        chatItem.onclick = () => openChat(chat.id);
-        chatItem.innerHTML = `
-            <div class="chat-main">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-4H6V6h12v2z"/>
-                </svg>
-                <span>${chat.title || `Chat ${index + 1}`}</span>
-            </div>
-            <div class="chat-date">${new Date(chat.created).toLocaleDateString()}</div>
-            <div class="chat-actions">
-                <button class="chat-action-btn delete-chat" onclick="event.stopPropagation(); deleteChat(${chat.id})">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                    </svg>
-                </button>
-            </div>`;
-        chatHistory.appendChild(chatItem);
-    });
-}
-
-// Add deleteChat function that respects Telegram ID
-function deleteChat(chatId) {
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    let chats = JSON.parse(localStorage.getItem('chats') || '[]');
-    chats = chats.filter(chat => !(chat.id === chatId && chat.telegramId === telegramId));
-    localStorage.setItem('chats', JSON.stringify(chats));
-    updateChatHistory();
-}
-
-// Initialize token display when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    const telegramId = tg?.initDataUnsafe?.user?.id || 'guest';
-    const tokenBalance = getTokenBalance(telegramId);
-    updateTokenDisplay(tokenBalance);
-});
-
-// Initialize Telegram when the document loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTelegram();
-    const navItems = document.querySelectorAll('.nav-item');
-    const mainSection = document.querySelector('.app-container');
-    const chatHistorySection = document.querySelector('.chat-history-container');
-    const settingsPanel = document.querySelector('.settings-panel');
-
-    // Add click handlers to nav items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            mainSection.style.display = 'block';
-            chatHistorySection.style.display = 'none';
-            settingsPanel.style.display = 'none';
-            
-            const text = item.textContent.trim();
-            if (text.includes('Чаты') || text.includes('Chats')) {
-                chatHistorySection.style.display = 'block';
-                updateChatHistory();
-            } else if (text.includes('Настройки') || text.includes('Settings')) {
-                settingsPanel.style.display = 'block';
-            }
-        });
-    });
-
-    mainSection.style.display = 'block';
-    chatHistorySection.style.display = 'none';
-    settingsPanel.style.display = 'none';
-});
-
-// Add subscription timer functionality
-function updateSubscriptionTimer() {
-    const endDate = new Date('2024-12-11T00:00:00');
-    const now = new Date();
-    const diff = endDate - now;
-    
-    // Check if subscription has expired
-    if (diff <= 0) {
-        const timerDisplay = document.querySelector('.subscription-timer');
-        if (timerDisplay) {
-            timerDisplay.innerHTML = 'Subscription expired';
-            // Update subscription section text and style
-            const subscriptionHeader = document.querySelector('.subscription-header');
-            const subscriptionDetails = document.querySelector('.subscription-details');
-            if (subscriptionHeader) {
-                subscriptionHeader.textContent = currentLanguage === 'ru' ? 'Подписка: истекла' : 'Subscription: expired';
-                subscriptionHeader.style.color = '#ff4444';
-            }
-            if (subscriptionDetails) {
-                subscriptionDetails.textContent = currentLanguage === 'ru' ? 'Необходимо продлить подписку' : 'Subscription needs renewal';
-            }
-        }
-        return;
-    }
-    
-    // Calculate remaining time only if not expired
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    const timerDisplay = document.querySelector('.subscription-timer');
-    if(timerDisplay) {
-        timerDisplay.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-    }
-}
-
-// Initialize timer
-document.addEventListener('DOMContentLoaded', () => {
-    // Update timer immediately and then every second
-    updateSubscriptionTimer();
-    setInterval(updateSubscriptionTimer, 1000);
-});
-
-// Initialize Telegram when the document loads
-document.addEventListener('DOMContentLoaded', () => {
-    initializeTelegram();
-    const navItems = document.querySelectorAll('.nav-item');
-    const mainSection = document.querySelector('.app-container');
-    const chatHistorySection = document.querySelector('.chat-history-container');
-    const settingsPanel = document.querySelector('.settings-panel');
-
-    // Add click handlers to nav items
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            mainSection.style.display = 'block';
-            chatHistorySection.style.display = 'none';
-            settingsPanel.style.display = 'none';
-            
-            const text = item.textContent.trim();
-            if (text.includes('Чаты') || text.includes('Chats')) {
-                chatHistorySection.style.display = 'block';
-                updateChatHistory();
-            } else if (text.includes('Настройки') || text.includes('Settings')) {
-                settingsPanel.style.display = 'block';
-            }
-        });
-    });
-
-    mainSection.style.display = 'block';
-    chatHistorySection.style.display = 'none';
-    settingsPanel.style.display = 'none';
 });
 </script>
-</head>
-<body>
-<div class="app-container">
-    <div class="tokens-display">
-        500 токенов
-    </div>
-    
-    <div class="profile-section">
-        <div class="profile-image">
-            <svg class="app-icon" viewBox="0 0 24 24" fill="#0088cc">
-                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-            </svg>
-        </div>
-        <div class="profile-info">
-            <h2>Username</h2>
-            <div class="telegram-id">Telegram ID: <span id="telegramId">Не подключен</span></div>
-        </div>
-    </div>
-
-    <div class="subscription-section">
-        <div class="subscription-icon">
-            <svg viewBox="0 0 24 24" fill="#007AFF" width="32" height="32">
-                <rect x="3" y="6" width="18" height="2" rx="1"/>
-                <circle cx="16" cy="7" r="2" fill="white"/>
-                <rect x="3" y="11" width="18" height="2" rx="1"/>
-                <circle cx="8" cy="12" r="2" fill="white"/>
-                <rect x="3" y="16" width="18" height="2" rx="1"/>
-                <circle cx="12" cy="17" r="2" fill="white"/>
-            </svg>
-        </div>
-        <div class="subscription-content">
-            <div class="subscription-header">Подписка: 5 дней</div>
-            <div class="subscription-details">Таймер до окончания:</div>
-            <div class="subscription-timer"></div>
-        </div>
-    </div>
-
-    <div class="new-chat-button" style="cursor: pointer;" onclick="createNewChat()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-        </svg>
-        <span style="color: white">Новый чат</span>
-    </div>
-
-    <div class="action-button-container">
-        <button class="button primary-button button-with-icon" onclick="window.open('https://t.me/your_bot_username', '_blank')">
-            <svg class="button-icon telegram-icon" width="24" height="24" viewBox="0 0 24 24" fill="#0088cc">
-                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
-            </svg>
-            Открыть Telegram
-        </button>
-        <button class="button primary-button button-with-icon">
-            <svg class="button-icon" width="24" height="24" viewBox="0 0 24 24" fill="black">
-                <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.8L20 9v6l-8 4-8-4V9l8-4.2z"/>
-                <path d="M12 15c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-            </svg>
-            Купить комплект токенов
-        </button>
-        <button class="button secondary-button" style="display: none;">Добавить на рабочий стол</button>
-    </div>
-
-    <div class="chat-history-container" id="chatHistory">
-        <div class="section-container">
-            <div class="section-header">
-                <h3>История чатов</h3>
-            </div>
-            <div class="chat-history">
-                <div class="chat-item" id="empty-history">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-                </svg>
-                    История запросов пуста
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <div class="nav-item active">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-            Главная
-        </div>
-        <div class="nav-item">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm5 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h14v14z"/>
-            </svg>
-            Чаты
-        </div>
-        <div class="nav-item" id="themeToggle">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
-            </svg>
-            Настройки
-        </div>
-    </div>
-
-    <div class="chat-interface" id="chatInterface">
-        <div class="chat-header">
-            <button class="back-button" onclick="closeChatInterface()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-                </svg>
-            </button>
-            <span>Чат с AI</span>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-        </div>
-        <div class="chat-input">
-            <input type="text" placeholder="Введите сообщение..." id="messageInput">
-            <button class="send-button" onclick="sendMessage()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <div class="settings-panel" id="settingsPanel">
-        <div class="section-container">
-            <div class="section-header">
-                <h3>Настройки</h3>
-            </div>
-            <div class="settings-content">
-                <div class="setting-item">
-                    <div>
-                        <span style="font-weight: 500;">Темная тема</span>
-                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                            Переключить между светлой и темной темой
-                        </div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="themeToggleSwitch">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-item">
-                    <div>
-                        <span style="font-weight: 500;">Снежинки</span>
-                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                            Включить анимацию снежинок
-                        </div>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="snowflakeToggle">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-item">
-                    <div>
-                        <span style="font-weight: 500;">Скорость снежинок</span>
-                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                            Настроить скорость падения
-                        </div>
-                    </div>
-                    <input type="range" id="snowfallSpeed" class="snowfall-speed" min="1" max="10" value="5">
-                </div>
-
-                <div class="setting-item">
-                    <div>
-                        <span style="font-weight: 500;">Интенсивность снега</span>
-                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                            Настроить количество снежинок
-                        </div>
-                    </div>
-                    <input type="range" id="snowDensity" class="snowfall-speed" min="1" max="10" value="5">
-                </div>
-
-                <div class="setting-item">
-                    <div>
-                        <span style="font-weight: 500;">Язык</span>
-                        <div style="font-size: 0.8em; opacity: 0.7; margin-top: 4px;">
-                            Выберите язык интерфейса
-                        </div>
-                    </div>
-                    <select id="languageSelect" style="padding: 8px; border-radius: 8px; background: var(--card-background); color: var(--text-color); border: 1px solid var(--border-color);">
-                        <option value="ru">Русский</option>
-                        <option value="en">English</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-let currentLanguage = localStorage.getItem('language') || 'ru';
-
-const translations = {
-    ru: {
-        home: 'Главная',
-        chats: 'Чаты',
-        settings: 'Настройки', 
-        darkTheme: 'Темная тема',
-        toggleTheme: 'Переключить между светлой и темной темой',
-        snowflakes: 'Снежинки',
-        enableSnowflakes: 'Включить анимацию снежинок',
-        snowfallSpeed: 'Скорость снежинок',
-        adjustSpeed: 'Настроить скорость падения',
-        snowDensity: 'Интенсивность снега', 
-        adjustDensity: 'Настроить количество снежинок',
-        notConnected: 'Не подключен',
-        language: 'Язык',
-        selectLanguage: 'Выберите язык интерфейса'
-    },
-    en: {
-        home: 'Home',
-        chats: 'Chats', 
-        settings: 'Settings',
-        darkTheme: 'Dark Theme',
-        toggleTheme: 'Toggle between light and dark theme',
-        snowflakes: 'Snowflakes',
-        enableSnowflakes: 'Enable snowflake animation',
-        snowfallSpeed: 'Snowfall Speed',
-        adjustSpeed: 'Adjust falling speed',
-        snowDensity: 'Snow Density',
-        adjustDensity: 'Adjust number of snowflakes',
-        notConnected: 'Not connected',
-        language: 'Language',
-        selectLanguage: 'Select interface language'
-    }
-};
-
-// Add language change listener
-document.getElementById('languageSelect').addEventListener('change', (e) => {
-    currentLanguage = e.target.value;
-    localStorage.setItem('language', currentLanguage);
-    updateUILanguage();
-});
-
-let tg = window.Telegram?.WebApp;
-
-function initializeTelegram() {
-    tg = window.Telegram?.WebApp; // Ensure we have the latest reference
-    
-    const profileName = document.querySelector('.profile-info h2');
-    const telegramIdSpan = document.getElementById('telegramId');
-    
-    try {
-        if (tg && tg.initDataUnsafe?.user) {
-            // Connected to Telegram successfully
-            const user = tg.initDataUnsafe.user;
-            profileName.textContent = user.username || user.first_name || (currentLanguage === 'ru' ? 'Нет данных' : 'No data');
-            telegramIdSpan.textContent = user.id || (currentLanguage === 'ru' ? 'Нет данных' : 'No data');
-            localStorage.setItem('telegramUser', JSON.stringify(user));
-            
-            if (tg.expand) tg.expand();
-            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
-        } else {
-            // Try to get stored user data
-            const storedUser = JSON.parse(localStorage.getItem('telegramUser'));
-            if (storedUser) {
-                profileName.textContent = storedUser.username || storedUser.first_name || (currentLanguage === 'ru' ? 'Нет данных' : 'No data');
-                telegramIdSpan.textContent = storedUser.id || (currentLanguage === 'ru' ? 'Нет данных' : 'No data');
-            } else {
-                // No stored data available
-                profileName.textContent = currentLanguage === 'ru' ? 'Нет данных' : 'No data';
-                telegramIdSpan.textContent = currentLanguage === 'ru' ? 'Нет данных' : 'No data';
-            }
-        }
-    } catch (error) {
-        console.log('Error initializing Telegram:', error);
-        profileName.textContent = currentLanguage === 'ru' ? 'Нет данных' : 'No data';
-        telegramIdSpan.textContent = currentLanguage === 'ru' ? 'Нет данных' : 'No data';
-    }
-}
-
-function updateUILanguage() {
-    const lang = translations[currentLanguage];
-    
-    // Update Telegram section if not connected
-    const profileName = document.querySelector('.profile-info h2');
-    const telegramIdSpan = document.getElementById('telegramId');
-    
-    if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
-        const storedUser = JSON.parse(localStorage.getItem('telegramUser'));
-        if (!storedUser) {
-            profileName.textContent = currentLanguage === 'ru' ? 'Нет данных' : 'No data';
-            telegramIdSpan.textContent = currentLanguage === 'ru' ? 'Нет данных' : 'No data';
-        }
-    }
-
-    // Update various UI elements according to the selected language
-    document.querySelector('.subscription-header').textContent = lang.subscription;
-    document.querySelector('.subscription-details').textContent = lang.adjustDensity;
-    // Other elements can also be updated based on the translations
-}
-
-// Add remaining event listeners and existing functionality...
-
-</script>
-</body>
-</html>
+</body></html>
