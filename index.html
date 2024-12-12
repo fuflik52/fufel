@@ -364,7 +364,7 @@ body {
                 </div>
             </div>
         </div>
-        <div class="section-content">
+        <div class="section-content" id="development-section">
             <i class="fas fa-cog development-icon"></i>
             <h3>Раздел в разработке</h3>
         </div>
@@ -696,31 +696,54 @@ clickCircle.addEventListener('click', () => {
     }
 });
 
-document.querySelectorAll('.nav-btn').forEach(btn => {
+document.querySelectorAll('.nav-btn').forEach((btn, index) => {
     btn.addEventListener('click', function() {
+        // Remove active class from all buttons
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         
-        sectionContents.forEach(section => section.classList.remove('active'));
+        // Remove active class from all sections
+        const allSections = document.querySelectorAll('.section-content');
+        allSections.forEach(section => section.classList.remove('active'));
         
-        if (this.textContent.trim() !== 'Главная') {
-            if (this.textContent.trim() === 'Магазин') {
-                const shopSection = document.querySelector('#shop-section');
-                shopSection.classList.add('active');
-            } else {
-                const defaultSection = document.querySelector('.section-content:not(#shop-section)');
-                defaultSection.querySelector('h3').textContent = `Раздел "${this.textContent.trim()}" находится в разработке`;
-                defaultSection.classList.add('active');
-            }
-            clickCircle.style.zIndex = 0;
-            scoreContainer.style.zIndex = 0;
+        const clickCircle = document.querySelector('.click-circle');
+        const scoreContainer = document.querySelector('.score-container');
+        
+        // Get the button text without extra spaces
+        const sectionName = this.querySelector('i').nextSibling.textContent.trim();
+        
+        if (sectionName === 'Главная') {
+            // Show main game elements
+            if (clickCircle) clickCircle.style.zIndex = '1';
+            if (scoreContainer) scoreContainer.style.zIndex = '1';
         } else {
-            clickCircle.style.zIndex = 1;
-            scoreContainer.style.zIndex = 1;
+            // Hide main game elements
+            if (clickCircle) clickCircle.style.zIndex = '0';
+            if (scoreContainer) scoreContainer.style.zIndex = '0';
+            
+            if (sectionName === 'Магазин') {
+                // Show shop section
+                const shopSection = document.getElementById('shop-section');
+                if (shopSection) shopSection.classList.add('active');
+            } else if (sectionName === 'Настройки') {
+                // Show settings section
+                const settingsSection = document.getElementById('settings-section');
+                if (settingsSection) settingsSection.classList.add('active');
+            } else {
+                // Show default development section for other sections
+                const defaultSection = allSections[allSections.length - 1]; // Get the last section (development section)
+                if (defaultSection) {
+                    const heading = defaultSection.querySelector('h3');
+                    if (heading) {
+                        heading.textContent = `Раздел "${sectionName}" находится в разработке`;
+                    }
+                    defaultSection.classList.add('active');
+                }
+            }
         }
         
-        const sectionName = this.textContent.trim();
-        if (sectionName !== 'Главная' && sectionName !== 'Магазин') {
+        // Show notification for sections under development
+        if (sectionName !== 'Главная' && sectionName !== 'Магазин' && sectionName !== 'Настройки') {
             showNotification(`🔧 Раздел "${sectionName}" находится в разработке`);
         }
     });
