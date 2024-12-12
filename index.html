@@ -452,6 +452,18 @@ body {
 .performance-overlay::-webkit-scrollbar {
     display: none;
 }
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #0088ff;
+}
+
+.toggle-switch input:checked + .toggle-slider span {
+    transform: translateX(26px);
+}
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -481,6 +493,21 @@ body {
                         <div id="username">Loading...</div>
                         <div id="userId">ID: Loading...</div>
                     </div>
+                </div>
+            </div>
+            
+            <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
+                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
+                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                    </div>
+                    <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                        <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                        </span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -949,6 +976,8 @@ let tasks = [
     }
 ];
 
+let vibrationEnabled = true;
+
 function updateShopItems() {
     const shopGrid = document.querySelector('.shop-grid');
     shopGrid.innerHTML = shopItems.map(item => `
@@ -1032,7 +1061,7 @@ document.head.appendChild(style);
 createSnowflakes();
 
 clickCircle.addEventListener('click', () => {
-    if (window.navigator?.vibrate) {
+    if (vibrationEnabled && window.navigator?.vibrate) {
         window.navigator.vibrate(50); // 50ms vibration
     }
     score += clickPower;
@@ -1339,6 +1368,44 @@ function loadGameState() {
         }
     }
 }
+
+function loadSettings() {
+    const savedVibration = localStorage.getItem('vibrationEnabled');
+    if (savedVibration !== null) {
+        vibrationEnabled = savedVibration === 'true';
+        document.getElementById('vibrationToggle').checked = vibrationEnabled;
+    }
+}
+
+// Update the loadGameState function to also load settings
+function loadGameState() {
+    if (!tg?.initDataUnsafe?.user?.id) return;
+    
+    loadSettings();
+    
+    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        score = state.score;
+        clickPower = state.clickPower;
+        autoClickPower = state.autoClickPower;
+        shopItems = state.shopItems;
+        tasks = state.tasks;
+        
+        updateScoreDisplay();
+        updateShopItems();
+        const tasksGrid = document.querySelector('.tasks-grid');
+        if (tasksGrid) {
+            tasksGrid.innerHTML = renderTasks();
+        }
+    }
+}
+
+document.getElementById('vibrationToggle').addEventListener('change', function() {
+    vibrationEnabled = this.checked;
+    localStorage.setItem('vibrationEnabled', vibrationEnabled);
+    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+});
 
 // Call loadGameState when the page loads
 document.addEventListener('DOMContentLoaded', () => {
