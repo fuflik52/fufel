@@ -167,14 +167,17 @@ body {
     background: rgb(28, 28, 46);
     z-index: 1000;
     padding: 20px;
-    text-align: center;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.section-content::-webkit-scrollbar {
+    display: none;
 }
 
 .section-content.active {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: block;
 }
 
 .development-icon {
@@ -184,12 +187,155 @@ body {
     margin-bottom: 20px;
 }
 
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    padding: 10px;
+}
+
+.shop-item {
+    background: rgba(0, 136, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    position: relative;
+    border: 2px solid rgba(0, 136, 255, 0.3);
+    transition: 0.3s;
+}
+
+.shop-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 136, 255, 0.2);
+}
+
+.shop-item-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.shop-item-title {
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+.shop-item-description {
+    font-size: 12px;
+    color: #aaa;
+    margin: 5px 0;
+}
+
+.shop-item-price {
+    font-size: 14px;
+    color: #0088ff;
+}
+
+.shop-item-new {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #0088ff;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Add styles for purchase button */
+.shop-item-button {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 5px 10px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+}
+
+.shop-item-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.shop-item-button:hover:not(:disabled) {
+    background: #218838;
+}
+
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+.notification {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 51, 102, 0.9);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 15px;
+    font-size: 14px;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+.notification.show {
+    opacity: 1;
+}
+
+.score small {
+    display: block;
+    color: #ff3366;
+    font-weight: normal;
+}
+
+.profile-container {
+    background: rgba(0, 136, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #0088ff;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+#username {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+}
+
+#userId {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 5px;
+}
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -202,6 +348,22 @@ body {
             <div class="score">0</div>
         </div>
         <div class="click-circle"></div>
+        <div class="section-content" id="shop-section">
+            <div class="shop-grid">
+            </div>
+        </div>
+        <div class="section-content" id="settings-section">
+            <i class="fas fa-cog development-icon"></i>
+            <div class="profile-container">
+                <div class="profile-header">
+                    <img id="userPhoto" class="profile-photo" src="https://via.placeholder.com/100" alt="Profile Photo">
+                    <div class="profile-info">
+                        <div id="username">Loading...</div>
+                        <div id="userId">ID: Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="section-content">
             <i class="fas fa-cog development-icon"></i>
             <h3>Раздел в разработке</h3>
@@ -245,12 +407,243 @@ body {
 </div>
 
 <script>
+let tg = window.Telegram?.WebApp;
+
+// Initialize Telegram user data
+function initTelegramUser() {
+    if (tg) {
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('username').textContent = user.username || 'Anonymous User';
+            document.getElementById('userId').textContent = `ID: ${user.id || 'Unknown'}`;
+            
+            if (user.photo_url) {
+                document.getElementById('userPhoto').src = user.photo_url;
+            }
+        }
+        tg.ready();
+    }
+}
+
+// Call this when page loads
+document.addEventListener('DOMContentLoaded', initTelegramUser);
+
 const snow = document.querySelector('.snow');
 const snowflakeTemplate = snow.querySelector('.snowflake');
-const sectionContent = document.querySelector('.section-content');
+const sectionContents = document.querySelectorAll('.section-content');
 const gameArea = document.querySelector('.game-area');
 const clickCircle = document.querySelector('.click-circle');
 const scoreContainer = document.querySelector('.score-container');
+const scoreElement = document.querySelector('.score');
+
+let score = 0;
+let clickPower = 1;
+let autoClickPower = 0;
+let lastUpdateTime = Date.now();
+
+let shopItems = [
+    {
+        id: 1,
+        icon: '👆',
+        title: 'Базовый кликер',
+        price: 100,
+        basePrice: 100,
+        level: 0,
+        power: 1,
+        description: 'Увеличивает силу клика на 1'
+    },
+    {
+        id: 2,
+        icon: '⚡',
+        title: 'Автокликер',
+        price: 500,
+        basePrice: 500,
+        level: 0,
+        power: 1,
+        description: 'Добавляет 1 клик/сек'
+    },
+    {
+        id: 3,
+        icon: '🤖',
+        title: 'Робот-кликер',
+        price: 1000,
+        basePrice: 1000,
+        level: 0,
+        power: 2,
+        description: 'Добавляет 2 клика/сек'
+    },
+    {
+        id: 4,
+        icon: '🎮',
+        title: 'Игровая консоль',
+        price: 2500,
+        basePrice: 2500,
+        level: 0,
+        power: 5,
+        description: 'Добавляет 5 кликов/сек'
+    },
+    {
+        id: 5,
+        icon: '💻',
+        title: 'Майнинг ферма',
+        price: 5000,
+        basePrice: 5000,
+        level: 0,
+        power: 10,
+        description: 'Добавляет 10 кликов/сек'
+    },
+    {
+        id: 6,
+        icon: '🏭',
+        title: 'Мини-фабрика',
+        price: 10000,
+        basePrice: 10000,
+        level: 0,
+        power: 20,
+        description: 'Добавляет 20 кликов/сек'
+    },
+    {
+        id: 7,
+        icon: '🏢',
+        title: 'Офисный центр',
+        price: 25000,
+        basePrice: 25000,
+        level: 0,
+        power: 50,
+        description: 'Добавляет 50 кликов/сек'
+    },
+    {
+        id: 8,
+        icon: '🏦',
+        title: 'Банк кликов',
+        price: 50000,
+        basePrice: 50000,
+        level: 0,
+        power: 100,
+        description: 'Добавляет 100 кликов/сек'
+    },
+    {
+        id: 9,
+        icon: '🌍',
+        title: 'Глобальная сеть',
+        price: 100000,
+        basePrice: 100000,
+        level: 0,
+        power: 200,
+        description: 'Добавляет 200 кликов/сек'
+    },
+    {
+        id: 10,
+        icon: '🚀',
+        title: 'Космическая станция',
+        price: 250000,
+        basePrice: 250000,
+        level: 0,
+        power: 500,
+        description: 'Добавляет 500 кликов/сек'
+    },
+    {
+        id: 11,
+        icon: '⚛️',
+        title: 'Квантовый генератор',
+        price: 500000,
+        basePrice: 500000,
+        level: 0,
+        power: 1000,
+        description: 'Добавляет 1000 кликов/сек'
+    },
+    {
+        id: 12,
+        icon: '🌟',
+        title: 'Звездный коллектор',
+        price: 1000000,
+        basePrice: 1000000,
+        level: 0,
+        power: 2000,
+        description: 'Добавляет 2000 кликов/сек'
+    },
+    {
+        id: 13,
+        icon: '🌌',
+        title: 'Галактический портал',
+        price: 2500000,
+        basePrice: 2500000,
+        level: 0,
+        power: 5000,
+        description: 'Добавляет 5000 кликов/сек'
+    },
+    {
+        id: 14,
+        icon: '🎇',
+        title: 'Межзвездный конвертер',
+        price: 5000000,
+        basePrice: 5000000,
+        level: 0,
+        power: 10000,
+        description: 'Добавляет 10000 кликов/сек'
+    },
+    {
+        id: 15,
+        icon: '🌈',
+        title: 'Радужный ускоритель',
+        price: 10000000,
+        basePrice: 10000000,
+        level: 0,
+        power: 20000,
+        description: 'Добавляет 20000 кликов/сек'
+    }
+];
+
+function updateShopItems() {
+    const shopGrid = document.querySelector('.shop-grid');
+    shopGrid.innerHTML = shopItems.map(item => `
+        <div class="shop-item">
+            <span class="shop-item-new">LVL ${item.level}</span>
+            <div class="shop-item-icon">${item.icon}</div>
+            <div class="shop-item-title">${item.title}</div>
+            <div class="shop-item-description">${item.description}</div>
+            <div class="shop-item-price">${item.price} кликов</div>
+            <button class="shop-item-button" onclick="purchaseItem(${item.id})">
+                Улучшить
+            </button>
+        </div>
+    `).join('');
+}
+
+function updateScoreDisplay() {
+    const perHour = autoClickPower * 3600;
+    scoreElement.innerHTML = `
+        ${score}<br>
+        <small style="font-size: 14px">+${perHour}/час</small>
+    `;
+}
+
+function purchaseItem(itemId) {
+    const item = shopItems.find(i => i.id === itemId);
+    if (item && score >= item.price) {
+        score -= item.price;
+        item.level++;
+        
+        // Increase item price for next purchase (20% increase)
+        item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
+        
+        // Update powers based on item type
+        if (item.id === 1) {
+            clickPower += item.power;
+        } else {
+            autoClickPower += item.power;
+        }
+        
+        updateScoreDisplay();
+        updateShopItems();
+        showNotification(`✨ Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
+    } else {
+        showNotification(`❌ Недостаточно кликов для покупки ${item.title}`);
+    }
+}
+
+// Call this function when the page loads
+updateShopItems();
 
 function createSnowflakes() {
     for (let i = 0; i < 50; i++) {
@@ -286,12 +679,9 @@ document.head.appendChild(style);
 
 createSnowflakes();
 
-let score = 0;
-const scoreElement = document.querySelector('.score');
-
 clickCircle.addEventListener('click', () => {
-    score++;
-    scoreElement.textContent = score;
+    score += clickPower;
+    updateScoreDisplay();
     
     const effect = document.createElement('div');
     effect.className = 'click-effect';
@@ -300,6 +690,10 @@ clickCircle.addEventListener('click', () => {
     effect.addEventListener('animationend', () => {
         effect.remove();
     });
+
+    if (score % 100 === 0) {
+        showNotification(`🎉 Поздравляем! Вы достигли ${score} кликов!`);
+    }
 });
 
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -307,18 +701,55 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         
+        sectionContents.forEach(section => section.classList.remove('active'));
+        
         if (this.textContent.trim() !== 'Главная') {
-            sectionContent.querySelector('h3').textContent = `Раздел "${this.textContent.trim()}" находится в разработке`;
-            sectionContent.classList.add('active');
+            if (this.textContent.trim() === 'Магазин') {
+                const shopSection = document.querySelector('#shop-section');
+                shopSection.classList.add('active');
+            } else {
+                const defaultSection = document.querySelector('.section-content:not(#shop-section)');
+                defaultSection.querySelector('h3').textContent = `Раздел "${this.textContent.trim()}" находится в разработке`;
+                defaultSection.classList.add('active');
+            }
             clickCircle.style.zIndex = 0;
             scoreContainer.style.zIndex = 0;
         } else {
-            sectionContent.classList.remove('active');
             clickCircle.style.zIndex = 1;
             scoreContainer.style.zIndex = 1;
         }
+        
+        const sectionName = this.textContent.trim();
+        if (sectionName !== 'Главная' && sectionName !== 'Магазин') {
+            showNotification(`🔧 Раздел "${sectionName}" находится в разработке`);
+        }
     });
 });
+
+function showNotification(message) {
+    // Remove existing notification if any
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+
+    // Create new notification
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    // Show notification
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+
+    // Hide and remove notification after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
 
 const navScroll = document.querySelector('.nav-scroll');
 let isScrolling = false;
@@ -346,5 +777,20 @@ navScroll.addEventListener('mousemove', (e) => {
     const walk = (x - startX) * 2;
     navScroll.scrollLeft = scrollLeft - walk;
 });
+
+function gameLoop() {
+    const currentTime = Date.now();
+    const deltaTime = (currentTime - lastUpdateTime) / 1000; // Convert to seconds
+    
+    score += autoClickPower * deltaTime;
+    updateScoreDisplay();
+    
+    lastUpdateTime = currentTime;
+    requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+gameLoop();
+
 </script>
 </body></html>
