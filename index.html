@@ -1,65 +1,184 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Telegram User Info</title>
+    <title>Telegram Кликер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        .user-info {
-            text-align: center;
-            padding: 20px;
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             font-family: Arial, sans-serif;
+            background: #f0f2f5;
         }
-        .profile-photo {
-            width: 100px;
-            height: 100px;
+
+        .game-container {
+            text-align: center;
+            position: relative;
+        }
+
+        .click-button {
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
-            margin: 10px auto;
+            background: #0088cc;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.1s;
         }
-        .info-block {
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .score {
+            font-size: 32px;
+            margin: 20px 0;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 80%;
+            width: 300px;
+        }
+
+        .user-info {
             margin: 10px 0;
             padding: 10px;
             background: #f5f5f5;
             border-radius: 8px;
         }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
-    <div class="user-info">
-        <img id="userPhoto" class="profile-photo" src="" alt="Фото профиля">
-        <div id="username" class="info-block"></div>
-        <div id="userId" class="info-block"></div>
+    <div class="game-container">
+        <div class="score">Счёт: <span id="scoreDisplay">0</span></div>
+        <button class="click-button" id="clickButton">КЛИК!</button>
+        <div class="settings-icon" onclick="openSettings()">⚙️</div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeSettings()">&times;</span>
+            <h2>Настройки</h2>
+            <div class="user-info">
+                <img id="userPhoto" style="width: 100px; height: 100px; border-radius: 50%;" src="" alt="Фото профиля">
+                <div id="username"></div>
+                <div id="userId"></div>
+                <div id="balance">Баланс кликов: <span id="totalClicks">0</span></div>
+            </div>
+        </div>
     </div>
 
     <script>
+        let score = 0;
+        let userId = null;
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация Telegram WebApp
             const tg = window.Telegram.WebApp;
-            
-            // Получаем данные пользователя
             const user = tg.initDataUnsafe.user;
             
             if (user) {
-                // Заполняем информацию
+                userId = user.id;
                 document.getElementById('username').textContent = 
                     `Username: ${user.username || 'Не указан'}`;
                 document.getElementById('userId').textContent = 
                     `ID: ${user.id || 'Не определен'}`;
                 
-                // Если есть фото профиля
                 if (user.photo_url) {
                     document.getElementById('userPhoto').src = user.photo_url;
                 } else {
                     document.getElementById('userPhoto').src = 
                         'https://via.placeholder.com/100?text=No+Photo';
                 }
-            } else {
-                document.body.innerHTML = 
-                    '<div class="user-info">Откройте эту страницу через Telegram</div>';
+
+                // Загружаем сохраненный счет
+                loadScore();
             }
             
-            // Сообщаем Telegram, что приложение готово
             tg.ready();
         });
+
+        // Обработчик клика
+        document.getElementById('clickButton').addEventListener('click', function() {
+            score++;
+            updateScore();
+            saveScore();
+        });
+
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = score;
+            document.getElementById('totalClicks').textContent = score;
+        }
+
+        function saveScore() {
+            if (userId) {
+                localStorage.setItem(`clicker_score_${userId}`, score);
+            }
+        }
+
+        function loadScore() {
+            if (userId) {
+                const savedScore = localStorage.getItem(`clicker_score_${userId}`);
+                if (savedScore) {
+                    score = parseInt(savedScore);
+                    updateScore();
+                }
+            }
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').style.display = 'block';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target == modal) {
+                closeSettings();
+            }
+        }
     </script>
 </body>
 </html>
