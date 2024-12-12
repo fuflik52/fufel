@@ -457,13 +457,75 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-.toggle-switch input:checked + .toggle-slider {
-    background-color: #0088ff;
+.snow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9998; /* Increase z-index to show above other elements */
+    pointer-events: none;
 }
 
-.toggle-switch input:checked + .toggle-slider span {
+.snowflake {
+    fill: rgba(255, 255, 255, 0.8);
+    r: 3; /* Increased size */
+    z-index: 9998; /* Keep snowflakes above everything except performance overlay */
+}
+
+@keyframes fall {
+    to {
+        transform: translate(var(--x), 100vh);
+    }
+}
+
+.toggle-slider span {
+    position: absolute;
+    content: '';
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .2s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider span {
     transform: translateX(26px);
 }
+
+#changelogBtn {
+    position: absolute !important;  /* Change from fixed to absolute */
+    top: 20px;
+    right: 20px;
+    background: #ff3366;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 9999;
+    cursor: pointer;
+}
+
+#changelogModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(28, 28, 46, 0.95); /* Increased transparency */
+    padding: 20px;
+    z-index: 10000;
+    overflow-y: auto;
+    border: none;
+    box-shadow: none;
+}
+
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -471,6 +533,10 @@ body {
 <body>
 
 <div class="phone-container">
+    <button id="changelogBtn">
+        <i class="fas fa-history"></i>
+        Change-log
+    </button>
     <div class="notification"></div>
     <div class="game-area">
         <svg class="snow" xmlns="http://www.w3.org/2000/svg">
@@ -505,9 +571,29 @@ body {
                     <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
                         <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
                         <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
                         </span>
                     </label>
+                </div>
+                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 5px;">Снежинки</h3>
+                        <p style="font-size: 14px; color: #aaa;">Включить падающие снежинки</p>
+                    </div>
+                    <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                        <input type="checkbox" id="snowToggle" checked style="opacity: 0; width: 0; height: 0;">
+                        <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
+                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
+                        </span>
+                    </label>
+                </div>
+                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 5px;">Количество снежинок</h3>
+                        <p style="font-size: 14px; color: #aaa;">Регулировать количество снежинок (макс. 1000)</p>
+                    </div>
+                    <input type="range" id="snowflakeCount" min="0" max="1000" value="350" style="width: 150px;">
+                    <span id="snowflakeCountDisplay" style="margin-left: 10px; min-width: 40px;">350</span>
                 </div>
             </div>
         </div>
@@ -553,6 +639,22 @@ body {
             </div>
         </div>
     </nav>
+</div>
+
+<div id="changelogModal">
+    <h2 style="color: #ff3366; margin-bottom: 15px;">Change-log</h2>
+    <div style="color: white;">
+        <h3>Версия 1.0.1</h3>
+        <ul style="list-style-type: none; padding-left: 0;">
+            <li>• Добавлено регулирование количества снежинок (0-1000)</li>
+            <li>• Добавлен Change-log</li>
+            <li>• Оптимизация производительности</li>
+            <li>• Исправлены мелкие ошибки</li>
+        </ul>
+    </div>
+    <button onclick="closeChangelog()" style="background: #ff3366; border: none; color: white; padding: 8px 15px; border-radius: 10px; margin-top: 15px; width: 100%;">
+        Закрыть
+    </button>
 </div>
 
 <script>
@@ -977,6 +1079,73 @@ let tasks = [
 ];
 
 let vibrationEnabled = true;
+let snowEnabled = true;
+let snowflakeCount = 350; // Default count
+
+document.getElementById('snowflakeCount').addEventListener('input', function() {
+    snowflakeCount = parseInt(this.value);
+    document.getElementById('snowflakeCountDisplay').textContent = snowflakeCount;
+    localStorage.setItem('snowflakeCount', snowflakeCount);
+    if (snowEnabled) {
+        createSnowflakes(); // Recreate snowflakes with new count
+    }
+});
+
+// Update createSnowflakes function to use count
+function createSnowflakes() {
+    snow.innerHTML = ''; 
+    snow.style.display = snowEnabled ? 'block' : 'none';
+    
+    if (!snowEnabled) return;
+    
+    for (let i = 0; i < snowflakeCount; i++) {
+        const snowflake = snowflakeTemplate.cloneNode();
+        const x = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = 5 + Math.random() * 5;
+        
+        snowflake.style.cssText = `
+            --x: ${x}vw;
+            opacity: ${0.3 + Math.random() * 0.7};
+            transform: translate(var(--x), -20px);
+            animation: fall ${duration}s linear ${delay}s infinite;
+        `;
+        
+        snow.appendChild(snowflake);
+    }
+    snowflakeTemplate.remove();
+}
+
+// Load saved snowflake count
+function loadSettings() {
+    const savedCount = localStorage.getItem('snowflakeCount');
+    if (savedCount !== null) {
+        snowflakeCount = parseInt(savedCount);
+        document.getElementById('snowflakeCount').value = snowflakeCount;
+        document.getElementById('snowflakeCountDisplay').textContent = snowflakeCount;
+    }
+}
+
+// Changelog functions
+function showChangelog() {
+    document.getElementById('changelogModal').style.display = 'block';
+}
+
+function closeChangelog() {
+    document.getElementById('changelogModal').style.display = 'none';
+}
+
+// Add changelog button listener
+document.getElementById('changelogBtn').addEventListener('click', showChangelog);
+
+// Close changelog when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('changelogModal');
+    const btn = document.getElementById('changelogBtn');
+    if (e.target !== modal && !modal.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        modal.style.display = 'none';
+    }
+});
 
 function updateShopItems() {
     const shopGrid = document.querySelector('.shop-grid');
@@ -1026,55 +1195,26 @@ function purchaseItem(itemId) {
 
 updateShopItems();
 
-function createSnowflakes() {
-    for (let i = 0; i < 50; i++) {
-        const snowflake = snowflakeTemplate.cloneNode();
-        const x = Math.random() * 100;
-        const y = Math.random() * 100;
-        const delay = Math.random() * 5;
-        const duration = 3 + Math.random() * 4;
-        
-        snowflake.style.cssText = `
-            opacity: ${0.3 + Math.random() * 0.7};
-            transform: translate(${x}vw, -20px);
-            animation: fall ${duration}s linear ${delay}s infinite;
-        `;
-        
-        snow.appendChild(snowflake);
-    }
-    snowflakeTemplate.remove();
-}
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes fall {
-        from {
-            transform: translate(var(--x), -20px);
-        }
-        to {
-            transform: translate(var(--x), 100vh);
-        }
-    }
-`;
-document.head.appendChild(style);
-
-createSnowflakes();
-
 clickCircle.addEventListener('click', () => {
     if (vibrationEnabled && window.navigator?.vibrate) {
-        window.navigator.vibrate(50); // 50ms vibration
+        window.navigator.vibrate(50); 
     }
     score += clickPower;
     updateScoreDisplay();
     saveGameState();
     
+    // Remove any existing click effects before adding new one
+    const existingEffects = clickCircle.querySelectorAll('.click-effect');
+    existingEffects.forEach(effect => effect.remove());
+    
     const effect = document.createElement('div');
     effect.className = 'click-effect';
     clickCircle.appendChild(effect);
     
+    // Remove effect immediately after animation ends
     effect.addEventListener('animationend', () => {
         effect.remove();
-    });
+    }, { once: true }); // Use once:true to auto-remove listener
 
     if (Math.floor(score) % 100 === 0) {
         showNotification(`🎉 Поздравляем! Вы достигли ${Math.floor(score)} кликов!`);
@@ -1135,7 +1275,7 @@ document.addEventListener('keydown', function(e) {
             overlay = document.createElement('div');
             overlay.className = 'performance-overlay';
             document.body.appendChild(overlay);
-            makeDraggable(overlay); // Make the overlay draggable
+            makeDraggable(overlay); 
         }
 
         // Add click stats to performance report
@@ -1173,7 +1313,7 @@ document.addEventListener('keydown', function(e) {
                 const section = document.querySelector(selector);
                 if (section) {
                     const startTime = performance.now();
-                    section.offsetHeight; // Force reflow
+                    section.offsetHeight; 
                     const endTime = performance.now();
                     const renderTime = (endTime - startTime).toFixed(2);
                     performanceReport += `${id}: ${renderTime}мс время отрисовки\n`;
@@ -1186,7 +1326,7 @@ document.addEventListener('keydown', function(e) {
             performanceReport += `Время загрузки страницы: ${(window.performance.timing.loadEventEnd - window.performance.timing.navigationStart)}мс\n`;
             
             performanceReport += '\n⚡ Дополнительно:\n';
-            performanceReport += `Активных анимаций: ${document.getAnimations().length}\n`;
+            performanceReport += `Активных анимаций: ${countActiveAnimations()}\n`;
             performanceReport += `Элементов DOM: ${document.getElementsByTagName('*').length}\n`;
             
             performanceReport += '\n🖱️ Статистика кликов:\n';
@@ -1195,10 +1335,13 @@ document.addEventListener('keydown', function(e) {
             performanceReport += `Монет за клик: ${clickPower}\n`;
             performanceReport += `Авто-монет в секунду: ${autoClickPower}\n`;
 
+            performanceReport += '\n❄️ Эффекты:\n';
+            performanceReport += `Активных снежинок: ${document.querySelectorAll('.snowflake').length}\n`;
+            performanceReport += `Снежинки включены: ${snowEnabled ? 'Да' : 'Нет'}\n`;
             overlay.textContent = performanceReport;
             overlay.style.display = 'block';
             
-            setTimeout(refreshLoop, 1000); // Update every second
+            setTimeout(refreshLoop, 1000); 
         }
 
         refreshLoop();
@@ -1212,6 +1355,15 @@ document.addEventListener('keydown', function(e) {
         });
     }
 });
+
+function countActiveAnimations() {
+    const animations = document.getAnimations();
+    // Filter out snowfall animations when counting
+    return animations.filter(anim => {
+        const element = anim.effect?.target;
+        return !element?.classList?.contains('snowflake');
+    }).length;
+}
 
 function makeDraggable(overlay) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -1351,36 +1503,6 @@ function saveGameState() {
 function loadGameState() {
     if (!tg?.initDataUnsafe?.user?.id) return;
     
-    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        score = state.score;
-        clickPower = state.clickPower;
-        autoClickPower = state.autoClickPower;
-        shopItems = state.shopItems;
-        tasks = state.tasks;
-        
-        updateScoreDisplay();
-        updateShopItems();
-        const tasksGrid = document.querySelector('.tasks-grid');
-        if (tasksGrid) {
-            tasksGrid.innerHTML = renderTasks();
-        }
-    }
-}
-
-function loadSettings() {
-    const savedVibration = localStorage.getItem('vibrationEnabled');
-    if (savedVibration !== null) {
-        vibrationEnabled = savedVibration === 'true';
-        document.getElementById('vibrationToggle').checked = vibrationEnabled;
-    }
-}
-
-// Update the loadGameState function to also load settings
-function loadGameState() {
-    if (!tg?.initDataUnsafe?.user?.id) return;
-    
     loadSettings();
     
     const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
@@ -1401,10 +1523,72 @@ function loadGameState() {
     }
 }
 
+function loadSettings() {
+    const savedVibration = localStorage.getItem('vibrationEnabled');
+    const savedSnow = localStorage.getItem('snowEnabled');
+    
+    if (savedVibration !== null) {
+        vibrationEnabled = savedVibration === 'true';
+        document.getElementById('vibrationToggle').checked = vibrationEnabled;
+    }
+    
+    if (savedSnow !== null) {
+        snowEnabled = savedSnow === 'true';
+        document.getElementById('snowToggle').checked = snowEnabled;
+        toggleSnow(snowEnabled);
+    }
+    // Load saved snowflake count
+    const savedCount = localStorage.getItem('snowflakeCount');
+    if (savedCount !== null) {
+        snowflakeCount = parseInt(savedCount);
+        document.getElementById('snowflakeCount').value = snowflakeCount;
+        document.getElementById('snowflakeCountDisplay').textContent = snowflakeCount;
+    }
+}
+
+function toggleSnow(enabled) {
+    const snow = document.querySelector('.snow');
+    snow.style.display = enabled ? 'block' : 'none';
+}
+
 document.getElementById('vibrationToggle').addEventListener('change', function() {
     vibrationEnabled = this.checked;
     localStorage.setItem('vibrationEnabled', vibrationEnabled);
     showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+    updateSettingsHighlight();
+});
+
+document.getElementById('snowToggle').addEventListener('change', function() {
+    snowEnabled = this.checked;
+    localStorage.setItem('snowEnabled', snowEnabled);
+    createSnowflakes(); // Recreate snowflakes when toggled
+    showNotification(`Снежинки ${snowEnabled ? 'включены' : 'выключены'}`);
+    updateSettingsHighlight();
+});
+
+function updateSettingsHighlight() {
+    const vibrationOption = document.querySelector('.settings-option:nth-child(1)');
+    const snowOption = document.querySelector('.settings-option:nth-child(2)');
+    
+    if (vibrationEnabled) {
+        vibrationOption.classList.add('enabled');
+    } else {
+        vibrationOption.classList.remove('enabled');
+    }
+    
+    if (snowEnabled) {
+        snowOption.classList.add('enabled');
+    } else {
+        snowOption.classList.remove('enabled');
+    }
+}
+
+loadSettings();
+updateSettingsHighlight();
+
+// Call this when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    createSnowflakes();
 });
 
 // Call loadGameState when the page loads
