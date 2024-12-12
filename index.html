@@ -1,184 +1,350 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Telegram Кликер</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-        }
+<html><head><base href="https://example.com"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .game-container {
-            text-align: center;
-            position: relative;
-        }
+body {
+    font-family: Arial, sans-serif;
+    background: #0f0f1a;
+    color: white;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .click-button {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: #0088cc;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
+.phone-container {
+    width: 100%;
+    max-width: 420px;
+    height: 100vh;
+    max-height: 900px;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1c1c2e 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
 
-        .click-button:active {
-            transform: scale(0.95);
-        }
+.game-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-        .score {
-            font-size: 32px;
-            margin: 20px 0;
-        }
+.click-circle {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at 30% 30%, #ff3366, #cc1f4a);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+    box-shadow: 0 0 30px rgba(255, 51, 102, 0.3);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    z-index: 1;
+}
 
-        .settings-icon {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
-            cursor: pointer;
-        }
+.click-circle:active {
+    transform: translate(-50%, -50%) scale(0.95);
+}
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-        }
+.click-circle::before {
+    content: '🎄';
+    font-size: 50px;
+}
 
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-width: 80%;
-            width: 300px;
-        }
+.click-effect {
+    position: absolute;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: clickRipple 0.5s ease-out;
+}
 
-        .user-info {
-            margin: 10px 0;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 8px;
-        }
+@keyframes clickRipple {
+    to {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
 
-        .close-modal {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 20px;
-        }
-    </style>
+.score-container {
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 51, 102, 0.2);
+    padding: 10px 30px;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 51, 102, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1;
+}
+
+.score {
+    font-size: 32px;
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.nav-panel {
+    height: 70px;
+    background: rgba(15, 15, 26, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 1001;
+}
+
+.nav-scroll {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nav-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-content {
+    display: flex;
+    padding: 10px;
+    min-width: min-content;
+    gap: 15px;
+}
+
+.nav-btn {
+    min-width: 80px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 15px;
+    background: #1c1c2e;
+    color: white;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    transition: 0.3s;
+}
+
+.nav-btn.active {
+    background: #ff3366;
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
+}
+
+.nav-btn:active {
+    transform: scale(0.95);
+}
+
+.nav-btn i {
+    font-size: 20px;
+}
+
+.section-content {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 70px;
+    background: rgb(28, 28, 46);
+    z-index: 1000;
+    padding: 20px;
+    text-align: center;
+}
+
+.section-content.active {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.development-icon {
+    font-size: 50px;
+    color: #ff3366;
+    animation: spin 4s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="game-container">
-        <div class="score">Счёт: <span id="scoreDisplay">0</span></div>
-        <button class="click-button" id="clickButton">КЛИК!</button>
-        <div class="settings-icon" onclick="openSettings()">⚙️</div>
-    </div>
 
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeSettings()">&times;</span>
-            <h2>Настройки</h2>
-            <div class="user-info">
-                <img id="userPhoto" style="width: 100px; height: 100px; border-radius: 50%;" src="" alt="Фото профиля">
-                <div id="username"></div>
-                <div id="userId"></div>
-                <div id="balance">Баланс кликов: <span id="totalClicks">0</span></div>
-            </div>
+<div class="phone-container">
+    <div class="game-area">
+        <svg class="snow" xmlns="http://www.w3.org/2000/svg">
+            <circle class="snowflake" r="2" fill="white"></circle>
+        </svg>
+        <div class="score-container">
+            <div class="score">0</div>
+        </div>
+        <div class="click-circle"></div>
+        <div class="section-content">
+            <i class="fas fa-cog development-icon"></i>
+            <h3>Раздел в разработке</h3>
         </div>
     </div>
 
-    <script>
-        let score = 0;
-        let userId = null;
+    <nav class="nav-panel">
+        <div class="nav-scroll">
+            <div class="nav-content">
+                <button class="nav-btn active">
+                    <i class="fas fa-home"></i>
+                    Главная
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-store"></i>
+                    Магазин
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-trophy"></i>
+                    Награды
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-tasks"></i>
+                    Задания
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-city"></i>
+                    Город
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-chart-line"></i>
+                    Инвестиции
+                </button>
+                <button class="nav-btn">
+                    <i class="fas fa-cog"></i>
+                    Настройки
+                </button>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<script>
+const snow = document.querySelector('.snow');
+const snowflakeTemplate = snow.querySelector('.snowflake');
+const sectionContent = document.querySelector('.section-content');
+const gameArea = document.querySelector('.game-area');
+const clickCircle = document.querySelector('.click-circle');
+const scoreContainer = document.querySelector('.score-container');
+
+function createSnowflakes() {
+    for (let i = 0; i < 50; i++) {
+        const snowflake = snowflakeTemplate.cloneNode();
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = 3 + Math.random() * 4;
         
-        document.addEventListener('DOMContentLoaded', function() {
-            const tg = window.Telegram.WebApp;
-            const user = tg.initDataUnsafe.user;
-            
-            if (user) {
-                userId = user.id;
-                document.getElementById('username').textContent = 
-                    `Username: ${user.username || 'Не указан'}`;
-                document.getElementById('userId').textContent = 
-                    `ID: ${user.id || 'Не определен'}`;
-                
-                if (user.photo_url) {
-                    document.getElementById('userPhoto').src = user.photo_url;
-                } else {
-                    document.getElementById('userPhoto').src = 
-                        'https://via.placeholder.com/100?text=No+Photo';
-                }
+        snowflake.style.cssText = `
+            opacity: ${0.3 + Math.random() * 0.7};
+            transform: translate(${x}vw, -20px);
+            animation: fall ${duration}s linear ${delay}s infinite;
+        `;
+        
+        snow.appendChild(snowflake);
+    }
+    snowflakeTemplate.remove();
+}
 
-                // Загружаем сохраненный счет
-                loadScore();
-            }
-            
-            tg.ready();
-        });
-
-        // Обработчик клика
-        document.getElementById('clickButton').addEventListener('click', function() {
-            score++;
-            updateScore();
-            saveScore();
-        });
-
-        function updateScore() {
-            document.getElementById('scoreDisplay').textContent = score;
-            document.getElementById('totalClicks').textContent = score;
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fall {
+        from {
+            transform: translate(var(--x), -20px);
         }
-
-        function saveScore() {
-            if (userId) {
-                localStorage.setItem(`clicker_score_${userId}`, score);
-            }
+        to {
+            transform: translate(var(--x), 100vh);
         }
+    }
+`;
+document.head.appendChild(style);
 
-        function loadScore() {
-            if (userId) {
-                const savedScore = localStorage.getItem(`clicker_score_${userId}`);
-                if (savedScore) {
-                    score = parseInt(savedScore);
-                    updateScore();
-                }
-            }
-        }
+createSnowflakes();
 
-        function openSettings() {
-            document.getElementById('settingsModal').style.display = 'block';
-        }
+let score = 0;
+const scoreElement = document.querySelector('.score');
 
-        function closeSettings() {
-            document.getElementById('settingsModal').style.display = 'none';
-        }
+clickCircle.addEventListener('click', () => {
+    score++;
+    scoreElement.textContent = score;
+    
+    const effect = document.createElement('div');
+    effect.className = 'click-effect';
+    clickCircle.appendChild(effect);
+    
+    effect.addEventListener('animationend', () => {
+        effect.remove();
+    });
+});
 
-        // Закрытие модального окна при клике вне его
-        window.onclick = function(event) {
-            const modal = document.getElementById('settingsModal');
-            if (event.target == modal) {
-                closeSettings();
-            }
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        if (this.textContent.trim() !== 'Главная') {
+            sectionContent.querySelector('h3').textContent = `Раздел "${this.textContent.trim()}" находится в разработке`;
+            sectionContent.classList.add('active');
+            clickCircle.style.zIndex = 0;
+            scoreContainer.style.zIndex = 0;
+        } else {
+            sectionContent.classList.remove('active');
+            clickCircle.style.zIndex = 1;
+            scoreContainer.style.zIndex = 1;
         }
-    </script>
-</body>
-</html>
+    });
+});
+
+const navScroll = document.querySelector('.nav-scroll');
+let isScrolling = false;
+let startX;
+let scrollLeft;
+
+navScroll.addEventListener('mousedown', (e) => {
+    isScrolling = true;
+    startX = e.pageX - navScroll.offsetLeft;
+    scrollLeft = navScroll.scrollLeft;
+});
+
+navScroll.addEventListener('mouseleave', () => {
+    isScrolling = false;
+});
+
+navScroll.addEventListener('mouseup', () => {
+    isScrolling = false;
+});
+
+navScroll.addEventListener('mousemove', (e) => {
+    if (!isScrolling) return;
+    e.preventDefault();
+    const x = e.pageX - navScroll.offsetLeft;
+    const walk = (x - startX) * 2;
+    navScroll.scrollLeft = scrollLeft - walk;
+});
+</script>
+</body></html>
