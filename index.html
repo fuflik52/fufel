@@ -7,6 +7,10 @@
 }
 
 body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     font-family: Arial, sans-serif;
     background: #0f0f1a;
     color: white;
@@ -116,6 +120,8 @@ body {
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
 }
 
 .nav-scroll::-webkit-scrollbar {
@@ -125,7 +131,7 @@ body {
 .nav-content {
     display: flex;
     padding: 10px;
-    min-width: min-content;
+    min-width: max-content;
     gap: 15px;
 }
 
@@ -243,7 +249,6 @@ body {
     font-weight: bold;
 }
 
-/* Add styles for purchase button */
 .shop-item-button {
     background: #28a745;
     color: white;
@@ -333,6 +338,120 @@ body {
     color: rgba(255, 255, 255, 0.7);
     margin-top: 5px;
 }
+
+.tasks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.task-item {
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    position: relative;
+    border: 2px solid rgba(40, 167, 69, 0.3);
+    transition: 0.3s;
+}
+
+.task-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+}
+
+.task-item.claimed {
+    opacity: 0.7;
+    background: rgba(40, 167, 69, 0.05);
+}
+
+.task-new {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #28a745;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.task-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.task-title {
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.task-description {
+    font-size: 12px;
+    color: #aaa;
+    margin: 5px 0;
+}
+
+.task-reward {
+    font-size: 14px;
+    color: #28a745;
+    margin: 5px 0;
+}
+
+.task-claim-button {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 15px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+}
+
+.task-claim-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.task-claim-button:hover:not(:disabled) {
+    background: #218838;
+}
+
+.performance-overlay {
+    cursor: move;
+    user-select: none;
+    position: fixed;
+    touch-action: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border-radius: 15px;
+    color: #fff;
+    font-family: monospace;
+    z-index: 9999;
+    display: none;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    border: 2px solid #ff3366;
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.performance-overlay::-webkit-scrollbar {
+    display: none;
+}
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -340,6 +459,7 @@ body {
 <body>
 
 <div class="phone-container">
+    <div class="notification"></div>
     <div class="game-area">
         <svg class="snow" xmlns="http://www.w3.org/2000/svg">
             <circle class="snowflake" r="2" fill="white"></circle>
@@ -367,6 +487,8 @@ body {
         <div class="section-content" id="development-section">
             <i class="fas fa-cog development-icon"></i>
             <h3>Раздел в разработке</h3>
+            <div class="tasks-grid">
+            </div>
         </div>
     </div>
 
@@ -427,6 +549,16 @@ function initTelegramUser() {
 
 // Call this when page loads
 document.addEventListener('DOMContentLoaded', initTelegramUser);
+
+function showNotification(message) {
+    const notification = document.querySelector('.notification');
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
 
 const snow = document.querySelector('.snow');
 const snowflakeTemplate = snow.querySelector('.snowflake');
@@ -594,6 +726,229 @@ let shopItems = [
     }
 ];
 
+let tasks = [
+    {
+        id: 1,
+        icon: '🎯',
+        title: 'Первые шаги',
+        description: 'Накопите 100 кликов',
+        reward: 50,
+        requirement: 100,
+        type: 'clicks',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 2,
+        icon: '🌟',
+        title: 'Начинающий кликер',
+        description: 'Накопите 1,000 кликов',
+        reward: 200,
+        requirement: 1000,
+        type: 'clicks',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 3,
+        icon: '💫',
+        title: 'Опытный кликер',
+        description: 'Накопите 10,000 кликов',
+        reward: 1000,
+        requirement: 10000,
+        type: 'clicks',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 4,
+        icon: '🏆',
+        title: 'Мастер кликер',
+        description: 'Накопите 100,000 кликов',
+        reward: 5000,
+        requirement: 100000,
+        type: 'clicks',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 5,
+        icon: '👑',
+        title: 'Король кликов',
+        description: 'Накопите 1,000,000 кликов',
+        reward: 25000,
+        requirement: 1000000,
+        type: 'clicks',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 6,
+        icon: '🛍️',
+        title: 'Первая покупка',
+        description: 'Купите любое улучшение',
+        reward: 100,
+        requirement: 1,
+        type: 'purchases',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 7,
+        icon: '🛒',
+        title: 'Шопоголик',
+        description: 'Купите 5 улучшений',
+        reward: 500,
+        requirement: 5,
+        type: 'purchases',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 8,
+        icon: '💎',
+        title: 'Коллекционер',
+        description: 'Купите 10 улучшений',
+        reward: 1000,
+        requirement: 10,
+        type: 'purchases',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 9,
+        icon: '⚡',
+        title: 'Энергичный старт',
+        description: 'Достигните 10 кликов в секунду',
+        reward: 2000,
+        requirement: 10,
+        type: 'cps',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 10,
+        icon: '🚀',
+        title: 'Скоростной кликер',
+        description: 'Достигните 100 кликов в секунду',
+        reward: 5000,
+        requirement: 100,
+        type: 'cps',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 11,
+        icon: '⭐',
+        title: 'Звездный путь',
+        description: 'Достигните 1000 кликов в секунду',
+        reward: 10000,
+        requirement: 1000,
+        type: 'cps',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 12,
+        icon: '🌍',
+        title: 'Мировое господство',
+        description: 'Достигните 10000 кликов в секунду',
+        reward: 50000,
+        requirement: 10000,
+        type: 'cps',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 13,
+        icon: '🎮',
+        title: 'Игровой марафон',
+        description: 'Играйте 1 час',
+        reward: 1000,
+        requirement: 3600,
+        type: 'time',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 14,
+        icon: '⏰',
+        title: 'Временной магнат',
+        description: 'Играйте 24 часа',
+        reward: 10000,
+        requirement: 86400,
+        type: 'time',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 15,
+        icon: '📈',
+        title: 'Быстрый рост',
+        description: 'Получите 1000 кликов за час',
+        reward: 500,
+        requirement: 1000,
+        type: 'hourly',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 16,
+        icon: '💰',
+        title: 'Богатство',
+        description: 'Получите 10000 кликов за час',
+        reward: 2000,
+        requirement: 10000,
+        type: 'hourly',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 17,
+        icon: '🏭',
+        title: 'Фабрика кликов',
+        description: 'Получите 100000 кликов за час',
+        reward: 10000,
+        requirement: 100000,
+        type: 'hourly',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 18,
+        icon: '🎯',
+        title: 'Точность',
+        description: 'Кликните 100 раз подряд',
+        reward: 1000,
+        requirement: 100,
+        type: 'streak',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 19,
+        icon: '🎪',
+        title: 'Цирковой артист',
+        description: 'Кликните 1000 раз подряд',
+        reward: 5000,
+        requirement: 1000,
+        type: 'streak',
+        claimed: false,
+        isNew: true
+    },
+    {
+        id: 20,
+        icon: '🌈',
+        title: 'Радужный путь',
+        description: 'Соберите все достижения',
+        reward: 100000,
+        requirement: 19,
+        type: 'total_achievements',
+        claimed: false,
+        isNew: true
+    }
+];
+
 function updateShopItems() {
     const shopGrid = document.querySelector('.shop-grid');
     shopGrid.innerHTML = shopItems.map(item => `
@@ -611,9 +966,9 @@ function updateShopItems() {
 }
 
 function updateScoreDisplay() {
-    const perHour = autoClickPower * 3600;
+    const perHour = Math.floor(autoClickPower * 3600);
     scoreElement.innerHTML = `
-        ${score}<br>
+        ${Math.floor(score)}<br>
         <small style="font-size: 14px">+${perHour}/час</small>
     `;
 }
@@ -624,10 +979,8 @@ function purchaseItem(itemId) {
         score -= item.price;
         item.level++;
         
-        // Increase item price for next purchase (20% increase)
         item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
         
-        // Update powers based on item type
         if (item.id === 1) {
             clickPower += item.power;
         } else {
@@ -642,7 +995,6 @@ function purchaseItem(itemId) {
     }
 }
 
-// Call this function when the page loads
 updateShopItems();
 
 function createSnowflakes() {
@@ -680,8 +1032,12 @@ document.head.appendChild(style);
 createSnowflakes();
 
 clickCircle.addEventListener('click', () => {
+    if (window.navigator?.vibrate) {
+        window.navigator.vibrate(50); // 50ms vibration
+    }
     score += clickPower;
     updateScoreDisplay();
+    saveGameState();
     
     const effect = document.createElement('div');
     effect.className = 'click-effect';
@@ -691,129 +1047,306 @@ clickCircle.addEventListener('click', () => {
         effect.remove();
     });
 
-    if (score % 100 === 0) {
-        showNotification(`🎉 Поздравляем! Вы достигли ${score} кликов!`);
+    if (Math.floor(score) % 100 === 0) {
+        showNotification(`🎉 Поздравляем! Вы достигли ${Math.floor(score)} кликов!`);
     }
 });
 
 document.querySelectorAll('.nav-btn').forEach((btn, index) => {
     btn.addEventListener('click', function() {
-        // Remove active class from all buttons
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         
-        // Remove active class from all sections
         const allSections = document.querySelectorAll('.section-content');
         allSections.forEach(section => section.classList.remove('active'));
         
         const clickCircle = document.querySelector('.click-circle');
         const scoreContainer = document.querySelector('.score-container');
         
-        // Get the button text without extra spaces
         const sectionName = this.querySelector('i').nextSibling.textContent.trim();
         
         if (sectionName === 'Главная') {
-            // Show main game elements
             if (clickCircle) clickCircle.style.zIndex = '1';
             if (scoreContainer) scoreContainer.style.zIndex = '1';
         } else {
-            // Hide main game elements
             if (clickCircle) clickCircle.style.zIndex = '0';
             if (scoreContainer) scoreContainer.style.zIndex = '0';
             
             if (sectionName === 'Магазин') {
-                // Show shop section
                 const shopSection = document.getElementById('shop-section');
                 if (shopSection) shopSection.classList.add('active');
             } else if (sectionName === 'Настройки') {
-                // Show settings section
                 const settingsSection = document.getElementById('settings-section');
                 if (settingsSection) settingsSection.classList.add('active');
+            } else if (sectionName === 'Задания') {
+                const tasksSection = document.getElementById('development-section');
+                if (tasksSection) {
+                    updateTasksSection();
+                    tasksSection.classList.add('active');
+                }
             } else {
-                // Show default development section for other sections
-                const defaultSection = allSections[allSections.length - 1]; // Get the last section (development section)
+                const defaultSection = document.getElementById('development-section');
                 if (defaultSection) {
-                    const heading = defaultSection.querySelector('h3');
-                    if (heading) {
-                        heading.textContent = `Раздел "${sectionName}" находится в разработке`;
-                    }
+                    defaultSection.innerHTML = `
+                        <i class="fas fa-cog development-icon"></i>
+                        <h3>Раздел "${sectionName}" находится в разработке</h3>
+                    `;
                     defaultSection.classList.add('active');
                 }
             }
         }
-        
-        // Show notification for sections under development
-        if (sectionName !== 'Главная' && sectionName !== 'Магазин' && sectionName !== 'Настройки') {
-            showNotification(`🔧 Раздел "${sectionName}" находится в разработке`);
-        }
     });
 });
 
-function showNotification(message) {
-    // Remove existing notification if any
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
+// Performance monitoring script
+document.addEventListener('keydown', function(e) {
+    if (e.key.toLowerCase() === 'o') {
+        let overlay = document.querySelector('.performance-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'performance-overlay';
+            document.body.appendChild(overlay);
+            makeDraggable(overlay); // Make the overlay draggable
+        }
+
+        // Add click stats to performance report
+        const clickStats = {
+            totalClicks: 0,
+            clicksPerSecond: 0,
+            lastClickTime: Date.now()
+        };
+
+        clickCircle.addEventListener('click', () => {
+            clickStats.totalClicks++;
+            const now = Date.now();
+            clickStats.clicksPerSecond = 1000 / (now - clickStats.lastClickTime);
+            clickStats.lastClickTime = now;
+        });
+
+        // Update the performance report content
+        function refreshLoop() {
+            // ... existing performance monitoring code ...
+
+            // Add click statistics to the report
+            let performanceReport = '📊 Отчет производительности:\n\n';
+            const sections = [
+                {id: 'Основная игра', selector: '.game-area'},
+                {id: 'Магазин', selector: '#shop-section'}, 
+                {id: 'Настройки', selector: '#settings-section'},
+                {id: 'Задания', selector: '#development-section'}
+            ];
+            
+            let times = [];
+            let fps = 0;
+            
+            performanceReport += '🔍 Нагрузка по разделам:\n';
+            sections.forEach(({id, selector}) => {
+                const section = document.querySelector(selector);
+                if (section) {
+                    const startTime = performance.now();
+                    section.offsetHeight; // Force reflow
+                    const endTime = performance.now();
+                    const renderTime = (endTime - startTime).toFixed(2);
+                    performanceReport += `${id}: ${renderTime}мс время отрисовки\n`;
+                }
+            });
+            
+            performanceReport += '\n📈 Общая статистика:\n';
+            performanceReport += `FPS: ${fps} кадров/сек\n`;
+            performanceReport += `Использование памяти: Недоступно\n`;
+            performanceReport += `Время загрузки страницы: ${(window.performance.timing.loadEventEnd - window.performance.timing.navigationStart)}мс\n`;
+            
+            performanceReport += '\n⚡ Дополнительно:\n';
+            performanceReport += `Активных анимаций: ${document.getAnimations().length}\n`;
+            performanceReport += `Элементов DOM: ${document.getElementsByTagName('*').length}\n`;
+            
+            performanceReport += '\n🖱️ Статистика кликов:\n';
+            performanceReport += `Всего кликов: ${clickStats.totalClicks}\n`;
+            performanceReport += `Кликов в секунду: ${clickStats.clicksPerSecond.toFixed(2)}\n`;
+            performanceReport += `Монет за клик: ${clickPower}\n`;
+            performanceReport += `Авто-монет в секунду: ${autoClickPower}\n`;
+
+            overlay.textContent = performanceReport;
+            overlay.style.display = 'block';
+            
+            setTimeout(refreshLoop, 1000); // Update every second
+        }
+
+        refreshLoop();
+
+        // Close overlay when clicking outside
+        document.addEventListener('click', function closeOverlay(e) {
+            if (!overlay.contains(e.target)) {
+                overlay.style.display = 'none';
+                document.removeEventListener('click', closeOverlay);
+            }
+        });
+    }
+});
+
+function makeDraggable(overlay) {
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    
+    overlay.onmousedown = dragMouseDown;
+    overlay.ontouchstart = dragTouchStart;
+
+    function dragMouseDown(e) {
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
     }
 
-    // Create new notification
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    document.body.appendChild(notification);
+    function dragTouchStart(e) {
+        e.preventDefault();
+        pos3 = e.touches[0].clientX;
+        pos4 = e.touches[0].clientY;
+        overlay.ontouchend = closeDragElement;
+        overlay.ontouchmove = elementTouchDrag;
+    }
 
-    // Show notification
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 100);
+    function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        overlay.style.top = (overlay.offsetTop - pos2) + "px";
+        overlay.style.left = (overlay.offsetLeft - pos1) + "px";
+    }
 
-    // Hide and remove notification after 3 seconds
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    function elementTouchDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.touches[0].clientX;
+        pos2 = pos4 - e.touches[0].clientY;
+        pos3 = e.touches[0].clientX;
+        pos4 = e.touches[0].clientY;
+        overlay.style.top = (overlay.offsetTop - pos2) + "px";
+        overlay.style.left = (overlay.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+        overlay.ontouchend = null;
+        overlay.ontouchmove = null;
+    }
 }
 
-const navScroll = document.querySelector('.nav-scroll');
-let isScrolling = false;
-let startX;
-let scrollLeft;
-
-navScroll.addEventListener('mousedown', (e) => {
-    isScrolling = true;
-    startX = e.pageX - navScroll.offsetLeft;
-    scrollLeft = navScroll.scrollLeft;
-});
-
-navScroll.addEventListener('mouseleave', () => {
-    isScrolling = false;
-});
-
-navScroll.addEventListener('mouseup', () => {
-    isScrolling = false;
-});
-
-navScroll.addEventListener('mousemove', (e) => {
-    if (!isScrolling) return;
-    e.preventDefault();
-    const x = e.pageX - navScroll.offsetLeft;
-    const walk = (x - startX) * 2;
-    navScroll.scrollLeft = scrollLeft - walk;
-});
-
-function gameLoop() {
-    const currentTime = Date.now();
-    const deltaTime = (currentTime - lastUpdateTime) / 1000; // Convert to seconds
-    
-    score += autoClickPower * deltaTime;
-    updateScoreDisplay();
-    
-    lastUpdateTime = currentTime;
-    requestAnimationFrame(gameLoop);
+// Add this function to update tasks section
+function updateTasksSection() {
+    const tasksSection = document.getElementById('development-section');
+    if (tasksSection) {
+        tasksSection.innerHTML = `
+            <div class="tasks-grid">
+                ${renderTasks()}
+            </div>
+        `;
+    }
 }
 
-// Start the game loop
-gameLoop();
+function renderTasks() {
+    return tasks.map(task => `
+        <div class="task-item ${task.claimed ? 'claimed' : ''}">
+            ${task.isNew ? '<span class="task-new">NEW</span>' : ''}
+            <div class="task-icon">${task.icon}</div>
+            <div class="task-title">${task.title}</div>
+            <div class="task-description">${task.description}</div>
+            <div class="task-reward">Награда: ${task.reward} кликов</div>
+            <button class="task-claim-button" 
+                    onclick="claimTask(${task.id})"
+                    ${task.claimed ? 'disabled' : ''}>
+                ${task.claimed ? 'Получено' : 'Получить'}
+            </button>
+        </div>
+    `).join('');
+}
 
+function claimTask(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || task.claimed) return;
+
+    let canClaim = false;
+    
+    switch(task.type) {
+        case 'clicks':
+            canClaim = score >= task.requirement;
+            break;
+        case 'purchases':
+            canClaim = shopItems.reduce((sum, item) => sum + item.level, 0) >= task.requirement;
+            break;
+        case 'cps':
+            canClaim = autoClickPower >= task.requirement;
+            break;
+        case 'hourly':
+            canClaim = (autoClickPower * 3600) >= task.requirement;
+            break;
+    }
+
+    if (canClaim) {
+        task.claimed = true;
+        score += task.reward;
+        showNotification(`🎉 Задание "${task.title}" выполнено! +${task.reward} кликов`);
+        updateScoreDisplay();
+        const tasksSection = document.querySelector('#development-section .tasks-grid');
+        if (tasksSection) {
+            tasksSection.innerHTML = renderTasks();
+        }
+    } else {
+        showNotification('❌ Условия задания еще не выполнены');
+    }
+}
+
+const tasksSection = document.querySelector('#development-section');
+tasksSection.innerHTML = `
+    <div class="tasks-grid">
+        ${renderTasks()}
+    </div>
+`;
+
+function saveGameState() {
+    if (!tg?.initDataUnsafe?.user?.id) return;
+    
+    const gameState = {
+        score: Math.floor(score),
+        clickPower,
+        autoClickPower,
+        shopItems,
+        tasks
+    };
+    
+    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
+}
+
+function loadGameState() {
+    if (!tg?.initDataUnsafe?.user?.id) return;
+    
+    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        score = state.score;
+        clickPower = state.clickPower;
+        autoClickPower = state.autoClickPower;
+        shopItems = state.shopItems;
+        tasks = state.tasks;
+        
+        updateScoreDisplay();
+        updateShopItems();
+        const tasksGrid = document.querySelector('.tasks-grid');
+        if (tasksGrid) {
+            tasksGrid.innerHTML = renderTasks();
+        }
+    }
+}
+
+// Call loadGameState when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initTelegramUser();
+    loadGameState();
+});
+
+// Auto-save every minute
+setInterval(saveGameState, 60000);
 </script>
 </body></html>
