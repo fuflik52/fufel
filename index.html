@@ -1,1363 +1,310 @@
-<html><head><base href="https://example.com"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<html><head><base href="." /><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Winter Changelog</title>
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+:root {
+    --primary-color: #1b3d6d;
+    --secondary-color: #a8c4e3;
+    --background: linear-gradient(135deg, #1b3d6d 0%, #2c5990 100%);
 }
 
 body {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: var(--background);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
     user-select: none;
-    font-family: Arial, sans-serif;
-    background: #0f0f1a;
+}
+
+.changelog-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 15px 30px;
+    border-radius: 25px;
     color: white;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.phone-container {
-    width: 100%;
-    max-width: 420px;
-    height: 100vh;
-    max-height: 900px;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1c1c2e 100%);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-}
-
-.game-area {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.click-circle {
-    width: 150px;
-    height: 150px;
-    background: radial-gradient(circle at 30% 30%, #ff3366, #cc1f4a);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-size: 18px;
     cursor: pointer;
-    transition: transform 0.1s;
-    box-shadow: 0 0 30px rgba(255, 51, 102, 0.3);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    overflow: hidden;
-    z-index: 5; 
-}
-
-.click-circle:active {
-    transform: translate(-50%, -50%) scale(0.95);
-}
-
-.click-circle::before {
-    content: '🎄';
-    font-size: 50px;
-}
-
-.click-effect {
-    position: absolute;
-    pointer-events: none;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.4);
-    transform: scale(0);
-    animation: clickRipple 0.5s ease-out;
-}
-
-@keyframes clickRipple {
-    to {
-        transform: scale(2);
-        opacity: 0;
-    }
-}
-
-.score-container {
-    position: absolute;
-    top: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 51, 102, 0.2);
-    padding: 10px 30px;
-    border-radius: 20px;
-    border: 2px solid rgba(255, 51, 102, 0.5);
+    transition: all 0.3s ease;
     backdrop-filter: blur(5px);
-    z-index: 6;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.score {
-    font-size: 32px;
-    color: white;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.changelog-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
-.nav-panel {
-    height: 70px;
-    background: rgba(15, 15, 26, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 10; 
-    position: fixed; 
-    bottom: 0;
-    width: 100%;
-    max-width: 420px; 
-}
-
-.nav-scroll {
-    width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-}
-
-.nav-scroll::-webkit-scrollbar {
+.modal {
     display: none;
-}
-
-.nav-content {
-    display: flex;
-    padding: 10px;
-    min-width: max-content;
-    gap: 15px;
-}
-
-.nav-btn {
-    min-width: 80px;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 15px;
-    background: #1c1c2e;
-    color: white;
-    font-size: 14px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    transition: 0.3s;
-}
-
-.nav-btn.active {
-    background: #ff3366;
-    box-shadow: 0 0 15px rgba(255, 51, 102, 0.3);
-}
-
-.nav-btn:active {
-    transform: scale(0.95);
-}
-
-.nav-btn i {
-    font-size: 20px;
-}
-
-.section-content {
-    display: none;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 70px; 
-    background: rgb(28, 28, 46);
-    z-index: 8; 
-    padding: 20px;
-    overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    height: calc(100vh - 70px); 
-}
-
-.section-content::-webkit-scrollbar {
-    display: none;
-}
-
-.section-content.active {
-    display: block;
-}
-
-.development-icon {
-    font-size: 50px;
-    color: #ff3366;
-    animation: spin 4s linear infinite;
-    margin-bottom: 20px;
-}
-
-.shop-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    padding: 10px;
-}
-
-.shop-item {
-    background: rgba(0, 136, 255, 0.1);
-    border-radius: 15px;
-    padding: 15px;
-    text-align: center;
-    position: relative;
-    border: 2px solid rgba(0, 136, 255, 0.3);
-    transition: 0.3s;
-    z-index: 9; 
-}
-
-.shop-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 136, 255, 0.2);
-}
-
-.shop-item-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
-}
-
-.shop-item-title {
-    font-size: 16px;
-    margin-bottom: 5px;
-    color: #fff;
-}
-
-.shop-item-description {
-    font-size: 12px;
-    color: #aaa;
-    margin: 5px 0;
-}
-
-.shop-item-price {
-    font-size: 14px;
-    color: #0088ff;
-}
-
-.shop-item-new {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #0088ff;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.shop-item-button {
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 5px 10px;
-    margin-top: 8px;
-    cursor: pointer;
-    transition: 0.2s;
     width: 100%;
-    position: relative; 
-    z-index: 10; 
-}
-
-.shop-item-button:disabled {
-    background: #666;
-    cursor: not-allowed;
-}
-
-.shop-item-button:hover:not(:disabled) {
-    background: #218838;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.notification {
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255, 51, 102, 0.9);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 15px;
-    font-size: 14px;
-    z-index: 2000;
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.3);
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
+    z-index: 1000;
 }
 
-.notification.show {
-    opacity: 1;
-}
-
-.score small {
-    display: block;
-    color: #ff3366;
-    font-weight: normal;
-}
-
-.profile-container {
-    display: none;
-}
-
-.profile-container:not(#stats-section .profile-container) {
-    display: none;
-}
-
-.tasks-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    padding: 10px;
-    overflow-y: auto;
-}
-
-.task-item {
-    background: rgba(40, 167, 69, 0.1);
-    border-radius: 15px;
-    padding: 15px;
-    text-align: center;
-    position: relative;
-    border: 2px solid rgba(40, 167, 69, 0.3);
-    transition: 0.3s;
-    z-index: 9; 
-}
-
-.task-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
-}
-
-.task-item.claimed {
-    opacity: 0.7;
-    background: rgba(40, 167, 69, 0.05);
-}
-
-.task-new {
+.modal-content {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #28a745;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.task-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
-}
-
-.task-title {
-    font-size: 16px;
-    margin-bottom: 5px;
-    color: #fff;
-    font-weight: bold;
-}
-
-.task-description {
-    font-size: 12px;
-    color: #aaa;
-    margin: 5px 0;
-}
-
-.task-reward {
-    font-size: 14px;
-    color: #28a745;
-    margin: 5px 0;
-}
-
-.task-claim-button {
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 8px 15px;
-    margin-top: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    width: 100%;
-    position: relative; 
-    z-index: 10; 
-}
-
-.task-claim-button:disabled {
-    background: #666;
-    cursor: not-allowed;
-}
-
-.task-claim-button:hover:not(:disabled) {
-    background: #218838;
-}
-
-.performance-overlay {
-    cursor: move;
-    user-select: none;
-    position: fixed;
-    touch-action: none;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
-    padding: 20px;
-    border-radius: 15px;
-    color: #fff;
-    font-family: monospace;
-    z-index: 9999;
-    display: none;
-    max-width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    border: 2px solid #ff3366;
-    box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    color: var(--primary-color);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.performance-overlay::-webkit-scrollbar {
-    display: none;
-}
-
-* {
-    -webkit-tap-highlight-color: transparent;
-}
-
-.stats-grid {
-    display: grid;
-    gap: 15px;
-}
-
-.stats-item {
-    background: rgba(0, 136, 255, 0.1);
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-}
-
-.snow, .snowflake {
-    display: none;
-}
-
-.toggle-slider span {
-    position: absolute;
-    content: '';
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .2s;
-    border-radius: 50%;
-}
-
-input:checked + .toggle-slider span {
-    transform: translateX(26px);
-}
-
-#changelogBtn {
-    display: none;
+.close-btn {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: #ff3366;
-    border: none;
+    background: var(--primary-color);
     color: white;
-    padding: 8px 15px;
-    border-radius: 15px;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px;
-    z-index: 15;
-    cursor: pointer;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    z-index: 2;
 }
 
-.game-area:not(.section-content.active) #changelogBtn {
+.close-btn:hover {
+    transform: rotate(90deg);
+    background: #2c5990;
+}
+
+.changelog-pages {
     display: flex;
+    transition: transform 0.5s ease;
+    height: 100%;
 }
 
-#changelogModal {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transform: none;
-    background: rgba(0, 0, 0, 0.95);
-    padding: 20px;
-    max-width: 100%;
-    max-height: 100%;
+.page {
+    min-width: 100%;
+    height: 100%;
+    padding: 40px;
+    box-sizing: border-box;
     overflow-y: auto;
-    z-index: 9999;
-    display: none;
-    border: none;
-    box-shadow: none;
+}
+
+.page:nth-child(1) {
+    background: linear-gradient(135deg, #1b3d6d 0%, #2c5990 50%, #1b3d6d 100%);
+    background-size: 200% 200%;
+    animation: gradientBG 15s ease infinite;
+}
+
+.page:nth-child(2) {
+    background: linear-gradient(135deg, #2961a8 0%, #4988cc 50%, #2961a8 100%);
+    background-size: 200% 200%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.pagination {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 2;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
+.version {
+    font-size: 28px;
+    margin-bottom: 30px;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.new-badge {
+    background: #FF5722;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin: 20px 0;
+    padding: 15px 20px;
+    position: relative;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+li:before {
+    content: "❄";
+    position: absolute;
+    left: -25px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+    .version {
+        font-size: 24px;
+    }
+    
+    li {
+        font-size: 14px;
+        margin: 15px 0;
+    }
+
+    .page {
+        padding: 20px;
+    }
 }
 </style>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+<button class="changelog-btn">Change Log</button>
 
-<div class="phone-container">
-    <button id="changelogBtn">
-        <i class="fas fa-history"></i>
-        Change-log
-    </button>
-    <div class="notification"></div>
-    <div class="game-area">
-        <div class="score-container">
-            <div class="score">0</div>
-        </div>
-        <div class="click-circle"></div>
-        <div class="section-content" id="shop-section">
-            <div class="shop-grid">
+<div class="modal">
+    <div class="modal-content">
+        <button class="close-btn">×</button>
+        <div class="changelog-pages">
+            <div class="page">
+                <div class="version">Версия 1.2.0 <span class="new-badge">New</span></div>
+                <ul>
+                    <li>Оптимизация производительности снежинок</li>
+                    <li>Исправлена видимость нижней панели на iPhone</li>
+                    <li>Улучшена отзывчивость интерфейса</li>
+                    <li>Оптимизирована анимация частиц</li>
+                    <li>Исправлены мелкие визуальные баги</li>
+                </ul>
+            </div>
+            <div class="page">
+                <div class="version">Версия 1.1.0</div>
+                <ul>
+                    <li>Добавлено регулирование количества снежинок (0-1000)</li>
+                    <li>Добавлен Change-log</li>
+                    <li>Оптимизация производительности</li>
+                    <li>Исправлены мелкие ошибки</li>
+                </ul>
             </div>
         </div>
-        <div class="section-content" id="settings-section">
-            <i class="fas fa-cog development-icon"></i>
-            <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
-                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
-                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
-                    </div>
-                    <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                        <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
-                        <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="section-content" id="tasks-section">
-            <div class="tasks-grid">
-                ${renderTasks()}
-            </div>
-        </div>
-        <div class="section-content" id="development-section">
-            <i class="fas fa-cog development-icon"></i>
-            <h3 style="margin-bottom: 20px;">Раздел в разработке</h3>
-            <div class="tasks-grid">
-                ${renderTasks()}
-            </div>
-        </div>
-        <div class="section-content" id="stats-section">
-            <!-- Content will be populated by updateStatsSection() -->
+        <div class="pagination">
+            <div class="dot active"></div>
+            <div class="dot"></div>
         </div>
     </div>
-
-    <nav class="nav-panel">
-        <div class="nav-scroll">
-            <div class="nav-content">
-                <button class="nav-btn active">
-                    <i class="fas fa-home"></i>
-                    Главная
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-store"></i>
-                    Магазин
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-trophy"></i>
-                    Награды
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-tasks"></i>
-                    Задания
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-city"></i>
-                    Город
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-chart-line"></i>
-                    Инвестиции
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-cog"></i>
-                    Настройки
-                </button>
-                <button class="nav-btn">
-                    <i class="fas fa-chart-simple"></i>
-                    Статистика
-                </button>
-            </div>
-        </div>
-    </nav>
-</div>
-
-<div id="changelogModal">
-    <h2 style="color: #ff3366; margin-bottom: 15px;">Change-log</h2>
-    <div style="color: white;">
-        <h3>Версия 1.0.2</h3>
-        <ul style="list-style-type: none; padding-left: 0;">
-            <li>• Оптимизация производительности снежинок</li>
-            <li>• Исправлена видимость нижней панели на iPhone</li>
-            <li>• Улучшена отзывчивость интерфейса</li>
-            <li>• Оптимизирована анимация частиц</li>
-            <li>• Исправлены мелкие визуальные баги</li>
-        </ul>
-        <h3>Версия 1.0.1</h3>
-        <ul style="list-style-type: none; padding-left: 0;">
-            <li>• Добавлено регулирование количества снежинок (0-1000)</li>
-            <li>• Добавлен Change-log</li>
-            <li>• Оптимизация производительности</li>
-            <li>• Исправлены мелкие ошибки</li>
-        </ul>
-    </div>
-    <button onclick="closeChangelog()" style="background: #ff3366; border: none; color: white; padding: 8px 15px; border-radius: 10px; margin-top: 15px; width: 100%;">
-        Закрыть
-    </button>
 </div>
 
 <script>
-let tg = window.Telegram?.WebApp;
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.querySelector('.modal');
+    const changelogBtn = document.querySelector('.changelog-btn');
+    const closeBtn = document.querySelector('.close-btn');
+    const pages = document.querySelector('.changelog-pages');
+    const dots = document.querySelectorAll('.dot');
+    let currentPage = 0;
 
-// Initialize Telegram user data
-function initTelegramUser() {
-    if (tg) {
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('username').textContent = user.username || 'Anonymous User';
-            document.getElementById('userId').textContent = `ID: ${user.id || 'Unknown'}`;
-            
-            if (user.photo_url) {
-                document.getElementById('userPhoto').src = user.photo_url;
-            }
-        }
-        tg.ready();
-    }
-}
+    changelogBtn.addEventListener('click', () => {
+        modal.style.display = 'block';
+    });
 
-// Call this when page loads
-document.addEventListener('DOMContentLoaded', initTelegramUser);
-
-function showNotification(message) {
-    const notification = document.querySelector('.notification');
-    notification.textContent = message;
-    notification.classList.add('show');
-    
-    setTimeout(() => {
-        notification.classList.remove('show');
-    }, 3000);
-}
-
-const sectionContents = document.querySelectorAll('.section-content');
-const gameArea = document.querySelector('.game-area');
-const clickCircle = document.querySelector('.click-circle');
-const scoreContainer = document.querySelector('.score-container');
-const scoreElement = document.querySelector('.score');
-
-let score = 0;
-let autoClickPower = 0;
-let lastUpdateTime = Date.now();
-let totalClicks = 0;
-let maxBalance = 0;
-let totalEarned = 0;
-
-let shopItems = [
-    {
-        id: 2,
-        icon: '⚡',
-        title: 'Автокликер',
-        price: 500,
-        basePrice: 500,
-        level: 0,
-        power: 1,
-        description: 'Добавляет 1 клик/сек'
-    },
-    {
-        id: 3,
-        icon: '🤖',
-        title: 'Робот-кликер',
-        price: 1000,
-        basePrice: 1000,
-        level: 0,
-        power: 2,
-        description: 'Добавляет 2 клика/сек'
-    },
-    {
-        id: 4,
-        icon: '🎮',
-        title: 'Игровая консоль',
-        price: 2500,
-        basePrice: 2500,
-        level: 0,
-        power: 5,
-        description: 'Добавляет 5 кликов/сек'
-    },
-    {
-        id: 5,
-        icon: '💻',
-        title: 'Майнинг ферма',
-        price: 5000,
-        basePrice: 5000,
-        level: 0,
-        power: 10,
-        description: 'Добавляет 10 кликов/сек'
-    },
-    {
-        id: 6,
-        icon: '🏭',
-        title: 'Мини-фабрика',
-        price: 10000,
-        basePrice: 10000,
-        level: 0,
-        power: 20,
-        description: 'Добавляет 20 кликов/сек'
-    },
-    {
-        id: 7,
-        icon: '🏢',
-        title: 'Офисный центр',
-        price: 25000,
-        basePrice: 25000,
-        level: 0,
-        power: 50,
-        description: 'Добавляет 50 кликов/сек'
-    },
-    {
-        id: 8,
-        icon: '🏦',
-        title: 'Банк кликов',
-        price: 50000,
-        basePrice: 50000,
-        level: 0,
-        power: 100,
-        description: 'Добавляет 100 кликов/сек'
-    },
-    {
-        id: 9,
-        icon: '🌍',
-        title: 'Глобальная сеть',
-        price: 100000,
-        basePrice: 100000,
-        level: 0,
-        power: 200,
-        description: 'Добавляет 200 кликов/сек'
-    },
-    {
-        id: 10,
-        icon: '🚀',
-        title: 'Космическая станция',
-        price: 250000,
-        basePrice: 250000,
-        level: 0,
-        power: 500,
-        description: 'Добавляет 500 кликов/сек'
-    },
-    {
-        id: 11,
-        icon: '⚛️',
-        title: 'Квантовый генератор',
-        price: 500000,
-        basePrice: 500000,
-        level: 0,
-        power: 1000,
-        description: 'Добавляет 1000 кликов/сек'
-    },
-    {
-        id: 12,
-        icon: '🌟',
-        title: 'Звездный коллектор',
-        price: 1000000,
-        basePrice: 1000000,
-        level: 0,
-        power: 2000,
-        description: 'Добавляет 2000 кликов/сек'
-    },
-    {
-        id: 13,
-        icon: '🌌',
-        title: 'Галактический портал',
-        price: 2500000,
-        basePrice: 2500000,
-        level: 0,
-        power: 5000,
-        description: 'Добавляет 5000 кликов/сек'
-    },
-    {
-        id: 14,
-        icon: '🎇',
-        title: 'Межзвездный конвертер',
-        price: 5000000,
-        basePrice: 5000000,
-        level: 0,
-        power: 10000,
-        description: 'Добавляет 10000 кликов/сек'
-    },
-    {
-        id: 15,
-        icon: '🌈',
-        title: 'Радужный ускоритель',
-        price: 10000000,
-        basePrice: 10000000,
-        level: 0,
-        power: 20000,
-        description: 'Добавляет 20000 кликов/сек'
-    }
-];
-
-let tasks = [
-    {
-        id: 1,
-        icon: '🎯',
-        title: 'Первые шаги',
-        description: 'Накопите 100 кликов',
-        reward: 50,
-        requirement: 100,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 2,
-        icon: '🌟',
-        title: 'Начинающий кликер',
-        description: 'Накопите 1,000 кликов',
-        reward: 200,
-        requirement: 1000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 3,
-        icon: '💫',
-        title: 'Опытный кликер',
-        description: 'Накопите 10,000 кликов',
-        reward: 1000,
-        requirement: 10000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 4,
-        icon: '🏆',
-        title: 'Мастер кликер',
-        description: 'Накопите 100,000 кликов',
-        reward: 5000,
-        requirement: 100000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 5,
-        icon: '👑',
-        title: 'Король кликов',
-        description: 'Накопите 1,000,000 кликов',
-        reward: 25000,
-        requirement: 1000000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 6,
-        icon: '🛍️',
-        title: 'Первая покупка',
-        description: 'Купите любое улучшение',
-        reward: 100,
-        requirement: 1,
-        type: 'purchases',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 7,
-        icon: '🛒',
-        title: 'Шопоголик',
-        description: 'Купите 5 улучшений',
-        reward: 500,
-        requirement: 5,
-        type: 'purchases',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 8,
-        icon: '💎',
-        title: 'Коллекционер',
-        description: 'Купите 10 улучшений',
-        reward: 1000,
-        requirement: 10,
-        type: 'purchases',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 9,
-        icon: '⚡',
-        title: 'Энергичный старт',
-        description: 'Достигните 10 кликов в секунду',
-        reward: 2000,
-        requirement: 10,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 10,
-        icon: '🚀',
-        title: 'Скоростной кликер',
-        description: 'Достигните 100 кликов в секунду',
-        reward: 5000,
-        requirement: 100,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 11,
-        icon: '⭐',
-        title: 'Звездный путь',
-        description: 'Достигните 1000 кликов в секунду',
-        reward: 10000,
-        requirement: 1000,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 12,
-        icon: '🌍',
-        title: 'Мировое господство',
-        description: 'Достигните 10000 кликов в секунду',
-        reward: 50000,
-        requirement: 10000,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 13,
-        icon: '🎮',
-        title: 'Игровой марафон',
-        description: 'Играйте 1 час',
-        reward: 1000,
-        requirement: 3600,
-        type: 'time',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 14,
-        icon: '⏰',
-        title: 'Временной магнат',
-        description: 'Играйте 24 часа',
-        reward: 10000,
-        requirement: 86400,
-        type: 'time',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 15,
-        icon: '📈',
-        title: 'Быстрый рост',
-        description: 'Получите 1000 кликов за час',
-        reward: 500,
-        requirement: 1000,
-        type: 'hourly',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 16,
-        icon: '💰',
-        title: 'Богатство',
-        description: 'Получите 10000 кликов за час',
-        reward: 2000,
-        requirement: 10000,
-        type: 'hourly',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 17,
-        icon: '🏭',
-        title: 'Фабрика кликов',
-        description: 'Получите 100000 кликов за час',
-        reward: 10000,
-        requirement: 100000,
-        type: 'hourly',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 18,
-        icon: '🎯',
-        title: 'Точность',
-        description: 'Кликните 100 раз подряд',
-        reward: 1000,
-        requirement: 100,
-        type: 'streak',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 19,
-        icon: '🎪',
-        title: 'Цирковой артист',
-        description: 'Кликните 1000 раз подряд',
-        reward: 5000,
-        requirement: 1000,
-        type: 'streak',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 20,
-        icon: '🌈',
-        title: 'Радужный путь',
-        description: 'Соберите все достижения',
-        reward: 100000,
-        requirement: 19,
-        type: 'total_achievements',
-        claimed: false,
-        isNew: true
-    }
-];
-
-let vibrationEnabled = true;
-
-document.getElementById('vibrationToggle').addEventListener('change', function() {
-    vibrationEnabled = this.checked;
-    localStorage.setItem('vibrationEnabled', vibrationEnabled);
-    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-    updateSettingsHighlight();
-});
-
-function updateSettingsHighlight() {
-    const vibrationOption = document.querySelector('.settings-option:nth-child(1)');
-    
-    if (vibrationEnabled) {
-        vibrationOption.classList.add('enabled');
-    } else {
-        vibrationOption.classList.remove('enabled');
-    }
-}
-
-function showChangelog() {
-    document.getElementById('changelogModal').style.display = 'block';
-}
-
-function closeChangelog() {
-    document.getElementById('changelogModal').style.display = 'none';
-}
-
-document.getElementById('changelogBtn').addEventListener('click', showChangelog);
-
-document.addEventListener('click', function(e) {
-    const modal = document.getElementById('changelogModal');
-    const btn = document.getElementById('changelogBtn');
-    if (e.target !== modal && !modal.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+    closeBtn.addEventListener('click', () => {
         modal.style.display = 'none';
-    }
-});
+    });
 
-function updateShopItems() {
-    const shopGrid = document.querySelector('.shop-grid');
-    shopGrid.innerHTML = shopItems.map(item => `
-        <div class="shop-item">
-            <span class="shop-item-new">LVL ${item.level}</span>
-            <div class="shop-item-icon">${item.icon}</div>
-            <div class="shop-item-title">${item.title}</div>
-            <div class="shop-item-description">${item.description}</div>
-            <div class="shop-item-price">${item.price} кликов</div>
-            <button class="shop-item-button" data-item-id="${item.id}">
-                Улучшить
-            </button>
-        </div>
-    `).join('');
-}
-
-function updateScoreDisplay() {
-    const perHour = Math.floor(autoClickPower * 3600);
-    scoreElement.innerHTML = `
-        ${Math.floor(score)}<br>
-        <small style="font-size: 14px">+${perHour}/час</small>
-    `;
-}
-
-function updateGame() {
-    const now = Date.now();
-    const deltaTime = (now - lastUpdateTime) / 1000; 
-    score += autoClickPower * deltaTime; 
-    lastUpdateTime = now;
-    updateScoreDisplay();
-    requestAnimationFrame(updateGame);
-}
-
-function purchaseItem(itemId) {
-    const item = shopItems.find(i => i.id === itemId);
-    if (item && score >= item.price) {
-        score -= item.price;
-        item.level++;
-        
-        item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
-        
-        autoClickPower += item.power;
-        
-        updateScoreDisplay();
-        updateShopItems();
-        showNotification(`✨ Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
-    } else {
-        showNotification(`❌ Недостаточно кликов для покупки ${item.title}`);
-    }
-}
-
-function renderTasks() {
-    return tasks.map(task => `
-        <div class="task-item ${task.claimed ? 'claimed' : ''}">
-            ${task.isNew ? '<span class="task-new">NEW</span>' : ''}
-            <div class="task-icon">${task.icon}</div>
-            <div class="task-title">${task.title}</div>
-            <div class="task-description">${task.description}</div>
-            <div class="task-reward">Награда: ${task.reward} кликов</div>
-            <button class="task-claim-button" 
-                    data-task-id="${task.id}"
-                    ${task.claimed ? 'disabled' : ''}>
-                ${task.claimed ? 'Получено' : 'Получить'}
-            </button>
-        </div>
-    `).join('');
-}
-
-function claimTask(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task || task.claimed) return;
-
-    let canClaim = false;
-    
-    switch(task.type) {
-        case 'clicks':
-            canClaim = score >= task.requirement;
-            break;
-        case 'purchases':
-            canClaim = shopItems.reduce((sum, item) => sum + item.level, 0) >= task.requirement;
-            break;
-        case 'cps':
-            canClaim = autoClickPower >= task.requirement;
-            break;
-        case 'hourly':
-            canClaim = (autoClickPower * 3600) >= task.requirement;
-            break;
-    }
-
-    if (canClaim) {
-        task.claimed = true;
-        score += task.reward;
-        showNotification(`🎉 Задание "${task.title}" выполнено! +${task.reward} кликов`);
-        updateScoreDisplay();
-        const tasksGrid = document.querySelector('.tasks-grid');
-        if (tasksGrid) {
-            tasksGrid.innerHTML = renderTasks();
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
         }
-    } else {
-        showNotification('❌ Условия задания еще не выполнены');
-    }
-}
+    });
 
-function saveGameState() {
-    if (!tg?.initDataUnsafe?.user?.id) return;
-    
-    maxBalance = Math.max(maxBalance, Math.floor(score));
-    
-    const gameState = {
-        score: Math.floor(score),
-        autoClickPower,
-        shopItems,
-        tasks,
-        totalClicks,
-        maxBalance,
-        totalEarned
-    };
-    
-    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
-}
-
-function loadGameState() {
-    if (!tg?.initDataUnsafe?.user?.id) return;
-    
-    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        score = state.score || 0;
-        autoClickPower = state.autoClickPower || 0;
-        shopItems = state.shopItems || shopItems;
-        tasks = state.tasks || tasks;
-        totalClicks = state.totalClicks || 0;
-        maxBalance = state.maxBalance || 0;
-        totalEarned = state.totalEarned || 0;
-        
-        updateScoreDisplay();
-        updateShopItems();
-        
-        const tasksGrid = document.querySelector('.tasks-grid');
-        if (tasksGrid) {
-            tasksGrid.innerHTML = renderTasks();
-        }
-    }
-}
-
-function initializeNavigation() {
-    const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = document.querySelectorAll('.section-content');
-
-    navBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            navBtns.forEach(b => b.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
-            
-            btn.classList.add('active');
-            
-            const btnText = btn.textContent.trim().toLowerCase();
-            
-            if (btnText === 'главная') {
-                sections.forEach(s => s.classList.remove('active'));
-            } else if (btnText === 'магазин') {
-                document.getElementById('shop-section').classList.add('active');
-            } else if (btnText === 'награды') {
-                document.getElementById('development-section').classList.add('active');
-                showNotification('🔧 Раздел "Награды" в разработке');
-            } else if (btnText === 'задания') {
-                document.getElementById('tasks-section').classList.add('active');
-            } else if (btnText === 'город' || btnText === 'инвестиции') {
-                document.getElementById('development-section').classList.add('active');
-                showNotification(`🔧 Раздел "${btnText}" в разработке`);
-            } else if (btnText === 'настройки') {
-                document.getElementById('settings-section').classList.add('active');
-            } else if (btnText === 'статистика') {
-                document.getElementById('stats-section').classList.add('active');
-                updateStatsSection();
-            }
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentPage = index;
+            updatePage();
         });
     });
-}
 
-function updateStatsSection() {
-    const statsSection = document.getElementById('stats-section');
-    if (!statsSection) return;
-    
-    const user = tg?.initDataUnsafe?.user;
-    
-    statsSection.innerHTML = `
-        <div class="profile-container">
-            <div class="profile-header">
-                <img id="userPhoto" class="profile-photo" src="${user?.photo_url || 'https://via.placeholder.com/100'}" alt="Profile Photo">
-                <div class="profile-info">
-                    <div id="username">${user?.username || 'Anonymous User'}</div>
-                    <div id="userId">ID: ${user?.id || 'Unknown'}</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-grid" style="margin-top: 20px; display: grid; gap: 15px;">
-            <div class="stats-item" style="background: rgba(0, 136, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
-                <div style="font-size: 24px; color: #0088ff;">💰 ${Math.floor(maxBalance)}</div>
-                <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
-            </div>
-            
-            <div class="stats-item" style="background: rgba(0, 136, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
-                <div style="font-size: 24px; color: #0088ff;">🖱️ ${totalClicks}</div>
-                <div style="color: #fff; margin-top: 5px;">Всего кликов</div>
-            </div>
-            
-            <div class="stats-item" style="background: rgba(0, 136, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
-                <div style="font-size: 24px; color: #0088ff;">✨ ${totalEarned}</div>
-                <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
-            </div>
-        </div>
-    `;
-}
+    let touchStartX = 0;
+    let touchEndX = 0;
 
-function initializeClickCircle() {
-    const clickCircle = document.querySelector('.click-circle');
-    
-    clickCircle.addEventListener('click', () => {
-        const effect = document.createElement('div');
-        effect.className = 'click-effect';
-        clickCircle.appendChild(effect);
-        
-        effect.addEventListener('animationend', () => {
-            effect.remove();
-        });
-        
-        score++;
-        totalClicks++;
-        totalEarned++;
-        updateScoreDisplay();
-        
-        if (vibrationEnabled && navigator.vibrate) {
-            navigator.vibrate(15);
-        }
-        
-        saveGameState();
+    pages.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
     });
-}
 
-function initializeShopItems() {
-    const shopGrid = document.querySelector('.shop-grid');
-    if (shopGrid) {
-        shopGrid.addEventListener('click', (e) => {
-            const button = e.target.closest('.shop-item-button');
-            if (button) {
-                const itemId = parseInt(button.dataset.itemId);
-                purchaseItem(itemId);
-                saveGameState();
+    pages.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0 && currentPage < dots.length - 1) {
+                currentPage++;
+            } else if (diff < 0 && currentPage > 0) {
+                currentPage--;
             }
-        });
+            updatePage();
+        }
     }
-}
 
-function initializeTaskItems() {
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.addEventListener('click', (e) => {
-            const button = e.target.closest('.task-claim-button');
-            if (button) {
-                const taskId = parseInt(button.dataset.taskId);
-                claimTask(taskId);
-                saveGameState();
-            }
+    function updatePage() {
+        pages.style.transform = `translateX(-${currentPage * 100}%)`;
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === currentPage);
         });
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    initializeNavigation();
-    initializeClickCircle();
-    initializeShopItems();
-    initializeTaskItems();
-    loadGameState();
-    initTelegramUser();
-    updateShopItems();
-    updateGame();
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.innerHTML = renderTasks();
     }
 });
 </script>
