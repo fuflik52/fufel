@@ -65,7 +65,7 @@ body {
     content: '';
     width: 100%;
     height: 100%;
-    background: url('/free-icon-dollar-6055383.png') no-repeat center;
+    background: url('https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png') no-repeat center;
     background-size: contain;
 }
 
@@ -576,6 +576,42 @@ input:checked + .toggle-slider span {
         transform: translateY(0px);
     }
 }
+
+.notification {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 167, 69, 0.95);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    transition: top 0.3s ease-in-out;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.notification.show {
+    top: 20px;
+    animation: notificationFloat 0.3s ease-out;
+}
+
+@keyframes notificationFloat {
+    0% {
+        transform: translate(-50%, -20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
+}
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -584,7 +620,7 @@ input:checked + .toggle-slider span {
 
 <div class="phone-container">
     <button id="changelogBtn">
-        <img src="/free-icon-gear-9482814.png" alt="Changelog">
+        <img src="https://i.postimg.cc/85KmdfzV/free-icon-newspaper-8417401.png" alt="Changelog">
     </button>
     <div class="notification"></div>
     <div class="game-area">
@@ -600,9 +636,12 @@ input:checked + .toggle-slider span {
             <i class="fas fa-cog development-icon"></i>
             <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
                 <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
-                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
+                        <div>
+                            <h3 style="margin-bottom: 5px;">Вибрация</h3>
+                            <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                        </div>
                     </div>
                     <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
                         <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
@@ -623,7 +662,7 @@ input:checked + .toggle-slider span {
                 <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
                     <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
                 </div>
-                <img src="/free-icon-web-development-1352837.png" 
+                <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                      alt="Development" 
                      style="width: 400px; 
                             height: 400px; 
@@ -640,35 +679,35 @@ input:checked + .toggle-slider span {
         <div class="nav-scroll">
             <div class="nav-content">
                 <button class="nav-btn active">
-                    <img src="/free-icon-home-8706612.png" alt="Home">
+                    <img src="https://i.postimg.cc/s2zm3RNb/free-icon-home-8706612.png" alt="Home">
                     Главная
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-shopping-cart-3643914.png" alt="Shop">
+                    <img src="https://i.postimg.cc/NMppNPbS/free-icon-shopping-cart-3643914.png" alt="Shop">
                     Магазин
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-star-5782443.png" alt="Rewards">
+                    <img src="https://i.postimg.cc/sxLKzQkJ/free-icon-star-5782443.png" alt="Rewards">
                     Награды
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-to-do-list-6019756.png" alt="Tasks">
+                    <img src="https://i.postimg.cc/fWq8mpV0/free-icon-to-do-list-6019756.png" alt="Tasks">
                     Задания
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-skyscraper-5776308.png" alt="City">
+                    <img src="https://i.postimg.cc/SRRVH7vs/free-icon-skyscraper-5776308.png" alt="City">
                     Город
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-investment-5530639.png" alt="Investments">
+                    <img src="https://i.postimg.cc/DZycbPFg/free-icon-investment-5530639.png" alt="Investments">
                     Инвестиции
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-setting-3288004.png" alt="Settings">
+                    <img src="https://i.postimg.cc/nLfRMmCR/free-icon-setting-3288004.png" alt="Settings">
                     Настройки
                 </button>
                 <button class="nav-btn">
-                    <img src="/free-icon-inferential-statistics-8921140.png" alt="Statistics">
+                    <img src="https://i.postimg.cc/YSx39sc0/free-icon-inferential-statistics-8921140.png" alt="Statistics">
                     Статистика
                 </button>
             </div>
@@ -682,7 +721,7 @@ input:checked + .toggle-slider span {
             <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
                 <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
             </div>
-            <img src="/free-icon-web-development-1352837.png" 
+            <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                  alt="Development" 
                  style="width: 400px; 
                         height: 400px; 
@@ -717,8 +756,16 @@ document.addEventListener('DOMContentLoaded', initTelegramUser);
 
 function showNotification(message) {
     const notification = document.querySelector('.notification');
-    // Replace the word "клики" with coin icon in the message
-    const modifiedMessage = message.replace(/клики?в?/g, '<img src="/coin-us-dollar_40536.png" style="width: 16px; height: 16px; vertical-align: middle;">');
+    
+    // Check if message contains "недостаточно" to determine if it's an error
+    const isError = message.toLowerCase().includes('недостаточно');
+    
+    // Add color styling based on notification type
+    notification.style.background = isError ? 'rgba(255, 51, 102, 0.95)' : 'rgba(40, 167, 69, 0.95)';
+    
+    // Replace the word "клики" and its variations with coin icon
+    const modifiedMessage = message.replace(/клики?в?/g, '<img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 16px; height: 16px; vertical-align: middle;">');
+    
     notification.innerHTML = modifiedMessage;
     notification.classList.add('show');
     
@@ -743,7 +790,7 @@ let totalEarned = 0;
 let shopItems = [
     {
         id: 2,
-        icon: '⚡',
+        icon: `<img src="https://i.postimg.cc/T3gQ8PCr/free-icon-gear-9482814.png" style="width: 40px; height: 40px;">`,
         title: 'Автокликер',
         price: 500,
         basePrice: 500,
@@ -1063,18 +1110,7 @@ document.getElementById('vibrationToggle').addEventListener('change', function()
     vibrationEnabled = this.checked;
     localStorage.setItem('vibrationEnabled', vibrationEnabled);
     showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-    updateSettingsHighlight();
 });
-
-function updateSettingsHighlight() {
-    const vibrationOption = document.querySelector('.settings-option:nth-child(1)');
-    
-    if (vibrationEnabled) {
-        vibrationOption.classList.add('enabled');
-    } else {
-        vibrationOption.classList.remove('enabled');
-    }
-}
 
 function showChangelog() {
     const modal = document.getElementById('changelogModal');
@@ -1084,7 +1120,7 @@ function showChangelog() {
                 <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
                     <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
                 </div>
-                <img src="/free-icon-web-development-1352837.png" 
+                <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                      alt="Development" 
                      style="width: 400px; 
                             height: 400px; 
@@ -1126,7 +1162,7 @@ function updateShopItems() {
             <div class="shop-item-title">${item.title}</div>
             <div class="shop-item-description">${item.description}</div>
             <div class="shop-item-price">
-                ${item.price} <img src="/coin-us-dollar_40536.png" style="width: 16px; height: 16px; vertical-align: middle;">
+                ${item.price} <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 16px; height: 16px; vertical-align: middle;">
             </div>
             <button class="shop-item-button" data-item-id="${item.id}">
                 Улучшить
@@ -1136,11 +1172,9 @@ function updateShopItems() {
 }
 
 function updateScoreDisplay() {
-    const perHour = Math.floor(autoClickPower * 3600);
     scoreElement.innerHTML = `
-        <img src="/coin-us-dollar_40536.png" alt="Coins">
-        ${Math.floor(score)}<br>
-        <small style="font-size: 14px">+${perHour}/час</small>
+        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
+        ${Math.floor(score)}
     `;
 }
 
@@ -1164,7 +1198,8 @@ function purchaseItem(itemId) {
         updateShopItems();
         showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
     } else {
-        showNotification(`Недостаточно кликов для покупки ${item.title}`);
+        // Modified error message without the word "кликов"
+        showNotification(`Недостаточно для покупки ${item.title}`);
     }
 }
 
@@ -1216,6 +1251,7 @@ function claimTask(taskId) {
             tasksGrid.innerHTML = renderTasks();
         }
     } else {
+        // Modified error message
         showNotification('Условия задания еще не выполнены');
     }
 }
@@ -1262,6 +1298,60 @@ function loadGameState() {
     }
 }
 
+function updateStatsSection() {
+    const statsSection = document.getElementById('stats-section');
+    if (!statsSection) return;
+    
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const perHour = Math.floor(autoClickPower * 3600);
+    
+    statsSection.innerHTML = `
+        <div class="profile-container">
+            <div class="profile-header">
+                <img class="profile-photo" src="https://i.postimg.cc/qM9QZKXJ/free-icon-boy-avatar-17479088.png" alt="Profile Photo">
+                <div class="profile-info">
+                    <div id="username">${user?.username || 'Anonymous User'}</div>
+                    <div id="userId">ID: ${user?.id || 'Unknown'}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stats-item">
+                <div style="font-size: 24px; color: #0088ff;">
+                    <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;"> 
+                    ${Math.floor(maxBalance)}
+                </div>
+                <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
+            </div>
+            
+            <div class="stats-item">
+                <div style="font-size: 24px; color: #0088ff;">
+                    <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                    ${perHour}/час
+                </div>
+                <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
+            </div>
+            
+            <div class="stats-item">
+                <div style="font-size: 24px; color: #0088ff;">
+                    <img src="https://i.postimg.cc/L56DPKKh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                    ${totalClicks}
+                </div>
+                <div style="color: #fff; margin-top: 5px;">Всего монет</div>
+            </div>
+            
+            <div class="stats-item">
+                <div style="font-size: 24px; color: #0088ff;">
+                    <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                    ${totalEarned}
+                </div>
+                <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
+            </div>
+        </div>
+    `;
+}
+
 function initializeNavigation() {
     const navBtns = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section-content');
@@ -1297,7 +1387,7 @@ function initializeNavigation() {
                             <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
                                 <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
                             </div>
-                            <img src="/free-icon-web-development-1352837.png" 
+                            <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                                  alt="Development" 
                                  style="width: 400px; 
                                         height: 400px; 
@@ -1309,6 +1399,25 @@ function initializeNavigation() {
                     document.getElementById('tasks-section').classList.add('active');
                 } else if (btnText === 'настройки') {
                     document.getElementById('settings-section').classList.add('active');
+                    document.getElementById('settings-section').innerHTML = `
+                        <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
+                            <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
+                                    <div>
+                                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
+                                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                                    <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
+                                        <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    `;
                 } else if (btnText === 'статистика') {
                     document.getElementById('stats-section').classList.add('active');
                     updateStatsSection();
@@ -1316,51 +1425,6 @@ function initializeNavigation() {
             }
         });
     });
-}
-
-function updateStatsSection() {
-    const statsSection = document.getElementById('stats-section');
-    if (!statsSection) return;
-    
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    
-    statsSection.innerHTML = `
-        <div class="profile-container">
-            <div class="profile-header">
-                <img class="profile-photo" src="/free-icon-boy-avatar-17479088.png" alt="Profile Photo">
-                <div class="profile-info">
-                    <div id="username">${user?.username || 'Anonymous User'}</div>
-                    <div id="userId">ID: ${user?.id || 'Unknown'}</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="/coin-us-dollar_40536.png" style="width: 24px; height: 24px; vertical-align: middle;"> 
-                    ${Math.floor(maxBalance)}
-                </div>
-                <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
-            </div>
-            
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://img_icons8.com/?size=100&id=FHQYz1px0h83&format=png&color=000000" style="width: 24px; height: 24px; vertical-align: middle;"> 
-                    ${totalClicks}
-                </div>
-                <div style="color: #fff; margin-top: 5px;">Всего монет</div>
-            </div>
-            
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://img_icons8.com/?size=100&id=EAJO2Tj4XI6Z&format=png&color=000000" style="width: 24px; height: 24px; vertical-align: middle;"> 
-                    ${totalEarned}
-                </div>
-                <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
-            </div>
-        </div>
-    `;
 }
 
 function initializeClickCircle() {
@@ -1380,8 +1444,12 @@ function initializeClickCircle() {
         totalEarned++;
         updateScoreDisplay();
         
-        if (vibrationEnabled && navigator.vibrate) {
-            navigator.vibrate(15);
+        if (vibrationEnabled) {
+            try {
+                window.navigator.vibrate(15);
+            } catch (e) {
+                console.log('Vibration failed:', e);
+            }
         }
         
         saveGameState();
@@ -1417,6 +1485,14 @@ function initializeTaskItems() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    const savedVibration = localStorage.getItem('vibrationEnabled');
+    vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
+    
+    const vibrationToggle = document.getElementById('vibrationToggle');
+    if (vibrationToggle) {
+        vibrationToggle.checked = vibrationEnabled;
+    }
+    
     initializeNavigation();
     initializeClickCircle();
     initializeShopItems();
@@ -1428,6 +1504,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const tasksGrid = document.querySelector('.tasks-grid');
     if (tasksGrid) {
         tasksGrid.innerHTML = renderTasks();
+    }
+});
+
+document.body.addEventListener('change', function(e) {
+    if (e.target.id === 'vibrationToggle') {
+        vibrationEnabled = e.target.checked;
+        localStorage.setItem('vibrationEnabled', vibrationEnabled);
+        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+        
+        // Test vibration when enabled
+        if (vibrationEnabled) {
+            try {
+                window.navigator.vibrate(15);
+            } catch (e) {
+                console.log('Vibration test failed:', e);
+            }
+        }
     }
 });
 </script>
