@@ -59,7 +59,7 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     overflow: hidden;
-    z-index: 1;
+    z-index: 5; 
 }
 
 .click-circle:active {
@@ -99,7 +99,7 @@ body {
     border-radius: 20px;
     border: 2px solid rgba(255, 51, 102, 0.5);
     backdrop-filter: blur(5px);
-    z-index: 1;
+    z-index: 6;
 }
 
 .score {
@@ -112,7 +112,11 @@ body {
     height: 70px;
     background: rgba(15, 15, 26, 0.95);
     backdrop-filter: blur(10px);
-    z-index: 1001;
+    z-index: 10; 
+    position: fixed; 
+    bottom: 0;
+    width: 100%;
+    max-width: 420px; 
 }
 
 .nav-scroll {
@@ -169,13 +173,14 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    bottom: 70px;
+    bottom: 70px; 
     background: rgb(28, 28, 46);
-    z-index: 1000;
+    z-index: 8; 
     padding: 20px;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    height: calc(100vh - 70px); 
 }
 
 .section-content::-webkit-scrollbar {
@@ -208,6 +213,7 @@ body {
     position: relative;
     border: 2px solid rgba(0, 136, 255, 0.3);
     transition: 0.3s;
+    z-index: 9; 
 }
 
 .shop-item:hover {
@@ -259,6 +265,8 @@ body {
     cursor: pointer;
     transition: 0.2s;
     width: 100%;
+    position: relative; 
+    z-index: 10; 
 }
 
 .shop-item-button:disabled {
@@ -355,6 +363,7 @@ body {
     position: relative;
     border: 2px solid rgba(40, 167, 69, 0.3);
     transition: 0.3s;
+    z-index: 9; 
 }
 
 .task-item:hover {
@@ -413,6 +422,8 @@ body {
     cursor: pointer;
     transition: 0.2s;
     width: 100%;
+    position: relative; 
+    z-index: 10; 
 }
 
 .task-claim-button:disabled {
@@ -457,26 +468,20 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-.snow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9998; /* Increase z-index to show above other elements */
-    pointer-events: none;
+.stats-grid {
+    display: grid;
+    gap: 15px;
 }
 
-.snowflake {
-    fill: rgba(255, 255, 255, 0.8);
-    r: 3; /* Increased size */
-    z-index: 9998; /* Keep snowflakes above everything except performance overlay */
+.stats-item {
+    background: rgba(0, 136, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
 }
 
-@keyframes fall {
-    to {
-        transform: translate(var(--x), 100vh);
-    }
+.snow, .snowflake {
+    display: none;
 }
 
 .toggle-slider span {
@@ -496,7 +501,8 @@ input:checked + .toggle-slider span {
 }
 
 #changelogBtn {
-    position: absolute !important;  /* Change from fixed to absolute */
+    display: none;
+    position: absolute;
     top: 20px;
     right: 20px;
     background: #ff3366;
@@ -507,25 +513,31 @@ input:checked + .toggle-slider span {
     display: flex;
     align-items: center;
     gap: 8px;
-    z-index: 9999;
+    z-index: 15;
     cursor: pointer;
 }
 
+.game-area:not(.section-content.active) #changelogBtn {
+    display: flex;
+}
+
 #changelogModal {
-    display: none;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100vh;
-    background: rgba(28, 28, 46, 0.95); /* Increased transparency */
+    right: 0;
+    bottom: 0;
+    transform: none;
+    background: rgba(0, 0, 0, 0.95);
     padding: 20px;
-    z-index: 10000;
+    max-width: 100%;
+    max-height: 100%;
     overflow-y: auto;
+    z-index: 9999;
+    display: none;
     border: none;
     box-shadow: none;
 }
-
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -539,9 +551,6 @@ input:checked + .toggle-slider span {
     </button>
     <div class="notification"></div>
     <div class="game-area">
-        <svg class="snow" xmlns="http://www.w3.org/2000/svg">
-            <circle class="snowflake" r="2" fill="white"></circle>
-        </svg>
         <div class="score-container">
             <div class="score">0</div>
         </div>
@@ -552,16 +561,6 @@ input:checked + .toggle-slider span {
         </div>
         <div class="section-content" id="settings-section">
             <i class="fas fa-cog development-icon"></i>
-            <div class="profile-container">
-                <div class="profile-header">
-                    <img id="userPhoto" class="profile-photo" src="https://via.placeholder.com/100" alt="Profile Photo">
-                    <div class="profile-info">
-                        <div id="username">Loading...</div>
-                        <div id="userId">ID: Loading...</div>
-                    </div>
-                </div>
-            </div>
-            
             <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
                 <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
                     <div>
@@ -575,33 +574,31 @@ input:checked + .toggle-slider span {
                         </span>
                     </label>
                 </div>
-                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-                    <div>
-                        <h3 style="margin-bottom: 5px;">Снежинки</h3>
-                        <p style="font-size: 14px; color: #aaa;">Включить падающие снежинки</p>
+            </div>
+            <div class="profile-container">
+                <div class="profile-header">
+                    <img id="userPhoto" class="profile-photo" src="https://via.placeholder.com/100" alt="Profile Photo">
+                    <div class="profile-info">
+                        <div id="username">Loading...</div>
+                        <div id="userId">ID: Loading...</div>
                     </div>
-                    <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                        <input type="checkbox" id="snowToggle" checked style="opacity: 0; width: 0; height: 0;">
-                        <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                            <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
-                        </span>
-                    </label>
                 </div>
-                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-                    <div>
-                        <h3 style="margin-bottom: 5px;">Количество снежинок</h3>
-                        <p style="font-size: 14px; color: #aaa;">Регулировать количество снежинок (макс. 1000)</p>
-                    </div>
-                    <input type="range" id="snowflakeCount" min="0" max="1000" value="350" style="width: 150px;">
-                    <span id="snowflakeCountDisplay" style="margin-left: 10px; min-width: 40px;">350</span>
-                </div>
+            </div>
+        </div>
+        <div class="section-content" id="tasks-section">
+            <div class="tasks-grid">
+                ${renderTasks()}
             </div>
         </div>
         <div class="section-content" id="development-section">
             <i class="fas fa-cog development-icon"></i>
-            <h3>Раздел в разработке</h3>
+            <h3 style="margin-bottom: 20px;">Раздел в разработке</h3>
             <div class="tasks-grid">
+                ${renderTasks()}
             </div>
+        </div>
+        <div class="section-content" id="stats-section">
+            <!-- Content will be populated by updateStatsSection() -->
         </div>
     </div>
 
@@ -636,6 +633,10 @@ input:checked + .toggle-slider span {
                     <i class="fas fa-cog"></i>
                     Настройки
                 </button>
+                <button class="nav-btn">
+                    <i class="fas fa-chart-simple"></i>
+                    Статистика
+                </button>
             </div>
         </div>
     </nav>
@@ -644,6 +645,14 @@ input:checked + .toggle-slider span {
 <div id="changelogModal">
     <h2 style="color: #ff3366; margin-bottom: 15px;">Change-log</h2>
     <div style="color: white;">
+        <h3>Версия 1.0.2</h3>
+        <ul style="list-style-type: none; padding-left: 0;">
+            <li>• Оптимизация производительности снежинок</li>
+            <li>• Исправлена видимость нижней панели на iPhone</li>
+            <li>• Улучшена отзывчивость интерфейса</li>
+            <li>• Оптимизирована анимация частиц</li>
+            <li>• Исправлены мелкие визуальные баги</li>
+        </ul>
         <h3>Версия 1.0.1</h3>
         <ul style="list-style-type: none; padding-left: 0;">
             <li>• Добавлено регулирование количества снежинок (0-1000)</li>
@@ -689,8 +698,6 @@ function showNotification(message) {
     }, 3000);
 }
 
-const snow = document.querySelector('.snow');
-const snowflakeTemplate = snow.querySelector('.snowflake');
 const sectionContents = document.querySelectorAll('.section-content');
 const gameArea = document.querySelector('.game-area');
 const clickCircle = document.querySelector('.click-circle');
@@ -698,21 +705,13 @@ const scoreContainer = document.querySelector('.score-container');
 const scoreElement = document.querySelector('.score');
 
 let score = 0;
-let clickPower = 1;
 let autoClickPower = 0;
 let lastUpdateTime = Date.now();
+let totalClicks = 0;
+let maxBalance = 0;
+let totalEarned = 0;
 
 let shopItems = [
-    {
-        id: 1,
-        icon: '👆',
-        title: 'Базовый кликер',
-        price: 100,
-        basePrice: 100,
-        level: 0,
-        power: 1,
-        description: 'Увеличивает силу клика на 1'
-    },
     {
         id: 2,
         icon: '⚡',
@@ -1079,54 +1078,24 @@ let tasks = [
 ];
 
 let vibrationEnabled = true;
-let snowEnabled = true;
-let snowflakeCount = 350; // Default count
 
-document.getElementById('snowflakeCount').addEventListener('input', function() {
-    snowflakeCount = parseInt(this.value);
-    document.getElementById('snowflakeCountDisplay').textContent = snowflakeCount;
-    localStorage.setItem('snowflakeCount', snowflakeCount);
-    if (snowEnabled) {
-        createSnowflakes(); // Recreate snowflakes with new count
-    }
+document.getElementById('vibrationToggle').addEventListener('change', function() {
+    vibrationEnabled = this.checked;
+    localStorage.setItem('vibrationEnabled', vibrationEnabled);
+    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+    updateSettingsHighlight();
 });
 
-// Update createSnowflakes function to use count
-function createSnowflakes() {
-    snow.innerHTML = ''; 
-    snow.style.display = snowEnabled ? 'block' : 'none';
+function updateSettingsHighlight() {
+    const vibrationOption = document.querySelector('.settings-option:nth-child(1)');
     
-    if (!snowEnabled) return;
-    
-    for (let i = 0; i < snowflakeCount; i++) {
-        const snowflake = snowflakeTemplate.cloneNode();
-        const x = Math.random() * 100;
-        const delay = Math.random() * 5;
-        const duration = 5 + Math.random() * 5;
-        
-        snowflake.style.cssText = `
-            --x: ${x}vw;
-            opacity: ${0.3 + Math.random() * 0.7};
-            transform: translate(var(--x), -20px);
-            animation: fall ${duration}s linear ${delay}s infinite;
-        `;
-        
-        snow.appendChild(snowflake);
-    }
-    snowflakeTemplate.remove();
-}
-
-// Load saved snowflake count
-function loadSettings() {
-    const savedCount = localStorage.getItem('snowflakeCount');
-    if (savedCount !== null) {
-        snowflakeCount = parseInt(savedCount);
-        document.getElementById('snowflakeCount').value = snowflakeCount;
-        document.getElementById('snowflakeCountDisplay').textContent = snowflakeCount;
+    if (vibrationEnabled) {
+        vibrationOption.classList.add('enabled');
+    } else {
+        vibrationOption.classList.remove('enabled');
     }
 }
 
-// Changelog functions
 function showChangelog() {
     document.getElementById('changelogModal').style.display = 'block';
 }
@@ -1135,10 +1104,8 @@ function closeChangelog() {
     document.getElementById('changelogModal').style.display = 'none';
 }
 
-// Add changelog button listener
 document.getElementById('changelogBtn').addEventListener('click', showChangelog);
 
-// Close changelog when clicking outside
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('changelogModal');
     const btn = document.getElementById('changelogBtn');
@@ -1156,7 +1123,7 @@ function updateShopItems() {
             <div class="shop-item-title">${item.title}</div>
             <div class="shop-item-description">${item.description}</div>
             <div class="shop-item-price">${item.price} кликов</div>
-            <button class="shop-item-button" onclick="purchaseItem(${item.id})">
+            <button class="shop-item-button" data-item-id="${item.id}">
                 Улучшить
             </button>
         </div>
@@ -1171,6 +1138,15 @@ function updateScoreDisplay() {
     `;
 }
 
+function updateGame() {
+    const now = Date.now();
+    const deltaTime = (now - lastUpdateTime) / 1000; 
+    score += autoClickPower * deltaTime; 
+    lastUpdateTime = now;
+    updateScoreDisplay();
+    requestAnimationFrame(updateGame);
+}
+
 function purchaseItem(itemId) {
     const item = shopItems.find(i => i.id === itemId);
     if (item && score >= item.price) {
@@ -1179,251 +1155,13 @@ function purchaseItem(itemId) {
         
         item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
         
-        if (item.id === 1) {
-            clickPower += item.power;
-        } else {
-            autoClickPower += item.power;
-        }
+        autoClickPower += item.power;
         
         updateScoreDisplay();
         updateShopItems();
         showNotification(`✨ Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
     } else {
         showNotification(`❌ Недостаточно кликов для покупки ${item.title}`);
-    }
-}
-
-updateShopItems();
-
-clickCircle.addEventListener('click', () => {
-    if (vibrationEnabled && window.navigator?.vibrate) {
-        window.navigator.vibrate(50); 
-    }
-    score += clickPower;
-    updateScoreDisplay();
-    saveGameState();
-    
-    // Remove any existing click effects before adding new one
-    const existingEffects = clickCircle.querySelectorAll('.click-effect');
-    existingEffects.forEach(effect => effect.remove());
-    
-    const effect = document.createElement('div');
-    effect.className = 'click-effect';
-    clickCircle.appendChild(effect);
-    
-    // Remove effect immediately after animation ends
-    effect.addEventListener('animationend', () => {
-        effect.remove();
-    }, { once: true }); // Use once:true to auto-remove listener
-
-    if (Math.floor(score) % 100 === 0) {
-        showNotification(`🎉 Поздравляем! Вы достигли ${Math.floor(score)} кликов!`);
-    }
-});
-
-document.querySelectorAll('.nav-btn').forEach((btn, index) => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        const allSections = document.querySelectorAll('.section-content');
-        allSections.forEach(section => section.classList.remove('active'));
-        
-        const clickCircle = document.querySelector('.click-circle');
-        const scoreContainer = document.querySelector('.score-container');
-        
-        const sectionName = this.querySelector('i').nextSibling.textContent.trim();
-        
-        if (sectionName === 'Главная') {
-            if (clickCircle) clickCircle.style.zIndex = '1';
-            if (scoreContainer) scoreContainer.style.zIndex = '1';
-        } else {
-            if (clickCircle) clickCircle.style.zIndex = '0';
-            if (scoreContainer) scoreContainer.style.zIndex = '0';
-            
-            if (sectionName === 'Магазин') {
-                const shopSection = document.getElementById('shop-section');
-                if (shopSection) shopSection.classList.add('active');
-            } else if (sectionName === 'Настройки') {
-                const settingsSection = document.getElementById('settings-section');
-                if (settingsSection) settingsSection.classList.add('active');
-            } else if (sectionName === 'Задания') {
-                const tasksSection = document.getElementById('development-section');
-                if (tasksSection) {
-                    updateTasksSection();
-                    tasksSection.classList.add('active');
-                }
-            } else {
-                const defaultSection = document.getElementById('development-section');
-                if (defaultSection) {
-                    defaultSection.innerHTML = `
-                        <i class="fas fa-cog development-icon"></i>
-                        <h3>Раздел "${sectionName}" находится в разработке</h3>
-                    `;
-                    defaultSection.classList.add('active');
-                }
-            }
-        }
-    });
-});
-
-// Performance monitoring script
-document.addEventListener('keydown', function(e) {
-    if (e.key.toLowerCase() === 'o') {
-        let overlay = document.querySelector('.performance-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = 'performance-overlay';
-            document.body.appendChild(overlay);
-            makeDraggable(overlay); 
-        }
-
-        // Add click stats to performance report
-        const clickStats = {
-            totalClicks: 0,
-            clicksPerSecond: 0,
-            lastClickTime: Date.now()
-        };
-
-        clickCircle.addEventListener('click', () => {
-            clickStats.totalClicks++;
-            const now = Date.now();
-            clickStats.clicksPerSecond = 1000 / (now - clickStats.lastClickTime);
-            clickStats.lastClickTime = now;
-        });
-
-        // Update the performance report content
-        function refreshLoop() {
-            // ... existing performance monitoring code ...
-
-            // Add click statistics to the report
-            let performanceReport = '📊 Отчет производительности:\n\n';
-            const sections = [
-                {id: 'Основная игра', selector: '.game-area'},
-                {id: 'Магазин', selector: '#shop-section'}, 
-                {id: 'Настройки', selector: '#settings-section'},
-                {id: 'Задания', selector: '#development-section'}
-            ];
-            
-            let times = [];
-            let fps = 0;
-            
-            performanceReport += '🔍 Нагрузка по разделам:\n';
-            sections.forEach(({id, selector}) => {
-                const section = document.querySelector(selector);
-                if (section) {
-                    const startTime = performance.now();
-                    section.offsetHeight; 
-                    const endTime = performance.now();
-                    const renderTime = (endTime - startTime).toFixed(2);
-                    performanceReport += `${id}: ${renderTime}мс время отрисовки\n`;
-                }
-            });
-            
-            performanceReport += '\n📈 Общая статистика:\n';
-            performanceReport += `FPS: ${fps} кадров/сек\n`;
-            performanceReport += `Использование памяти: Недоступно\n`;
-            performanceReport += `Время загрузки страницы: ${(window.performance.timing.loadEventEnd - window.performance.timing.navigationStart)}мс\n`;
-            
-            performanceReport += '\n⚡ Дополнительно:\n';
-            performanceReport += `Активных анимаций: ${countActiveAnimations()}\n`;
-            performanceReport += `Элементов DOM: ${document.getElementsByTagName('*').length}\n`;
-            
-            performanceReport += '\n🖱️ Статистика кликов:\n';
-            performanceReport += `Всего кликов: ${clickStats.totalClicks}\n`;
-            performanceReport += `Кликов в секунду: ${clickStats.clicksPerSecond.toFixed(2)}\n`;
-            performanceReport += `Монет за клик: ${clickPower}\n`;
-            performanceReport += `Авто-монет в секунду: ${autoClickPower}\n`;
-
-            performanceReport += '\n❄️ Эффекты:\n';
-            performanceReport += `Активных снежинок: ${document.querySelectorAll('.snowflake').length}\n`;
-            performanceReport += `Снежинки включены: ${snowEnabled ? 'Да' : 'Нет'}\n`;
-            overlay.textContent = performanceReport;
-            overlay.style.display = 'block';
-            
-            setTimeout(refreshLoop, 1000); 
-        }
-
-        refreshLoop();
-
-        // Close overlay when clicking outside
-        document.addEventListener('click', function closeOverlay(e) {
-            if (!overlay.contains(e.target)) {
-                overlay.style.display = 'none';
-                document.removeEventListener('click', closeOverlay);
-            }
-        });
-    }
-});
-
-function countActiveAnimations() {
-    const animations = document.getAnimations();
-    // Filter out snowfall animations when counting
-    return animations.filter(anim => {
-        const element = anim.effect?.target;
-        return !element?.classList?.contains('snowflake');
-    }).length;
-}
-
-function makeDraggable(overlay) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    
-    overlay.onmousedown = dragMouseDown;
-    overlay.ontouchstart = dragTouchStart;
-
-    function dragMouseDown(e) {
-        e.preventDefault();
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        document.onmousemove = elementDrag;
-    }
-
-    function dragTouchStart(e) {
-        e.preventDefault();
-        pos3 = e.touches[0].clientX;
-        pos4 = e.touches[0].clientY;
-        overlay.ontouchend = closeDragElement;
-        overlay.ontouchmove = elementTouchDrag;
-    }
-
-    function elementDrag(e) {
-        e.preventDefault();
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        overlay.style.top = (overlay.offsetTop - pos2) + "px";
-        overlay.style.left = (overlay.offsetLeft - pos1) + "px";
-    }
-
-    function elementTouchDrag(e) {
-        e.preventDefault();
-        pos1 = pos3 - e.touches[0].clientX;
-        pos2 = pos4 - e.touches[0].clientY;
-        pos3 = e.touches[0].clientX;
-        pos4 = e.touches[0].clientY;
-        overlay.style.top = (overlay.offsetTop - pos2) + "px";
-        overlay.style.left = (overlay.offsetLeft - pos1) + "px";
-    }
-
-    function closeDragElement() {
-        document.onmouseup = null;
-        document.onmousemove = null;
-        overlay.ontouchend = null;
-        overlay.ontouchmove = null;
-    }
-}
-
-// Add this function to update tasks section
-function updateTasksSection() {
-    const tasksSection = document.getElementById('development-section');
-    if (tasksSection) {
-        tasksSection.innerHTML = `
-            <div class="tasks-grid">
-                ${renderTasks()}
-            </div>
-        `;
     }
 }
 
@@ -1436,7 +1174,7 @@ function renderTasks() {
             <div class="task-description">${task.description}</div>
             <div class="task-reward">Награда: ${task.reward} кликов</div>
             <button class="task-claim-button" 
-                    onclick="claimTask(${task.id})"
+                    data-task-id="${task.id}"
                     ${task.claimed ? 'disabled' : ''}>
                 ${task.claimed ? 'Получено' : 'Получить'}
             </button>
@@ -1470,31 +1208,28 @@ function claimTask(taskId) {
         score += task.reward;
         showNotification(`🎉 Задание "${task.title}" выполнено! +${task.reward} кликов`);
         updateScoreDisplay();
-        const tasksSection = document.querySelector('#development-section .tasks-grid');
-        if (tasksSection) {
-            tasksSection.innerHTML = renderTasks();
+        const tasksGrid = document.querySelector('.tasks-grid');
+        if (tasksGrid) {
+            tasksGrid.innerHTML = renderTasks();
         }
     } else {
         showNotification('❌ Условия задания еще не выполнены');
     }
 }
 
-const tasksSection = document.querySelector('#development-section');
-tasksSection.innerHTML = `
-    <div class="tasks-grid">
-        ${renderTasks()}
-    </div>
-`;
-
 function saveGameState() {
     if (!tg?.initDataUnsafe?.user?.id) return;
     
+    maxBalance = Math.max(maxBalance, Math.floor(score));
+    
     const gameState = {
         score: Math.floor(score),
-        clickPower,
         autoClickPower,
         shopItems,
-        tasks
+        tasks,
+        totalClicks,
+        maxBalance,
+        totalEarned
     };
     
     localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
@@ -1503,19 +1238,20 @@ function saveGameState() {
 function loadGameState() {
     if (!tg?.initDataUnsafe?.user?.id) return;
     
-    loadSettings();
-    
     const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
     if (savedState) {
         const state = JSON.parse(savedState);
-        score = state.score;
-        clickPower = state.clickPower;
-        autoClickPower = state.autoClickPower;
-        shopItems = state.shopItems;
-        tasks = state.tasks;
+        score = state.score || 0;
+        autoClickPower = state.autoClickPower || 0;
+        shopItems = state.shopItems || shopItems;
+        tasks = state.tasks || tasks;
+        totalClicks = state.totalClicks || 0;
+        maxBalance = state.maxBalance || 0;
+        totalEarned = state.totalEarned || 0;
         
         updateScoreDisplay();
         updateShopItems();
+        
         const tasksGrid = document.querySelector('.tasks-grid');
         if (tasksGrid) {
             tasksGrid.innerHTML = renderTasks();
@@ -1523,81 +1259,143 @@ function loadGameState() {
     }
 }
 
-function loadSettings() {
-    const savedVibration = localStorage.getItem('vibrationEnabled');
-    const savedSnow = localStorage.getItem('snowEnabled');
+function initializeNavigation() {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.section-content');
+
+    navBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            navBtns.forEach(b => b.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+            
+            btn.classList.add('active');
+            
+            const btnText = btn.textContent.trim().toLowerCase();
+            
+            if (btnText === 'главная') {
+                sections.forEach(s => s.classList.remove('active'));
+            } else if (btnText === 'магазин') {
+                document.getElementById('shop-section').classList.add('active');
+            } else if (btnText === 'награды') {
+                document.getElementById('development-section').classList.add('active');
+                showNotification('🔧 Раздел "Награды" в разработке');
+            } else if (btnText === 'задания') {
+                document.getElementById('tasks-section').classList.add('active');
+            } else if (btnText === 'город' || btnText === 'инвестиции') {
+                document.getElementById('development-section').classList.add('active');
+                showNotification(`🔧 Раздел "${btnText}" в разработке`);
+            } else if (btnText === 'настройки') {
+                document.getElementById('settings-section').classList.add('active');
+            } else if (btnText === 'статистика') {
+                document.getElementById('stats-section').classList.add('active');
+                updateStatsSection();
+            }
+        });
+    });
+}
+
+function updateStatsSection() {
+    const statsSection = document.getElementById('stats-section');
+    if (!statsSection) return;
     
-    if (savedVibration !== null) {
-        vibrationEnabled = savedVibration === 'true';
-        document.getElementById('vibrationToggle').checked = vibrationEnabled;
-    }
+    const user = tg?.initDataUnsafe?.user;
     
-    if (savedSnow !== null) {
-        snowEnabled = savedSnow === 'true';
-        document.getElementById('snowToggle').checked = snowEnabled;
-        toggleSnow(snowEnabled);
-    }
-    // Load saved snowflake count
-    const savedCount = localStorage.getItem('snowflakeCount');
-    if (savedCount !== null) {
-        snowflakeCount = parseInt(savedCount);
-        document.getElementById('snowflakeCount').value = snowflakeCount;
-        document.getElementById('snowflakeCountDisplay').textContent = snowflakeCount;
+    statsSection.innerHTML = `
+        <div class="profile-container">
+            <div class="profile-header">
+                <img id="userPhoto" class="profile-photo" src="${user?.photo_url || 'https://via.placeholder.com/100'}" alt="Profile Photo">
+                <div class="profile-info">
+                    <div id="username">${user?.username || 'Anonymous User'}</div>
+                    <div id="userId">ID: ${user?.id || 'Unknown'}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid" style="margin-top: 20px; display: grid; gap: 15px;">
+            <div class="stats-item" style="background: rgba(0, 136, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
+                <div style="font-size: 24px; color: #0088ff;">💰 ${Math.floor(maxBalance)}</div>
+                <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
+            </div>
+            
+            <div class="stats-item" style="background: rgba(0, 136, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
+                <div style="font-size: 24px; color: #0088ff;">🖱️ ${totalClicks}</div>
+                <div style="color: #fff; margin-top: 5px;">Всего кликов</div>
+            </div>
+            
+            <div class="stats-item" style="background: rgba(0, 136, 255, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
+                <div style="font-size: 24px; color: #0088ff;">✨ ${totalEarned}</div>
+                <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
+            </div>
+        </div>
+    `;
+}
+
+function initializeClickCircle() {
+    const clickCircle = document.querySelector('.click-circle');
+    
+    clickCircle.addEventListener('click', () => {
+        const effect = document.createElement('div');
+        effect.className = 'click-effect';
+        clickCircle.appendChild(effect);
+        
+        effect.addEventListener('animationend', () => {
+            effect.remove();
+        });
+        
+        score++;
+        totalClicks++;
+        totalEarned++;
+        updateScoreDisplay();
+        
+        if (vibrationEnabled && navigator.vibrate) {
+            navigator.vibrate(15);
+        }
+        
+        saveGameState();
+    });
+}
+
+function initializeShopItems() {
+    const shopGrid = document.querySelector('.shop-grid');
+    if (shopGrid) {
+        shopGrid.addEventListener('click', (e) => {
+            const button = e.target.closest('.shop-item-button');
+            if (button) {
+                const itemId = parseInt(button.dataset.itemId);
+                purchaseItem(itemId);
+                saveGameState();
+            }
+        });
     }
 }
 
-function toggleSnow(enabled) {
-    const snow = document.querySelector('.snow');
-    snow.style.display = enabled ? 'block' : 'none';
-}
-
-document.getElementById('vibrationToggle').addEventListener('change', function() {
-    vibrationEnabled = this.checked;
-    localStorage.setItem('vibrationEnabled', vibrationEnabled);
-    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-    updateSettingsHighlight();
-});
-
-document.getElementById('snowToggle').addEventListener('change', function() {
-    snowEnabled = this.checked;
-    localStorage.setItem('snowEnabled', snowEnabled);
-    createSnowflakes(); // Recreate snowflakes when toggled
-    showNotification(`Снежинки ${snowEnabled ? 'включены' : 'выключены'}`);
-    updateSettingsHighlight();
-});
-
-function updateSettingsHighlight() {
-    const vibrationOption = document.querySelector('.settings-option:nth-child(1)');
-    const snowOption = document.querySelector('.settings-option:nth-child(2)');
-    
-    if (vibrationEnabled) {
-        vibrationOption.classList.add('enabled');
-    } else {
-        vibrationOption.classList.remove('enabled');
-    }
-    
-    if (snowEnabled) {
-        snowOption.classList.add('enabled');
-    } else {
-        snowOption.classList.remove('enabled');
+function initializeTaskItems() {
+    const tasksGrid = document.querySelector('.tasks-grid');
+    if (tasksGrid) {
+        tasksGrid.addEventListener('click', (e) => {
+            const button = e.target.closest('.task-claim-button');
+            if (button) {
+                const taskId = parseInt(button.dataset.taskId);
+                claimTask(taskId);
+                saveGameState();
+            }
+        });
     }
 }
 
-loadSettings();
-updateSettingsHighlight();
-
-// Call this when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    createSnowflakes();
-});
-
-// Call loadGameState when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    initTelegramUser();
+document.addEventListener('DOMContentLoaded', function() {
+    initializeNavigation();
+    initializeClickCircle();
+    initializeShopItems();
+    initializeTaskItems();
     loadGameState();
+    initTelegramUser();
+    updateShopItems();
+    updateGame();
+    const tasksGrid = document.querySelector('.tasks-grid');
+    if (tasksGrid) {
+        tasksGrid.innerHTML = renderTasks();
+    }
 });
-
-// Auto-save every minute
-setInterval(saveGameState, 60000);
 </script>
 </body></html>
