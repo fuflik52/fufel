@@ -312,39 +312,11 @@ body {
 }
 
 .profile-container {
-    background: rgba(0, 136, 255, 0.1);
-    border-radius: 20px;
-    padding: 20px;
-    margin-top: 20px;
+    display: none;
 }
 
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.profile-photo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 3px solid #0088ff;
-}
-
-.profile-info {
-    flex: 1;
-}
-
-#username {
-    font-size: 18px;
-    font-weight: bold;
-    color: white;
-}
-
-#userId {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
-    margin-top: 5px;
+.profile-container:not(#stats-section .profile-container) {
+    display: none;
 }
 
 .tasks-grid {
@@ -573,15 +545,6 @@ input:checked + .toggle-slider span {
                             <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
                         </span>
                     </label>
-                </div>
-            </div>
-            <div class="profile-container">
-                <div class="profile-header">
-                    <img id="userPhoto" class="profile-photo" src="https://via.placeholder.com/100" alt="Profile Photo">
-                    <div class="profile-info">
-                        <div id="username">Loading...</div>
-                        <div id="userId">ID: Loading...</div>
-                    </div>
                 </div>
             </div>
         </div>
