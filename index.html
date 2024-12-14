@@ -245,9 +245,10 @@ body {
     box-shadow: 0 5px 15px rgba(0, 136, 255, 0.2);
 }
 
-.shop-item-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
+.shop-item-icon img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
 
 .shop-item-title {
@@ -588,16 +589,20 @@ input:checked + .toggle-slider span {
     backdrop-filter: blur(10px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     z-index: 9999;
-    transition: top 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
     font-size: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
     border: 2px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    visibility: hidden;
 }
 
 .notification.show {
     top: 20px;
+    opacity: 1;
+    visibility: visible;
     animation: notificationFloat 0.3s ease-out;
 }
 
@@ -610,6 +615,11 @@ input:checked + .toggle-slider span {
         transform: translate(-50%, 0);
         opacity: 1;
     }
+}
+
+#development-section img {
+    width: 300px;  /* Reduced from 400px */
+    height: 300px; /* Reduced from 400px */
 }
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -663,8 +673,8 @@ input:checked + .toggle-slider span {
                 </div>
                 <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                      alt="Development" 
-                     style="width: 400px; 
-                            height: 400px; 
+                     style="width: 300px; 
+                            height: 300px; 
                             object-fit: contain;
                             filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
             </div>
@@ -722,8 +732,8 @@ input:checked + .toggle-slider span {
             </div>
             <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                  alt="Development" 
-                 style="width: 400px; 
-                        height: 400px; 
+                 style="width: 300px; 
+                        height: 300px; 
                         object-fit: contain;
                         filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
             <button class="close-btn" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
@@ -756,6 +766,11 @@ document.addEventListener('DOMContentLoaded', initTelegramUser);
 function showNotification(message) {
     const notification = document.querySelector('.notification');
     
+    // Clear any existing timeout
+    if (window.notificationTimeout) {
+        clearTimeout(window.notificationTimeout);
+    }
+    
     // Check if message contains "недостаточно" to determine if it's an error
     const isError = message.toLowerCase().includes('недостаточно');
     
@@ -768,8 +783,13 @@ function showNotification(message) {
     notification.innerHTML = modifiedMessage;
     notification.classList.add('show');
     
-    setTimeout(() => {
+    // Set new timeout
+    window.notificationTimeout = setTimeout(() => {
         notification.classList.remove('show');
+        // Add additional timeout to reset visibility after animation
+        setTimeout(() => {
+            notification.style.visibility = 'hidden';
+        }, 300);
     }, 3000);
 }
 
@@ -785,11 +805,12 @@ let lastUpdateTime = Date.now();
 let totalClicks = 0;
 let maxBalance = 0;
 let totalEarned = 0;
+let lastSaveTime = Date.now(); // Initialize last save time variable
 
 let shopItems = [
     {
         id: 2,
-        icon: `<img src="https://i.postimg.cc/T3gQ8PCr/free-icon-gear-9482814.png" style="width: 40px; height: 40px;">`,
+        icon: `<img src="https://i.postimg.cc/T3gQ8PCr/free-icon-gear-9482814.png" alt="Автокликер">`,
         title: 'Автокликер',
         price: 500,
         basePrice: 500,
@@ -799,7 +820,7 @@ let shopItems = [
     },
     {
         id: 3,
-        icon: '<img src="https://img.icons8.com/?size=100&id=OniZhUSABjk0&format=png&color=000000" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=OniZhUSABjk0&format=png&color=000000" alt="Робот">',
         title: 'Робот-кликер',
         price: 1000,
         basePrice: 1000,
@@ -809,7 +830,7 @@ let shopItems = [
     },
     {
         id: 4,
-        icon: '<img src="https://img.icons8.com/?size=100&id=GBu1KXnCZZ8j&format=png&color=000000" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=GBu1KXnCZZ8j&format=png&color=000000" alt="Консоль">',
         title: 'Игровая консоль',
         price: 2500,
         basePrice: 2500,
@@ -819,7 +840,7 @@ let shopItems = [
     },
     {
         id: 5,
-        icon: '<img src="https://i.postimg.cc/nVv5xxnJ/image.png" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://i.postimg.cc/nVv5xxnJ/image.png" alt="Ферма">',
         title: 'Майнинг ферма',
         price: 5000,
         basePrice: 5000,
@@ -829,7 +850,7 @@ let shopItems = [
     },
     {
         id: 6,
-        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" alt="Фабрика">',
         title: 'Мини-фабрика',
         price: 10000,
         basePrice: 10000,
@@ -839,7 +860,7 @@ let shopItems = [
     },
     {
         id: 7,
-        icon: '<img src="https://img.icons8.com/?size=100&id=YeRBEmdCzTFF&format=png&color=000000" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=YeRBEmdCzTFF&format=png&color=000000" alt="Офис">',
         title: 'Офисный центр',
         price: 25000,
         basePrice: 25000,
@@ -849,7 +870,7 @@ let shopItems = [
     },
     {
         id: 8,
-        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" alt="Банк">',
         title: 'Банк кликов',
         price: 50000,
         basePrice: 50000,
@@ -859,7 +880,7 @@ let shopItems = [
     },
     {
         id: 9,
-        icon: '<img src="https://img.icons8.com/?size=100&id=01EGfYjBQteu&format=png&color=000000" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=01EGfYjBQteu&format=png&color=000000" alt="Сеть">',
         title: 'Глобальная сеть',
         price: 100000,
         basePrice: 100000,
@@ -869,7 +890,7 @@ let shopItems = [
     },
     {
         id: 10,
-        icon: '<img src="https://i.postimg.cc/0jc0Nctp/image.png" style="width: 40px; height: 40px;">',
+        icon: '<img src="https://i.postimg.cc/0jc0Nctp/image.png" alt="Станция">',
         title: 'Космическая станция',
         price: 250000,
         basePrice: 250000,
@@ -1120,8 +1141,8 @@ function showChangelog() {
                 </div>
                 <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                      alt="Development" 
-                     style="width: 400px; 
-                            height: 400px; 
+                     style="width: 300px; 
+                            height: 300px; 
                             object-fit: contain;
                             filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
                 <button class="close-btn" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
@@ -1177,8 +1198,22 @@ function updateScoreDisplay() {
 }
 
 function updateGame() {
-    score += autoClickPower;
+    const now = Date.now();
+    const deltaTime = (now - lastUpdateTime) / 1000; // Convert to seconds
+    lastUpdateTime = now;
+    
+    // Add income based on time passed
+    score += autoClickPower * deltaTime;
+    
+    // Update display
     updateScoreDisplay();
+    
+    // Save state periodically
+    if (now - lastSaveTime > 5000) { // Save every 5 seconds
+        saveGameState();
+        lastSaveTime = now;
+    }
+    
     requestAnimationFrame(updateGame);
 }
 
@@ -1257,11 +1292,11 @@ function claimTask(taskId) {
 function saveGameState() {
     if (!tg?.initDataUnsafe?.user?.id) return;
     
-    maxBalance = Math.max(maxBalance, Math.floor(score));
-    
+    const now = Date.now();
     const gameState = {
         score: Math.floor(score),
         autoClickPower,
+        lastUpdateTime: now,
         shopItems,
         tasks,
         totalClicks,
@@ -1278,6 +1313,19 @@ function loadGameState() {
     const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
     if (savedState) {
         const state = JSON.parse(savedState);
+        const now = Date.now();
+        
+        // Calculate offline progress
+        if (state.lastUpdateTime) {
+            const offlineTime = (now - state.lastUpdateTime) / 1000; // Convert to seconds
+            const offlineEarnings = state.autoClickPower * offlineTime;
+            state.score += offlineEarnings;
+            
+            if (offlineEarnings > 0) {
+                showNotification(`Вы заработали ${Math.floor(offlineEarnings)} пока были офлайн!`);
+            }
+        }
+        
         score = state.score || 0;
         autoClickPower = state.autoClickPower || 0;
         shopItems = state.shopItems || shopItems;
@@ -1294,6 +1342,8 @@ function loadGameState() {
             tasksGrid.innerHTML = renderTasks();
         }
     }
+    
+    lastUpdateTime = Date.now();
 }
 
 function updateStatsSection() {
@@ -1387,8 +1437,8 @@ function initializeNavigation() {
                             </div>
                             <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                                  alt="Development" 
-                                 style="width: 400px; 
-                                        height: 400px; 
+                                 style="width: 300px; 
+                                        height: 300px; 
                                         object-fit: contain;
                                         filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
                         </div>
