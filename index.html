@@ -742,6 +742,10 @@ input:checked + .toggle-slider span {
 </div>
 
 <script>
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 let tg = window.Telegram?.WebApp;
 
 // Initialize Telegram user data
@@ -820,7 +824,7 @@ let shopItems = [
     },
     {
         id: 3,
-        icon: '<img src="https://img.icons8.com/?size=100&id=OniZhUSABjk0&format=png&color=000000" alt="Робот">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=OniZhUSABjk0&format=png&color=000000" alt="Робот" style="width: 40px; height: 40px;">',
         title: 'Робот-кликер',
         price: 1000,
         basePrice: 1000,
@@ -830,7 +834,7 @@ let shopItems = [
     },
     {
         id: 4,
-        icon: '<img src="https://img.icons8.com/?size=100&id=GBu1KXnCZZ8j&format=png&color=000000" alt="Консоль">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=GBu1KXnCZZ8j&format=png&color=000000" alt="Консоль" style="width: 40px; height: 40px;">',
         title: 'Игровая консоль',
         price: 2500,
         basePrice: 2500,
@@ -840,7 +844,7 @@ let shopItems = [
     },
     {
         id: 5,
-        icon: '<img src="https://i.postimg.cc/nVv5xxnJ/image.png" alt="Ферма">',
+        icon: '<img src="https://i.postimg.cc/nVv5xxnJ/image.png" alt="Ферма" style="width: 40px; height: 40px;">',
         title: 'Майнинг ферма',
         price: 5000,
         basePrice: 5000,
@@ -850,7 +854,7 @@ let shopItems = [
     },
     {
         id: 6,
-        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" alt="Фабрика">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" alt="Фабрика" style="width: 40px; height: 40px;">',
         title: 'Мини-фабрика',
         price: 10000,
         basePrice: 10000,
@@ -860,7 +864,7 @@ let shopItems = [
     },
     {
         id: 7,
-        icon: '<img src="https://img.icons8.com/?size=100&id=YeRBEmdCzTFF&format=png&color=000000" alt="Офис">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=YeRBEmdCzTFF&format=png&color=000000" alt="Офис" style="width: 40px; height: 40px;">',
         title: 'Офисный центр',
         price: 25000,
         basePrice: 25000,
@@ -870,7 +874,7 @@ let shopItems = [
     },
     {
         id: 8,
-        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" alt="Банк">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=EyvEPWxDuQYs&format=png&color=000000" alt="Банк" style="width: 40px; height: 40px;">',
         title: 'Банк кликов',
         price: 50000,
         basePrice: 50000,
@@ -880,7 +884,7 @@ let shopItems = [
     },
     {
         id: 9,
-        icon: '<img src="https://img.icons8.com/?size=100&id=01EGfYjBQteu&format=png&color=000000" alt="Сеть">',
+        icon: '<img src="https://img.icons8.com/?size=100&id=01EGfYjBQteu&format=png&color=000000" alt="Сеть" style="width: 40px; height: 40px;">',
         title: 'Глобальная сеть',
         price: 100000,
         basePrice: 100000,
@@ -890,7 +894,7 @@ let shopItems = [
     },
     {
         id: 10,
-        icon: '<img src="https://i.postimg.cc/0jc0Nctp/image.png" alt="Станция">',
+        icon: '<img src="https://i.postimg.cc/0jc0Nctp/image.png" alt="Станция" style="width: 40px; height: 40px;">',
         title: 'Космическая станция',
         price: 250000,
         basePrice: 250000,
@@ -1181,7 +1185,7 @@ function updateShopItems() {
             <div class="shop-item-title">${item.title}</div>
             <div class="shop-item-description">${item.description}</div>
             <div class="shop-item-price">
-                ${item.price} <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 16px; height: 16px; vertical-align: middle;">
+                ${formatNumber(item.price)} <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 16px; height: 16px; vertical-align: middle;">
             </div>
             <button class="shop-item-button" data-item-id="${item.id}">
                 Улучшить
@@ -1193,7 +1197,7 @@ function updateShopItems() {
 function updateScoreDisplay() {
     scoreElement.innerHTML = `
         <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
-        ${Math.floor(score)}
+        ${formatNumber(Math.floor(score))}
     `;
 }
 
@@ -1243,7 +1247,7 @@ function renderTasks() {
             <div class="task-icon">${task.icon}</div>
             <div class="task-title">${task.title}</div>
             <div class="task-description">${task.description}</div>
-            <div class="task-reward">Награда: ${task.reward} кликов</div>
+            <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
             <button class="task-claim-button" 
                     data-task-id="${task.id}"
                     ${task.claimed ? 'disabled' : ''}>
@@ -1277,7 +1281,7 @@ function claimTask(taskId) {
     if (canClaim) {
         task.claimed = true;
         score += task.reward;
-        showNotification(`Задание "${task.title}" выполнено! +${task.reward} кликов`);
+        showNotification(`Задание "${task.title}" выполнено! +${formatNumber(task.reward)} кликов`);
         updateScoreDisplay();
         const tasksGrid = document.querySelector('.tasks-grid');
         if (tasksGrid) {
@@ -1322,7 +1326,7 @@ function loadGameState() {
             state.score += offlineEarnings;
             
             if (offlineEarnings > 0) {
-                showNotification(`Вы заработали ${Math.floor(offlineEarnings)} пока были офлайн!`);
+                showNotification(`Вы заработали ${formatNumber(Math.floor(offlineEarnings))} пока были офлайн!`);
             }
         }
         
@@ -1368,7 +1372,7 @@ function updateStatsSection() {
             <div class="stats-item">
                 <div style="font-size: 24px; color: #0088ff;">
                     <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;"> 
-                    ${Math.floor(maxBalance)}
+                    ${formatNumber(Math.floor(maxBalance))}
                 </div>
                 <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
             </div>
@@ -1376,7 +1380,7 @@ function updateStatsSection() {
             <div class="stats-item">
                 <div style="font-size: 24px; color: #0088ff;">
                     <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                    ${perHour}/час
+                    ${formatNumber(perHour)}/час
                 </div>
                 <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
             </div>
@@ -1384,7 +1388,7 @@ function updateStatsSection() {
             <div class="stats-item">
                 <div style="font-size: 24px; color: #0088ff;">
                     <img src="https://i.postimg.cc/L56DPKKh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                    ${totalClicks}
+                    ${formatNumber(totalClicks)}
                 </div>
                 <div style="color: #fff; margin-top: 5px;">Всего монет</div>
             </div>
@@ -1392,7 +1396,7 @@ function updateStatsSection() {
             <div class="stats-item">
                 <div style="font-size: 24px; color: #0088ff;">
                     <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                    ${totalEarned}
+                    ${formatNumber(totalEarned)}
                 </div>
                 <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
             </div>
