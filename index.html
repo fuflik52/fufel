@@ -182,8 +182,8 @@ body {
 }
 
 .nav-btn.active {
-    background: #28a745; 
-    box-shadow: 0 0 15px rgba(40, 167, 69, 0.3); 
+    background: #ff3366; /* Changed from #28a745 to match the red theme */
+    box-shadow: 0 0 15px rgba(255, 51, 102, 0.3); /* Updated shadow color */
 }
 
 .nav-btn:active {
@@ -230,19 +230,19 @@ body {
 }
 
 .shop-item {
-    background: rgba(0, 136, 255, 0.1);
+    background: rgba(255, 51, 102, 0.1);  /* Changed to red background */
     border-radius: 15px;
     padding: 15px;
     text-align: center;
     position: relative;
-    border: 2px solid rgba(0, 136, 255, 0.3);
+    border: 2px solid rgba(255, 51, 102, 0.3); /* Changed to red border */
     transition: 0.3s;
     z-index: 9; 
 }
 
 .shop-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 136, 255, 0.2);
+    box-shadow: 0 5px 15px rgba(255, 51, 102, 0.2);
 }
 
 .shop-item-icon img {
@@ -294,13 +294,15 @@ body {
     z-index: 10; 
 }
 
-.shop-item-button:disabled {
-    background: #666;
-    cursor: not-allowed;
+.shop-item-button:hover {
+    background: #218838;
 }
 
-.shop-item-button:hover:not(:disabled) {
-    background: #218838;
+/* Remove disabled button styling */
+.shop-item-button:disabled {
+    background: #28a745;
+    cursor: pointer;
+    opacity: 1;
 }
 
 .tasks-grid {
@@ -320,16 +322,17 @@ body {
     border: 2px solid rgba(40, 167, 69, 0.3);
     transition: 0.3s;
     z-index: 9; 
-}
-
-.task-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+    margin-bottom: 15px;
 }
 
 .task-item.claimed {
     opacity: 0.7;
     background: rgba(40, 167, 69, 0.05);
+}
+
+.task-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
 }
 
 .task-new {
@@ -385,6 +388,7 @@ body {
 .task-claim-button:disabled {
     background: #666;
     cursor: not-allowed;
+    opacity: 0.7;  /* Added opacity */
 }
 
 .task-claim-button:hover:not(:disabled) {
@@ -621,6 +625,12 @@ input:checked + .toggle-slider span {
     width: 300px;  /* Reduced from 400px */
     height: 300px; /* Reduced from 400px */
 }
+
+.task-progress {
+    color: #ff3366;
+    font-size: 12px;
+    margin: 5px 0;
+}
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -746,6 +756,229 @@ function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
+function getTaskProgress(task) {
+    switch(task.type) {
+        case 'clicks':
+            return `${formatNumber(Math.floor(totalClicks))} / ${formatNumber(task.requirement)} кликов`;
+        case 'purchases':
+            const totalPurchases = shopItems.reduce((sum, item) => sum + item.level, 0);
+            return `${totalPurchases} / ${task.requirement} покупок`;
+        case 'cps':
+            return `${formatNumber(Math.floor(autoClickPower))} / ${formatNumber(task.requirement)} кликов/сек`;
+        case 'time':
+            const playTime = Math.floor((Date.now() - (lastUpdateTime || Date.now())) / 1000);
+            return `${Math.floor(playTime / 3600)}ч ${Math.floor((playTime % 3600) / 60)}м ${playTime % 60}с / ${Math.floor(task.requirement / 3600)}ч`;
+        case 'hourly':
+            const hourlyRate = Math.floor(autoClickPower * 3600);
+            return `${formatNumber(hourlyRate)} / ${formatNumber(task.requirement)} кликов/час`;
+        default:
+            return 'Прогресс неизвестен';
+    }
+}
+
+function renderTasks() {
+    const completedTasks = tasks.filter(task => task.claimed);
+    const uncompletedTasks = tasks.filter(task => !task.claimed);
+    
+    return `
+        <div style="margin-bottom: 20px;">
+            <h2 style="color: #fff; margin-bottom: 15px;">Активные задания</h2>
+            ${uncompletedTasks.map(task => `
+                <div class="task-item">
+                    ${task.isNew ? `<span class="task-new">NEW</span>` : ''}
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-reward">
+                        Награда: ${formatNumber(task.reward)} 
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" 
+                             style="width: 16px; height: 16px; vertical-align: middle;">
+                    </div>
+                    <div class="task-progress" style="color: #ff3366; font-size: 12px; margin: 5px 0;">
+                        ${getTaskProgress(task)}
+                    </div>
+                    <button class="task-claim-button" 
+                            data-task-id="${task.id}"
+                            ${canClaimTask(task) ? '' : 'disabled'}>
+                        ${canClaimTask(task) ? 'Получить' : 'Не выполнено'}
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+        ${completedTasks.length > 0 ? `
+            <div>
+                <h2 style="color: #fff; margin-bottom: 15px;">Выполненные задания</h2>
+                ${completedTasks.map(task => `
+                    <div class="task-item claimed">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-description">${task.description}</div>
+                        <div class="task-reward">
+                            Получено: ${formatNumber(task.reward)} 
+                            <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" 
+                                 style="width: 16px; height: 16px; vertical-align: middle;">
+                        </div>
+                        <button class="task-claim-button" disabled>
+                            Выполнено
+                        </button>
+                    </div>
+                `).join('')}
+            </div>
+        ` : ''}
+    `;
+}
+
+// Add helper function to check if task can be claimed
+function canClaimTask(task) {
+    switch(task.type) {
+        case 'clicks':
+            return Math.floor(totalClicks) >= task.requirement;
+        case 'purchases':
+            return shopItems.reduce((sum, item) => sum + item.level, 0) >= task.requirement;
+        case 'cps':
+            return Math.floor(autoClickPower) >= task.requirement;
+        case 'time':
+            const playTime = Math.floor((Date.now() - (lastUpdateTime || Date.now())) / 1000);
+            return playTime >= task.requirement;
+        case 'hourly':
+            return Math.floor(autoClickPower * 3600) >= task.requirement;
+        case 'streak':
+            return false; // This would need additional tracking logic
+        case 'total_achievements':
+            const claimedCount = tasks.filter(t => t.claimed && t.id !== task.id).length;
+            return claimedCount >= task.requirement;
+        default:
+            return false;
+    }
+}
+
+// Fix purchase item function to use Math.floor for score comparison
+function purchaseItem(itemId) {
+    const item = shopItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    const button = document.querySelector(`.shop-item-button[data-item-id="${itemId}"]`);
+    
+    // Update purchase check to remove disabled state check
+    if (Math.floor(score) < item.price) {
+        showNotification(`Недостаточно для покупки ${item.title}`);
+        return;
+    }
+
+    score -= item.price;
+    item.level++;
+    item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
+    autoClickPower += item.power;
+    
+    updateScoreDisplay();
+    updateShopItems();
+    showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
+}
+
+// Update shop items rendering to remove disabled state
+function updateShopItems() {
+    const shopGrid = document.querySelector('.shop-grid');
+    shopGrid.innerHTML = shopItems.map(item => `
+        <div class="shop-item">
+            <span class="shop-item-new">LVL ${item.level}</span>
+            <div class="shop-item-icon">${item.icon}</div>
+            <div class="shop-item-title">${item.title}</div>
+            <div class="shop-item-description">${item.description}</div>
+            <div class="shop-item-price">
+                ${formatNumber(item.price)} <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 16px; height: 16px; vertical-align: middle;">
+            </div>
+            <button class="shop-item-button" data-item-id="${item.id}">
+                Улучшить
+            </button>
+        </div>
+    `).join('');
+}
+
+// Fix score display to always use Math.floor
+function updateScoreDisplay() {
+    scoreElement.innerHTML = `
+        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
+        ${formatNumber(Math.floor(score))}
+    `;
+}
+
+// Fix scoring and total clicks tracking
+document.addEventListener('DOMContentLoaded', function() {
+    const clickCircle = document.querySelector('.click-circle');
+    if (clickCircle) {
+        clickCircle.addEventListener('click', () => {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            clickCircle.appendChild(effect);
+            
+            effect.addEventListener('animationend', () => {
+                effect.remove();
+            });
+            
+            // Fix scoring and total clicks tracking
+            score = Math.floor(score + 1);
+            totalClicks = Math.floor(totalClicks + 1);
+            totalEarned = Math.floor(totalEarned + 1);
+            
+            updateScoreDisplay();
+            
+            // Update task progress display after each click
+            const tasksGrid = document.querySelector('.tasks-grid');
+            if (tasksGrid) {
+                tasksGrid.innerHTML = renderTasks();
+            }
+            
+            if (vibrationEnabled) {
+                try {
+                    window.navigator.vibrate(15);
+                } catch (e) {
+                    console.log('Vibration failed:', e);
+                }
+            }
+            
+            saveGameState();
+        });
+    }
+});
+
+// Fix task progress display formatting
+function getTaskProgress(task) {
+    switch(task.type) {
+        case 'clicks':
+            return `${formatNumber(Math.floor(totalClicks))} / ${formatNumber(task.requirement)} кликов`;
+        case 'purchases':
+            const totalPurchases = shopItems.reduce((sum, item) => sum + item.level, 0);
+            return `${totalPurchases} / ${task.requirement} покупок`;
+        case 'cps':
+            return `${formatNumber(Math.floor(autoClickPower))} / ${formatNumber(task.requirement)} кликов/сек`;
+        case 'time':
+            const playTime = Math.floor((Date.now() - (lastUpdateTime || Date.now())) / 1000);
+            return `${Math.floor(playTime / 3600)}ч ${Math.floor((playTime % 3600) / 60)}м ${playTime % 60}с / ${Math.floor(task.requirement / 3600)}ч`;
+        case 'hourly':
+            const hourlyRate = Math.floor(autoClickPower * 3600);
+            return `${formatNumber(hourlyRate)} / ${formatNumber(task.requirement)} кликов/час`;
+        default:
+            return 'Прогресс неизвестен';
+    }
+}
+
+// Update game state saving to use Math.floor
+function saveGameState() {
+    if (!tg?.initDataUnsafe?.user?.id) return;
+    
+    const now = Date.now();
+    const gameState = {
+        score: Math.floor(score),
+        autoClickPower,
+        lastUpdateTime: now,
+        shopItems,
+        tasks,
+        totalClicks: Math.floor(totalClicks),
+        maxBalance: Math.floor(maxBalance),
+        totalEarned: Math.floor(totalEarned)
+    };
+    
+    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
+}
+
 let tg = window.Telegram?.WebApp;
 
 // Initialize Telegram user data
@@ -765,7 +998,76 @@ function initTelegramUser() {
 }
 
 // Call this when page loads
-document.addEventListener('DOMContentLoaded', initTelegramUser);
+document.addEventListener('DOMContentLoaded', function() {
+    const clickCircle = document.querySelector('.click-circle');
+    const savedVibration = localStorage.getItem('vibrationEnabled');
+    vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
+    
+    const vibrationToggle = document.getElementById('vibrationToggle');
+    if (vibrationToggle) {
+        vibrationToggle.checked = vibrationEnabled;
+    }
+
+    // Add click handler here after element is available
+    if (clickCircle) {
+        clickCircle.addEventListener('click', () => {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            clickCircle.appendChild(effect);
+            
+            effect.addEventListener('animationend', () => {
+                effect.remove();
+            });
+            
+            score = Math.floor(score + 1);
+            totalClicks = Math.floor(totalClicks + 1);
+            totalEarned = Math.floor(totalEarned + 1);
+            updateScoreDisplay();
+            
+            // Update task progress display after each click
+            const tasksGrid = document.querySelector('.tasks-grid');
+            if (tasksGrid) {
+                tasksGrid.innerHTML = renderTasks();
+            }
+            
+            if (vibrationEnabled) {
+                try {
+                    window.navigator.vibrate(15);
+                } catch (e) {
+                    console.log('Vibration failed:', e);
+                }
+            }
+            
+            saveGameState();
+        });
+    }
+    
+    initializeNavigation();
+    loadGameState();
+    initTelegramUser();
+    updateShopItems();
+    updateGame();
+    const tasksGrid = document.querySelector('.tasks-grid');
+    if (tasksGrid) {
+        tasksGrid.innerHTML = renderTasks();
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('shop-item-button')) {
+        const itemId = parseInt(e.target.getAttribute('data-item-id'));
+        if (!isNaN(itemId)) {
+            purchaseItem(itemId);
+        }
+    }
+    
+    if (e.target.classList.contains('task-claim-button')) {
+        const taskId = parseInt(e.target.getAttribute('data-task-id'));
+        if (!isNaN(taskId)) {
+            claimTask(taskId);
+        }
+    }
+});
 
 function showNotification(message) {
     const notification = document.querySelector('.notification');
@@ -799,7 +1101,6 @@ function showNotification(message) {
 
 const sectionContents = document.querySelectorAll('.section-content');
 const gameArea = document.querySelector('.game-area');
-const clickCircle = document.querySelector('.click-circle');
 const scoreContainer = document.querySelector('.score-container');
 const scoreElement = document.querySelector('.score');
 
@@ -1223,74 +1524,50 @@ function updateGame() {
 
 function purchaseItem(itemId) {
     const item = shopItems.find(i => i.id === itemId);
-    if (item && score >= item.price) {
-        score -= item.price;
-        item.level++;
-        
-        item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
-        
-        autoClickPower += item.power;
-        
-        updateScoreDisplay();
-        updateShopItems();
-        showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
-    } else {
-        // Modified error message without the word "кликов"
+    if (!item) return;
+
+    // Update purchase check to remove disabled state check
+    if (Math.floor(score) < item.price) {
         showNotification(`Недостаточно для покупки ${item.title}`);
+        return;
     }
+
+    score -= item.price;
+    item.level++;
+    item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
+    autoClickPower += item.power;
+    
+    updateScoreDisplay();
+    updateShopItems();
+    showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
 }
 
-function renderTasks() {
-    return tasks.map(task => `
-        <div class="task-item ${task.claimed ? 'claimed' : ''}">
-            ${task.isNew ? '<span class="task-new">NEW</span>' : ''}
-            <div class="task-icon">${task.icon}</div>
-            <div class="task-title">${task.title}</div>
-            <div class="task-description">${task.description}</div>
-            <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
-            <button class="task-claim-button" 
-                    data-task-id="${task.id}"
-                    ${task.claimed ? 'disabled' : ''}>
-                ${task.claimed ? 'Получено' : 'Получить'}
-            </button>
-        </div>
-    `).join('');
-}
-
+// Update tasks claim button state
 function claimTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.claimed) return;
 
-    let canClaim = false;
-    
-    switch(task.type) {
-        case 'clicks':
-            canClaim = score >= task.requirement;
-            break;
-        case 'purchases':
-            canClaim = shopItems.reduce((sum, item) => sum + item.level, 0) >= task.requirement;
-            break;
-        case 'cps':
-            canClaim = autoClickPower >= task.requirement;
-            break;
-        case 'hourly':
-            canClaim = (autoClickPower * 3600) >= task.requirement;
-            break;
+    let canClaim = canClaimTask(task);
+
+    if (!canClaim) {
+        showNotification('Условия задания еще не выполнены');
+        return;
     }
 
-    if (canClaim) {
-        task.claimed = true;
-        score += task.reward;
-        showNotification(`Задание "${task.title}" выполнено! +${formatNumber(task.reward)} кликов`);
-        updateScoreDisplay();
-        const tasksGrid = document.querySelector('.tasks-grid');
-        if (tasksGrid) {
-            tasksGrid.innerHTML = renderTasks();
-        }
-    } else {
-        // Modified error message
-        showNotification('Условия задания еще не выполнены');
+    task.claimed = true;
+    score += task.reward;
+    totalEarned += task.reward;
+    if (score > maxBalance) maxBalance = score;
+    
+    showNotification(`Задание "${task.title}" выполнено! +${formatNumber(task.reward)} кликов`);
+    updateScoreDisplay();
+    
+    const tasksGrid = document.querySelector('.tasks-grid');
+    if (tasksGrid) {
+        tasksGrid.innerHTML = renderTasks();
     }
+    
+    saveGameState();
 }
 
 function saveGameState() {
@@ -1303,9 +1580,9 @@ function saveGameState() {
         lastUpdateTime: now,
         shopItems,
         tasks,
-        totalClicks,
-        maxBalance,
-        totalEarned
+        totalClicks: Math.floor(totalClicks),
+        maxBalance: Math.floor(maxBalance),
+        totalEarned: Math.floor(totalEarned)
     };
     
     localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
@@ -1387,7 +1664,7 @@ function updateStatsSection() {
             
             <div class="stats-item">
                 <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://i.postimg.cc/L56DPKKh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                    <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
                     ${formatNumber(totalClicks)}
                 </div>
                 <div style="color: #fff; margin-top: 5px;">Всего монет</div>
@@ -1420,7 +1697,7 @@ function initializeNavigation() {
             sections.forEach(s => s.classList.remove('active'));
             
             btn.classList.add('active');
-            btn.style.background = '#28a745'; 
+            btn.style.background = '#ff3366'; // Changed from #28a745 to match red theme
             
             const btnText = btn.textContent.trim().toLowerCase();
             
@@ -1478,86 +1755,6 @@ function initializeNavigation() {
         });
     });
 }
-
-function initializeClickCircle() {
-    const clickCircle = document.querySelector('.click-circle');
-    
-    clickCircle.addEventListener('click', () => {
-        const effect = document.createElement('div');
-        effect.className = 'click-effect';
-        clickCircle.appendChild(effect);
-        
-        effect.addEventListener('animationend', () => {
-            effect.remove();
-        });
-        
-        score++;
-        totalClicks++;
-        totalEarned++;
-        updateScoreDisplay();
-        
-        if (vibrationEnabled) {
-            try {
-                window.navigator.vibrate(15);
-            } catch (e) {
-                console.log('Vibration failed:', e);
-            }
-        }
-        
-        saveGameState();
-    });
-}
-
-function initializeShopItems() {
-    const shopGrid = document.querySelector('.shop-grid');
-    if (shopGrid) {
-        shopGrid.addEventListener('click', (e) => {
-            const button = e.target.closest('.shop-item-button');
-            if (button) {
-                const itemId = parseInt(button.dataset.itemId);
-                purchaseItem(itemId);
-                saveGameState();
-            }
-        });
-    }
-}
-
-function initializeTaskItems() {
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.addEventListener('click', (e) => {
-            const button = e.target.closest('.task-claim-button');
-            if (button) {
-                const taskId = parseInt(button.dataset.taskId);
-                claimTask(taskId);
-                saveGameState();
-            }
-        });
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const savedVibration = localStorage.getItem('vibrationEnabled');
-    vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
-    
-    const vibrationToggle = document.getElementById('vibrationToggle');
-    if (vibrationToggle) {
-        vibrationToggle.checked = vibrationEnabled;
-    }
-    
-    initializeNavigation();
-    initializeClickCircle();
-    initializeShopItems();
-    initializeTaskItems();
-    loadGameState();
-    initTelegramUser();
-    updateShopItems();
-    updateGame();
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.innerHTML = renderTasks();
-    }
-});
 
 document.body.addEventListener('change', function(e) {
     if (e.target.id === 'vibrationToggle') {
