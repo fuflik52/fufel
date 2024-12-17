@@ -62,6 +62,26 @@
             <div class="section-content" id="stats-section">
                 <!-- Content will be populated by updateStatsSection() -->
             </div>
+            <div class="section-content" id="admin-section">
+                <div id="admin-panel">
+                    <h2>Админ панель</h2>
+                    <form id="product-form">
+                        <input type="text" id="product-name" placeholder="Название товара" required />
+                        <input type="url" id="product-image" placeholder="URL изображения" required />
+                        <input type="number" id="product-profit" placeholder="Прибыль в час" required />
+                        <input type="number" id="product-price" placeholder="Цена товара" required />
+                        <button type="submit">Создать товар</button>
+                    </form>
+                    <div id="product-list-container">
+                        <h3>Список товаров</h3>
+                        <ul id="product-list"></ul>
+                    </div>
+                    <button id="give-balance-btn">Выдать баланс</button>
+                    <input type="number" id="balance-amount" placeholder="Сумма" />
+                    <button id="set-background-btn">Выбрать фон</button>
+                    <input type="color" id="background-color" />
+                </div>
+            </div>
         </div>
 
         <nav class="nav-panel">
@@ -99,6 +119,9 @@
                         <img src="https://i.postimg.cc/YSx39sc0/free-icon-inferential-statistics-8921140.png" alt="Statistics">
                         Статистика
                     </button>
+                    <button class="nav-btn">
+                        <img src="https://i.postimg.cc/d1K2GJKk/free-icon-manage-6700038.png" alt="Admin Panel"> Админ панель
+                    </button>
                 </div>
             </div>
         </nav>
@@ -118,7 +141,7 @@
                             filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
                 <button class="close-btn" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
             </div>
-        </div>
+        </div>  
     </div>
 
     <canvas id="performanceChart" style="display: none;"></canvas>

@@ -173,6 +173,28 @@ document.addEventListener('DOMContentLoaded', function() {
             saveGameState();
         });
     }
+
+    const productForm = document.getElementById('product-form');
+    const productList = document.getElementById('product-list');
+
+    productForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('product-name').value;
+        const image = document.getElementById('product-image').value;
+        const profit = parseInt(document.getElementById('product-profit').value, 10);
+        const price = parseInt(document.getElementById('product-price').value, 10);
+
+        const productItem = document.createElement('li');
+        productItem.innerHTML = `
+            <img src="${image}" alt="${name}" style="width: 50px; height: 50px; vertical-align: middle;">
+            <strong>${name}</strong> - Прибыль: ${profit}/час, Цена: ${price}
+        `;
+        productList.appendChild(productItem);
+
+        // Очистка формы после добавления товара
+        productForm.reset();
+    });
 });
 
 function saveGameState() {
@@ -319,7 +341,7 @@ let lastSaveTime = Date.now();
 let shopItems = [
     {
         id: 1,
-        icon: `<img src="https://example.com/path/to/image1.png" alt="Автокликер">`,
+        icon: `<img src="https://i.postimg.cc/44zLpwFY/image.png" alt="Автокликер">`,
         title: 'Автокликер',
         price: 500,
         basePrice: 500,
@@ -329,7 +351,7 @@ let shopItems = [
     },
     {
         id: 2,
-        icon: `<img src="https://example.com/path/to/image2.png" alt="Робот-помощник">`,
+        icon: `<img src="https://i.postimg.cc/1znsJbL0/image.png " alt="Робот-помощник">`,
         title: 'Робот-помощник',
         price: 1000,
         basePrice: 1000,
@@ -489,7 +511,7 @@ let shopItems = [
     },
     {
         id: 18,
-        icon: `<img src="https://example.com/path/to/image18.png" alt="Галактическая империя">`,
+        icon: `<img src="https://i.postimg.cc/YChnJ78P/image.png" alt="Галактическая империя">`,
         title: 'Галактическая империя',
         price: 200000000,
         basePrice: 200000000,
@@ -623,7 +645,7 @@ let tasks = [
         id: 10,
         icon: '',
         title: 'Скоростной кликер',
-        description: 'Достигните 100 к��иков в секунду',
+        description: 'Достигните 100 кликов в секунду',
         reward: 5000,
         requirement: 100,
         type: 'cps',
@@ -677,7 +699,7 @@ let tasks = [
     {
         id: 15,
         icon: '',
-        title: 'Быст��ый рост',
+        title: 'Быстрый рост',
         description: 'Получите 1000 кликов за час',
         reward: 500,
         requirement: 1000,
@@ -756,7 +778,7 @@ function showChangelog() {
         <div class="modal-content">
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
                 <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                    <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
+                    <h3 style="margin: 0; color: white; font-size: 24px;">��аздел в разработке</h3>
                 </div>
                 <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                      alt="Development" 
