@@ -140,82 +140,59 @@ function updateScoreDisplay() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const clickCircle = document.querySelector('.click-circle');
-    if (clickCircle) {
-        clickCircle.addEventListener('click', () => {
-            const effect = document.createElement('div');
-            effect.className = 'click-effect';
-            clickCircle.appendChild(effect);
-            
-            effect.addEventListener('animationend', () => {
-                effect.remove();
-            });
-            
-            score = Math.floor(score + 0);
-            totalClicks = Math.floor(totalClicks + 1);
-            totalEarned = Math.floor(totalEarned + 1);
-            
-            updateScoreDisplay();
-            
-            const tasksGrid = document.querySelector('.tasks-grid');
-            if (tasksGrid) {
-                tasksGrid.innerHTML = renderTasks();
-            }
-            
-            if (vibrationEnabled) {
-                try {
-                    window.navigator.vibrate(15);
-                } catch (e) {
-                    console.log('Vibration failed:', e);
-                }
-            }
-            
-            saveGameState();
-        });
+    // Убедитесь, что Telegram WebApp инициализирован
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        
+        // Ваш существующий код
+        loadGameState();
+        // Другие функции инициализации
+    } else {
+        console.error('Telegram WebApp не инициализирован.');
     }
-
-    const productForm = document.getElementById('product-form');
-    const productList = document.getElementById('product-list');
-
-    productForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const name = document.getElementById('product-name').value;
-        const image = document.getElementById('product-image').value;
-        const profit = parseInt(document.getElementById('product-profit').value, 10);
-        const price = parseInt(document.getElementById('product-price').value, 10);
-
-        const productItem = document.createElement('li');
-        productItem.innerHTML = `
-            <img src="${image}" alt="${name}" style="width: 50px; height: 50px; vertical-align: middle;">
-            <strong>${name}</strong> - Прибыль: ${profit}/час, Цена: ${price}
-        `;
-        productList.appendChild(productItem);
-
-        // Очистка формы после добавления товара
-        productForm.reset();
-    });
 });
 
-function saveGameState() {
-    if (!tg?.initDataUnsafe?.user?.id) return;
+function loadGameState() {
+    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+        console.error('Telegram WebApp объект не определен или отсутствует ID пользователя.');
+        return;
+    }
     
-    const now = Date.now();
-    const gameState = {
-        score: Math.floor(score),
-        autoClickPower,
-        lastUpdateTime: now,
-        shopItems,
-        tasks,
-        totalClicks: Math.floor(totalClicks),
-        maxBalance: Math.floor(maxBalance),
-        totalEarned: Math.floor(totalEarned)
-    };
+    const tg = window.Telegram.WebApp;
+    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        const now = Date.now();
+        
+        if (state.lastUpdateTime) {
+            const offlineTime = (now - state.lastUpdateTime) / 1000;
+            const offlineEarnings = state.autoClickPower * offlineTime;
+            state.score += offlineEarnings;
+            
+            if (offlineEarnings > 0) {
+                showNotification(`Вы заработали ${formatNumber(Math.floor(offlineEarnings))} пока были офлайн!`);
+            }
+        }
+        
+        score = state.score || 0;
+        autoClickPower = state.autoClickPower || 0;
+        shopItems = state.shopItems || shopItems;
+        tasks = state.tasks || tasks;
+        totalClicks = state.totalClicks || 0;
+        maxBalance = state.maxBalance || 0;
+        totalEarned = state.totalEarned || 0;
+        
+        updateScoreDisplay();
+        updateShopItems();
+        
+        const tasksGrid = document.querySelector('.tasks-grid');
+        if (tasksGrid) {
+            tasksGrid.innerHTML = renderTasks();
+        }
+    }
     
-    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
+    lastUpdateTime = Date.now();
 }
-
-let tg = window.Telegram?.WebApp;
 
 function initTelegramUser() {
     if (tg) {
@@ -778,7 +755,7 @@ function showChangelog() {
         <div class="modal-content">
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
                 <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                    <h3 style="margin: 0; color: white; font-size: 24px;">��аздел в разработке</h3>
+                    <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
                 </div>
                 <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
                      alt="Development" 
@@ -813,21 +790,6 @@ document.addEventListener('click', function(e) {
 });
 
 function updateShopItems() {
-    // Очистка старых товаров из localStorage
-    localStorage.removeItem('shopItems');
-
-    // Здесь должно быть ваше текущее обновление товаров
-    // Пример: shopItems = fetchNewItems(); // Получение новых товаров
-
-    // Сохранение новых товаров в localStorage
-    localStorage.setItem('shopItems', JSON.stringify(shopItems));
-
-    // Логика для отображения товаров на странице
-    renderShopItems();
-}
-
-
-function renderShopItems() {
     const shopGrid = document.querySelector('.shop-grid');
     shopGrid.innerHTML = shopItems.map(item => `
         <div class="shop-item">
@@ -931,44 +893,6 @@ function saveGameState() {
     };
     
     localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
-}
-
-function loadGameState() {
-    if (!tg?.initDataUnsafe?.user?.id) return;
-    
-    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        const now = Date.now();
-        
-        if (state.lastUpdateTime) {
-            const offlineTime = (now - state.lastUpdateTime) / 1000;
-            const offlineEarnings = state.autoClickPower * offlineTime;
-            state.score += offlineEarnings;
-            
-            if (offlineEarnings > 0) {
-                showNotification(`Вы заработали ${formatNumber(Math.floor(offlineEarnings))} пока были офлайн!`);
-            }
-        }
-        
-        score = state.score || 0;
-        autoClickPower = state.autoClickPower || 0;
-        shopItems = state.shopItems || shopItems;
-        tasks = state.tasks || tasks;
-        totalClicks = state.totalClicks || 0;
-        maxBalance = state.maxBalance || 0;
-        totalEarned = state.totalEarned || 0;
-        
-        updateScoreDisplay();
-        updateShopItems();
-        
-        const tasksGrid = document.querySelector('.tasks-grid');
-        if (tasksGrid) {
-            tasksGrid.innerHTML = renderTasks();
-        }
-    }
-    
-    lastUpdateTime = Date.now();
 }
 
 function updateStatsSection() {

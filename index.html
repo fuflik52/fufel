@@ -12,7 +12,7 @@
 <body>
     <div class="phone-container">
         <button id="changelogBtn">
-            <img src="https://i.postimg.cc/85KmdfzV/free-icon-newspaper-8417401.png" alt="Changelog">
+            <img src="https://i.postimg.cc/85KmdfzV/free-icon-newspaper-8417401.png" alt="Leaderboard">
         </button>
         <div class="notification"></div>
         <div class="game-area">
@@ -40,6 +40,11 @@
                                 <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
                             </span>
                         </label>
+                    </div>
+                    <div class="settings-option" style="margin-top: 20px;">
+                        <button id="clearShopItemsBtn" style="background-color: #ff3366; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                            Очистить товары магазина
+                        </button>
                     </div>
                 </div>
             </div>
@@ -127,7 +132,7 @@
         </nav>
     </div>
 
-    <div id="changelogModal">
+    <div id="changelogModal" class="modal">
         <div class="modal-content">
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
                 <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
