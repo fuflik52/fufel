@@ -813,6 +813,21 @@ document.addEventListener('click', function(e) {
 });
 
 function updateShopItems() {
+    // Очистка старых товаров из localStorage
+    localStorage.removeItem('shopItems');
+
+    // Здесь должно быть ваше текущее обновление товаров
+    // Пример: shopItems = fetchNewItems(); // Получение новых товаров
+
+    // Сохранение новых товаров в localStorage
+    localStorage.setItem('shopItems', JSON.stringify(shopItems));
+
+    // Логика для отображения товаров на странице
+    renderShopItems();
+}
+
+
+function renderShopItems() {
     const shopGrid = document.querySelector('.shop-grid');
     shopGrid.innerHTML = shopItems.map(item => `
         <div class="shop-item">
