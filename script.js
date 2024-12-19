@@ -139,95 +139,86 @@ function updateScoreDisplay() {
     `;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Убедитесь, что Telegram WebApp инициализирован
-    if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        
-        // Загрузить состояние игры и инициализировать другие функции
-        loadGameState();
-        initTelegramUser();
-        // Инициализировать другие компоненты
-    } else {
-        console.error('Telegram WebApp не инициализирован.');
-    }
-});
-
-function loadGameState() {
-    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-        console.error('Telegram WebApp объект не определен или отсутствует ID пользователя.');
-        return;
-    }
-    
-    const tg = window.Telegram.WebApp; // Убедитесь, что tg определен
-    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        const now = Date.now();
-        
-        if (state.lastUpdateTime) {
-            const offlineTime = (now - state.lastUpdateTime) / 1000;
-            const offlineEarnings = state.autoClickPower * offlineTime;
-            state.score += offlineEarnings;
-            
-            if (offlineEarnings > 0) {
-                showNotification(`Вы заработали ${formatNumber(Math.floor(offlineEarnings))} пока были офлайн!`);
-            }
-        }
-        
-        score = state.score || 0;
-        autoClickPower = state.autoClickPower || 0;
-        shopItems = state.shopItems || shopItems;
-        tasks = state.tasks || tasks;
-        totalClicks = state.totalClicks || 0;
-        maxBalance = state.maxBalance || 0;
-        totalEarned = state.totalEarned || 0;
-        
-        updateScoreDisplay();
-        updateShopItems();
-        
-        const tasksGrid = document.querySelector('.tasks-grid');
-        if (tasksGrid) {
-            tasksGrid.innerHTML = renderTasks();
-        }
-    }
-    
-    lastUpdateTime = Date.now();
-}
-
-function initTelegramUser() {
-    if (window.Telegram && window.Telegram.WebApp) {
-        const tg = window.Telegram.WebApp;
-        const user = tg.initDataUnsafe?.user;
-        if (user) {
-            document.getElementById('username').textContent = user.username || 'Anonymous User';
-            document.getElementById('userId').textContent = `ID: ${user.id || 'Unknown'}`;
-            
-            if (user.photo_url) {
-                document.getElementById('userPhoto').src = user.photo_url;
-            }
-        }
-        tg.ready();
-    }
-}
-
-function saveGameState() {
-    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) return;
-    
-    const tg = window.Telegram.WebApp; // Убедитесь, что tg определен
+function updateGame() {
     const now = Date.now();
-    const gameState = {
-        score: Math.floor(score),
-        autoClickPower,
-        lastUpdateTime: now,
-        shopItems,
-        tasks,
-        totalClicks: Math.floor(totalClicks),
-        maxBalance: Math.floor(maxBalance),
-        totalEarned: Math.floor(totalEarned)
-    };
+    const deltaTime = (now - lastUpdateTime) / 1000;
+    lastUpdateTime = now;
     
-    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
+    score += autoClickPower * deltaTime;
+    
+    updateScoreDisplay();
+    
+    requestAnimationFrame(updateGame);
+}
+
+function initializeNavigation() {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.section-content');
+
+    navBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            navBtns.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = '#1c1c2e'; 
+            });
+            
+            sections.forEach(s => s.classList.remove('active'));
+            
+            btn.classList.add('active');
+            btn.style.background = '#ff3366';
+            
+            const btnText = btn.textContent.trim().toLowerCase();
+            
+            if (btnText === 'главная') {
+                sections.forEach(s => s.classList.remove('active'));
+            } else {
+                if (btnText === 'магазин') {
+                    document.getElementById('shop-section').classList.add('active');
+                } else if (btnText === 'награды' || btnText === 'город' || btnText === 'инвестиции') {
+                    document.getElementById('development-section').classList.add('active');
+                    document.getElementById('development-section').innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
+                            <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
+                                <h3 style="margin: 0; color: white; font-size: 24px;">Раздел ${btnText} в разработке</h3>
+                            </div>
+                            <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
+                                 alt="Development" 
+                                 style="width: 300px; 
+                                        height: 300px; 
+                                        object-fit: contain;
+                                        filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
+                        </div>
+                    `;
+                } else if (btnText === 'задания') {
+                    document.getElementById('tasks-section').classList.add('active');
+                } else if (btnText === 'настройки') {
+                    document.getElementById('settings-section').classList.add('active');
+                    document.getElementById('settings-section').innerHTML = `
+                        <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
+                            <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
+                                    <div>
+                                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
+                                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                                    <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
+                                    <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
+                                        <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                } else if (btnText === 'статистика') {
+                    document.getElementById('stats-section').classList.add('active');
+                    updateStatsSection();
+                }
+            }
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -235,30 +226,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedVibration = localStorage.getItem('vibrationEnabled');
     vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
     
-    const vibrationToggle = document.getElementById('vibrationToggle');
-    if (vibrationToggle) {
-        vibrationToggle.checked = vibrationEnabled;
-    }
-
     if (clickCircle) {
         clickCircle.addEventListener('click', () => {
-            const effect = document.createElement('div');
-            effect.className = 'click-effect';
-            clickCircle.appendChild(effect);
-            
-            effect.addEventListener('animationend', () => {
-                effect.remove();
-            });
-            
-            score = Math.floor(score + 1);
-            totalClicks = Math.floor(totalClicks + 1);
-            totalEarned = Math.floor(totalEarned + 1);
-            updateScoreDisplay();
-            
-            const tasksGrid = document.querySelector('.tasks-grid');
-            if (tasksGrid) {
-                tasksGrid.innerHTML = renderTasks();
-            }
+            score++;
+            totalClicks++;
             
             if (vibrationEnabled) {
                 try {
@@ -268,13 +239,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            saveGameState();
+            updateScoreDisplay();
+            
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = '+1';
+            effect.style.left = '50%';
+            effect.style.top = '50%';
+            effect.style.transform = 'translate(-50%, -50%)';
+            
+            clickCircle.appendChild(effect);
+            
+            setTimeout(() => {
+                effect.remove();
+            }, 500);
         });
     }
     
     initializeNavigation();
     loadGameState();
-    initTelegramUser();
     updateShopItems();
     updateGame();
     const tasksGrid = document.querySelector('.tasks-grid');
@@ -282,6 +265,37 @@ document.addEventListener('DOMContentLoaded', function() {
         tasksGrid.innerHTML = renderTasks();
     }
 });
+
+function loadGameState() {
+    score = 0;
+    autoClickPower = 0;
+    totalClicks = 0;
+    maxBalance = 0;
+    totalEarned = 0;
+    
+    shopItems.forEach(item => {
+        item.level = 0;
+        item.price = item.basePrice;
+    });
+    
+    tasks.forEach(task => {
+        task.claimed = false;
+    });
+    
+    updateScoreDisplay();
+    updateShopItems();
+    
+    const tasksGrid = document.querySelector('.tasks-grid');
+    if (tasksGrid) {
+        tasksGrid.innerHTML = renderTasks();
+    }
+    
+    lastUpdateTime = Date.now();
+}
+
+function saveGameState() {
+    // Функция оставлена пустой, так как мы больше не сохраняем состояние
+}
 
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('shop-item-button')) {
@@ -770,259 +784,66 @@ document.getElementById('vibrationToggle').addEventListener('change', function()
     showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
 });
 
-function showChangelog() {
-    const modal = document.getElementById('changelogModal');
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
-                <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                    <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
-                </div>
-                <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
-                     alt="Development" 
-                     style="width: 300px; 
-                            height: 300px; 
-                            object-fit: contain;
-                            filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
-                <button class="close-btn" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
-            </div>
-        </div>
-    `;
-    modal.style.display = 'block';
-
-    const closeBtn = modal.querySelector('.close-btn');
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-}
-
-function closeChangelog() {
-    document.getElementById('changelogModal').style.display = 'none';
-}
-
-document.getElementById('changelogBtn').addEventListener('click', showChangelog);
-
-document.addEventListener('click', function(e) {
-    const modal = document.getElementById('changelogModal');
-    const btn = document.getElementById('changelogBtn');
-    if (e.target !== modal && !modal.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-        modal.style.display = 'none';
-    }
-});
-
-function updateShopItems() {
-    const shopGrid = document.querySelector('.shop-grid');
-    shopGrid.innerHTML = shopItems.map(item => `
-        <div class="shop-item">
-            <span class="shop-item-new">LVL ${item.level}</span>
-            <div class="shop-item-icon">${item.icon}</div>
-            <div class="shop-item-title">${item.title}</div>
-            <div class="shop-item-description">${item.description}</div>
-            <div class="shop-item-price">
-                ${formatNumber(item.price)} <img src="https://example.com/path/to/coin.png" style="width: 16px; height: 16px; vertical-align: middle;">
-            </div>
-            <button class="shop-item-button" data-item-id="${item.id}">
-                Улучшить
-            </button>
-        </div>
-    `).join('');
-}
-
-function updateScoreDisplay() {
-    scoreElement.innerHTML = `
-        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
-        ${formatNumber(Math.floor(score))}
-    `;
-}
-
-function updateGame() {
-    const now = Date.now();
-    const deltaTime = (now - lastUpdateTime) / 1000;
-    lastUpdateTime = now;
-    
-    score += autoClickPower * deltaTime;
-    
-    updateScoreDisplay();
-    
-    if (now - lastSaveTime > 5000) {
-        saveGameState();
-        lastSaveTime = now;
-    }
-    
-    requestAnimationFrame(updateGame);
-}
-
-function purchaseItem(itemId) {
-    const item = shopItems.find(i => i.id === itemId);
-    if (!item) return;
-
-    if (Math.floor(score) < item.price) {
-        showNotification(`Недостаточно для покупки ${item.title}`);
-        return;
-    }
-
-    score -= item.price;
-    item.level++;
-    item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
-    autoClickPower += item.power;
-    
-    updateScoreDisplay();
-    updateShopItems();
-    showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
-}
-
-function claimTask(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task || task.claimed) return;
-
-    let canClaim = canClaimTask(task);
-
-    if (!canClaim) {
-        showNotification('Условия задания еще не выполнены');
-        return;
-    }
-
-    task.claimed = true;
-    score += task.reward;
-    totalEarned += task.reward;
-    if (score > maxBalance) maxBalance = score;
-    
-    showNotification(`Задание "${task.title}" выполнено! +${formatNumber(task.reward)} кликов`);
-    updateScoreDisplay();
-    
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.innerHTML = renderTasks();
-    }
-    
-    saveGameState();
-}
-
 function updateStatsSection() {
     const statsSection = document.getElementById('stats-section');
     if (!statsSection) return;
     
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
     const perHour = Math.floor(autoClickPower * 3600);
     
     statsSection.innerHTML = `
-        <div class="profile-container">
-            <div class="profile-header">
-                <img class="profile-photo" src="https://i.postimg.cc/qM9QZKXJ/free-icon-boy-avatar-17479088.png" alt="Profile Photo">
-                <div class="profile-info">
-                    <div id="username">${user?.username || 'Anonymous User'}</div>
-                    <div id="userId">ID: ${user?.id || 'Unknown'}</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;"> 
-                    ${formatNumber(Math.floor(maxBalance))}
-                </div>
-                <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; margin-bottom: 15px;">
+                <img src="https://i.postimg.cc/qM9QZKXJ/free-icon-boy-avatar-17479088.png" 
+                     style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                    ${formatNumber(perHour)}/час
-                </div>
-                <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 24px; color: #fff;">Статистика</div>
             </div>
             
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                    ${formatNumber(totalClicks)}
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 400px;">
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(Math.floor(score))}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Текущий баланс</div>
                 </div>
-                <div style="color: #fff; margin-top: 5px;">Всего монет</div>
-            </div>
-            
-            <div class="stats-item">
-                <div style="font-size: 24px; color: #0088ff;">
-                    <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                    ${formatNumber(totalEarned)}
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(maxBalance)}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
                 </div>
-                <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(perHour)}/час
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
+                </div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(totalClicks)}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Всего монет</div>
+                </div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(totalEarned)}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
+                </div>
             </div>
         </div>
     `;
-}
-
-function initializeNavigation() {
-    const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = document.querySelectorAll('.section-content');
-    const changelogBtn = document.getElementById('changelogBtn');
-
-    navBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            navBtns.forEach(b => {
-                b.classList.remove('active');
-                b.style.background = '#1c1c2e'; 
-            });
-            
-            sections.forEach(s => s.classList.remove('active'));
-            
-            btn.classList.add('active');
-            btn.style.background = '#ff3366';
-            
-            const btnText = btn.textContent.trim().toLowerCase();
-            
-            if (btnText === 'главная') {
-                sections.forEach(s => s.classList.remove('active'));
-                changelogBtn.style.display = 'flex';
-            } else {
-                changelogBtn.style.display = 'none';
-                if (btnText === 'магазин') {
-                    document.getElementById('shop-section').classList.add('active');
-                } else if (btnText === 'награды' || btnText === 'город' || btnText === 'инвестиции') {
-                    document.getElementById('development-section').classList.add('active');
-                    document.getElementById('development-section').innerHTML = `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
-                            <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                                <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
-                            </div>
-                            <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
-                                 alt="Development" 
-                                 style="width: 300px; 
-                                        height: 300px; 
-                                        object-fit: contain;
-                                        filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
-                        </div>
-                    `;
-                } else if (btnText === 'задания') {
-                    document.getElementById('tasks-section').classList.add('active');
-                } else if (btnText === 'настройки') {
-                    document.getElementById('settings-section').classList.add('active');
-                    document.getElementById('settings-section').innerHTML = `
-                        <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
-                            <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
-                                    <div>
-                                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
-                                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
-                                    </div>
-                                </div>
-                                <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                                    <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                                        <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-                    `;
-                } else if (btnText === 'статистика') {
-                    document.getElementById('stats-section').classList.add('active');
-                    updateStatsSection();
-                }
-            }
-        });
-    });
 }
 
 document.body.addEventListener('change', function(e) {
