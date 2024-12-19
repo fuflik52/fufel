@@ -332,7 +332,8 @@ function canClaimTask(task) {
         case 'clicks':
             return Math.floor(totalClicks) >= task.requirement;
         case 'purchases':
-            return shopItems.reduce((sum, item) => sum + item.level, 0) >= task.requirement;
+            const totalPurchases = shopItems.reduce((sum, item) => sum + item.level, 0);
+            return totalPurchases >= task.requirement;
         case 'cps':
             return Math.floor(autoClickPower) >= task.requirement;
         case 'time':
@@ -493,6 +494,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Проверка подключения к Telegram при загрузке
+    if (!window.Telegram || !window.Telegram.WebApp) {
+        console.error('Telegram WebApp не доступен');
+        showNotification('Ошибка: приложение должно быть открыто в Telegram');
+        return;
+    }
+
+    // Инициализируем Telegram WebApp
+    window.Telegram.WebApp.ready();
     
     initializeNavigation();
     loadGameState();
@@ -962,16 +973,34 @@ window.addEventListener('click', (event) => {
     }
 });
 
+const clickCircle = document.querySelector('.click-circle');
+
 document.addEventListener('touchstart', function(e) {
-    e.preventDefault(); // Предотвращаем зум и другие действия по умолчанию
+    // Проверяем, был ли клик внутри кнопки клика
+    const clickRect = clickCircle.getBoundingClientRect();
     Array.from(e.touches).forEach(touch => {
-        handleClick(touch.clientX, touch.clientY);
+        if (isClickInCircle(touch.clientX, touch.clientY, clickRect)) {
+            e.preventDefault(); // Предотвращаем зум только если клик в пределах кнопки
+            handleClick(touch.clientX, touch.clientY);
+        }
     });
-}, { passive: false });
+});
 
 document.addEventListener('mousedown', function(e) {
-    handleClick(e.clientX, e.clientY);
+    const clickRect = clickCircle.getBoundingClientRect();
+    if (isClickInCircle(e.clientX, e.clientY, clickRect)) {
+        handleClick(e.clientX, e.clientY);
+    }
 });
+
+function isClickInCircle(x, y, rect) {
+    return (
+        x >= rect.left &&
+        x <= rect.right &&
+        y >= rect.top &&
+        y <= rect.bottom
+    );
+}
 
 function handleClick(x, y) {
     // Создаем эффект клика

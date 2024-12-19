@@ -155,18 +155,21 @@ body {
 }
 
 .nav-panel {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 420px;
     height: 70px;
     background: rgba(15, 15, 26, 0.95);
     backdrop-filter: blur(10px);
-    z-index: 10; 
-    position: fixed; 
-    bottom: 0;
-    width: 100%;
-    max-width: 420px; 
+    z-index: 10;
 }
 
 .nav-scroll {
     width: 100%;
+    height: 100%;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -183,6 +186,9 @@ body {
     padding: 10px;
     min-width: max-content;
     gap: 15px;
+    height: 100%;
+    align-items: center;
+    justify-content: space-around;
 }
 
 .nav-btn {
@@ -198,12 +204,13 @@ body {
     align-items: center;
     gap: 5px;
     transition: 0.3s;
+    cursor: pointer;
 }
 
 .nav-btn img {
-  width: 24px;
-  height: 24px;
-  margin-bottom: 3px;
+    width: 24px;
+    height: 24px;
+    margin-bottom: 3px;
 }
 
 .nav-btn.active {
@@ -213,10 +220,6 @@ body {
 
 .nav-btn:active {
     transform: scale(0.95);
-}
-
-.nav-btn i {
-    font-size: 20px;
 }
 
 .section-content {
