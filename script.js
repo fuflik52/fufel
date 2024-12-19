@@ -145,8 +145,12 @@ function updateGame() {
     lastUpdateTime = now;
     
     score += autoClickPower * deltaTime;
-    
     updateScoreDisplay();
+    
+    if (now - lastSaveTime > 5000) {
+        saveGameState();
+        lastSaveTime = now;
+    }
     
     requestAnimationFrame(updateGame);
 }
@@ -267,20 +271,50 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadGameState() {
-    score = 0;
-    autoClickPower = 0;
-    totalClicks = 0;
-    maxBalance = 0;
-    totalEarned = 0;
+    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+        console.error('Telegram WebApp объект не определен или отсутствует ID пользователя.');
+        return;
+    }
     
+    const tg = window.Telegram.WebApp;
+    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
+    
+    // Сброс товаров магазина
     shopItems.forEach(item => {
         item.level = 0;
         item.price = item.basePrice;
     });
     
-    tasks.forEach(task => {
-        task.claimed = false;
-    });
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        const now = Date.now();
+        
+        if (state.lastUpdateTime) {
+            const offlineTime = (now - state.lastUpdateTime) / 1000;
+            const offlineEarnings = state.autoClickPower * offlineTime;
+            state.score += offlineEarnings;
+            
+            if (offlineEarnings > 0) {
+                showNotification(`Вы заработали ${formatNumber(Math.floor(offlineEarnings))} пока были офлайн!`);
+            }
+        }
+        
+        score = state.score || 0;
+        autoClickPower = state.autoClickPower || 0;
+        tasks = state.tasks || tasks;
+        totalClicks = state.totalClicks || 0;
+        maxBalance = state.maxBalance || 0;
+        totalEarned = state.totalEarned || 0;
+    } else {
+        score = 0;
+        autoClickPower = 0;
+        totalClicks = 0;
+        maxBalance = 0;
+        totalEarned = 0;
+        tasks.forEach(task => {
+            task.claimed = false;
+        });
+    }
     
     updateScoreDisplay();
     updateShopItems();
@@ -294,7 +328,85 @@ function loadGameState() {
 }
 
 function saveGameState() {
-    // Функция оставлена пустой, так как мы больше не сохраняем состояние
+    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) return;
+    
+    const tg = window.Telegram.WebApp;
+    const now = Date.now();
+    const gameState = {
+        score: Math.floor(score),
+        autoClickPower,
+        lastUpdateTime: now,
+        tasks,
+        totalClicks: Math.floor(totalClicks),
+        maxBalance: Math.floor(maxBalance),
+        totalEarned: Math.floor(totalEarned)
+    };
+    
+    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
+}
+
+function updateStatsSection() {
+    const statsSection = document.getElementById('stats-section');
+    if (!statsSection) return;
+    
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const perHour = Math.floor(autoClickPower * 3600);
+    
+    statsSection.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; margin-bottom: 15px;">
+                <img src="https://i.postimg.cc/qM9QZKXJ/free-icon-boy-avatar-17479088.png" 
+                     style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 24px; color: #fff;">Статистика</div>
+                <div style="font-size: 16px; color: #aaa; margin-top: 5px;">ID: ${user?.id || 'Unknown'}</div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 400px;">
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(Math.floor(score))}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Текущий баланс</div>
+                </div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(maxBalance)}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
+                </div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(perHour)}/час
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
+                </div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(totalClicks)}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Всего монет</div>
+                </div>
+                
+                <div class="stats-item">
+                    <div style="font-size: 24px; color: #0088ff;">
+                        <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
+                        ${formatNumber(totalEarned)}
+                    </div>
+                    <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 document.addEventListener('click', function(e) {
@@ -783,68 +895,6 @@ document.getElementById('vibrationToggle').addEventListener('change', function()
     localStorage.setItem('vibrationEnabled', vibrationEnabled);
     showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
 });
-
-function updateStatsSection() {
-    const statsSection = document.getElementById('stats-section');
-    if (!statsSection) return;
-    
-    const perHour = Math.floor(autoClickPower * 3600);
-    
-    statsSection.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
-            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; margin-bottom: 15px;">
-                <img src="https://i.postimg.cc/qM9QZKXJ/free-icon-boy-avatar-17479088.png" 
-                     style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div style="font-size: 24px; color: #fff;">Статистика</div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 400px;">
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(Math.floor(score))}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Текущий баланс</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(maxBalance)}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(perHour)}/час
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(totalClicks)}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Всего монет</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(totalEarned)}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
-                </div>
-            </div>
-        </div>
-    `;
-}
 
 document.body.addEventListener('change', function(e) {
     if (e.target.id === 'vibrationToggle') {
