@@ -17,6 +17,9 @@
                 <div class="score">0</div>
             </div>
             <div class="click-circle"></div>
+            <button id="changelogBtn" class="changelog-btn">
+                <img src="https://i.postimg.cc/85KmdfzV/free-icon-newspaper-8417401.png" alt="Changelog">
+            </button>
             <div class="section-content" id="shop-section">
                 <div class="shop-grid"></div>
             </div>
@@ -71,39 +74,79 @@
                 <div class="nav-content">
                     <button class="nav-btn active">
                         <img src="https://i.postimg.cc/s2zm3RNb/free-icon-home-8706612.png" alt="Home">
-                        Главная
+                        <span>Главная</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/NMppNPbS/free-icon-shopping-cart-3643914.png" alt="Shop">
-                        Магазин
+                        <span>Магазин</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/sxLKzQkJ/free-icon-star-5782443.png" alt="Rewards">
-                        Награды
+                        <span>Награды</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/fWq8mpV0/free-icon-to-do-list-6019756.png" alt="Tasks">
-                        Задания
+                        <span>Задания</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/SRRVH7vs/free-icon-skyscraper-5776308.png" alt="City">
-                        Город
+                        <span>Город</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/DZycbPFg/free-icon-investment-5530639.png" alt="Investments">
-                        Инвестиции
+                        <span>Инвестиции</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/nLfRMmCR/free-icon-setting-3288004.png" alt="Settings">
-                        Настройки
+                        <span>Настройки</span>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/YSx39sc0/free-icon-inferential-statistics-8921140.png" alt="Statistics">
-                        Статистика
+                        <span>Статистика</span>
                     </button>
                 </div>
             </div>
         </nav>
+
+        <!-- Модальное окно для changelog -->
+        <div id="changelogModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>ПОСЛЕДНИЕ ОБНОВЛЕНИЯ</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="version-info">
+                        <h3>Версия 2.0 (20.12.2024)</h3>
+                        <ul>
+                            <li>Полностью обновлен дизайн игры</li>
+                            <li>Добавлена нижняя навигация для удобства</li>
+                            <li>Центрирование кнопки клика</li>
+                            <li>Улучшен внешний вид магазина</li>
+                            <li>Добавлена кнопка сброса прогресса в настройках</li>
+                            <li>Оптимизирована производительность</li>
+                            <li>Исправлены баги с сохранением прогресса</li>
+                            <li>Улучшен баланс цен в магазине</li>
+                            <li>Добавлены новые анимации</li>
+                            <li>Реализована система чтоб можно было кликать сразу с 2 пальцев и более</li>
+                            <li>Улучшена система достижений</li>
+                        </ul>
+                    </div>
+                    <div class="future-updates">
+                        <h3>Что планируется в следующих обновлениях:</h3>
+                        <ol>
+                            <li>Новые товары в магазине</li>
+                            <li>Система престижа</li>
+                            <li>Ежедневные задания</li>
+                            <li>Система достижений</li>
+                            <li>Таблица лидеров</li>
+                            <li>Система бонусов</li>
+                        </ol>
+                    </div>
+                    <p class="thank-you">Спасибо что играете в нашу игру! ❤️</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <canvas id="performanceChart" style="display: none;"></canvas>

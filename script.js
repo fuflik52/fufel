@@ -373,12 +373,13 @@ function updateGame() {
 function initializeNavigation() {
     const navBtns = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section-content');
+    const changelogBtn = document.getElementById('changelogBtn');
 
     navBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
             navBtns.forEach(b => {
                 b.classList.remove('active');
-                b.style.background = '#1c1c2e'; 
+                b.style.background = '#1c1c2e';
             });
             
             sections.forEach(s => s.classList.remove('active'));
@@ -390,7 +391,9 @@ function initializeNavigation() {
             
             if (btnText === 'главная') {
                 sections.forEach(s => s.classList.remove('active'));
+                changelogBtn.style.display = 'block'; // Показываем кнопку changelog
             } else {
+                changelogBtn.style.display = 'none'; // Скрываем кнопку changelog
                 if (btnText === 'магазин') {
                     document.getElementById('shop-section').classList.add('active');
                 } else if (btnText === 'награды' || btnText === 'город' || btnText === 'инвестиции') {
@@ -429,6 +432,11 @@ function initializeNavigation() {
                                     </span>
                                 </label>
                             </div>
+                            <div class="settings-option" style="margin-top: 20px;">
+                                <button id="clearShopItemsBtn" style="background-color: #ff3366; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                                    Очистить товары магазина
+                                </button>
+                            </div>
                         </div>
                     `;
                 } else if (btnText === 'статистика') {
@@ -438,6 +446,12 @@ function initializeNavigation() {
             }
         });
     });
+
+    // Показываем главную страницу при загрузке
+    const homeBtn = navBtns[0];
+    if (homeBtn) {
+        homeBtn.click();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -928,3 +942,126 @@ let tasks = [
         isNew: true
     }
 ];
+
+// Changelog Modal functionality
+const changelogBtn = document.getElementById('changelogBtn');
+const changelogModal = document.getElementById('changelogModal');
+const closeBtn = document.querySelector('.close-btn');
+
+changelogBtn.addEventListener('click', () => {
+    changelogModal.style.display = 'block';
+});
+
+closeBtn.addEventListener('click', () => {
+    changelogModal.style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === changelogModal) {
+        changelogModal.style.display = 'none';
+    }
+});
+
+document.addEventListener('touchstart', function(e) {
+    e.preventDefault(); // Предотвращаем зум и другие действия по умолчанию
+    Array.from(e.touches).forEach(touch => {
+        handleClick(touch.clientX, touch.clientY);
+    });
+}, { passive: false });
+
+document.addEventListener('mousedown', function(e) {
+    handleClick(e.clientX, e.clientY);
+});
+
+function handleClick(x, y) {
+    // Создаем эффект клика
+    const clickEffect = document.createElement('div');
+    clickEffect.className = 'click-effect';
+    clickEffect.style.left = x + 'px';
+    clickEffect.style.top = y + 'px';
+    document.body.appendChild(clickEffect);
+
+    // Удаляем эффект через 1 секунду
+    setTimeout(() => {
+        clickEffect.remove();
+    }, 1000);
+
+    // Увеличиваем счет
+    score += 1;
+    updateScoreDisplay();
+    saveGameState();
+
+    // Вибрация при клике, если включена
+    if (vibrationEnabled && window.navigator.vibrate) {
+        window.navigator.vibrate(50);
+    }
+}
+
+function saveGameState() {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegramId) {
+        console.error('Telegram ID not found');
+        return;
+    }
+
+    const gameData = {
+        score: score,
+        autoClickPower: autoClickPower,
+        shopItems: shopItems.map(item => ({
+            id: item.id,
+            level: item.level,
+            price: item.price,
+            basePrice: item.basePrice
+        })),
+        vibrationEnabled: vibrationEnabled
+    };
+
+    localStorage.setItem('gameData_' + telegramId, JSON.stringify(gameData));
+}
+
+function loadGameState() {
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegramId) {
+        console.error('Telegram ID not found');
+        return;
+    }
+
+    const savedData = localStorage.getItem('gameData_' + telegramId);
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        
+        score = data.score || 0;
+        autoClickPower = data.autoClickPower || 0;
+        vibrationEnabled = data.vibrationEnabled ?? true;
+
+        if (data.shopItems) {
+            shopItems = shopItems.map(item => {
+                const savedItem = data.shopItems.find(i => i.id === item.id);
+                if (savedItem) {
+                    return {
+                        ...item,
+                        level: savedItem.level || 1,
+                        price: savedItem.price || item.basePrice
+                    };
+                }
+                return item;
+            });
+        }
+
+        updateScoreDisplay();
+        updateShopItems();
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadGameState();
+    initializeNavigation();
+    
+    // Обновление игры каждую секунду
+    setInterval(() => {
+        score += autoClickPower;
+        updateScoreDisplay();
+        saveGameState();
+    }, 1000);
+});
