@@ -144,9 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         
-        // Ваш существующий код
+        // Загрузить состояние игры и инициализировать другие функции
         loadGameState();
-        // Другие функции инициализации
+        initTelegramUser();
+        // Инициализировать другие компоненты
     } else {
         console.error('Telegram WebApp не инициализирован.');
     }
@@ -158,7 +159,7 @@ function loadGameState() {
         return;
     }
     
-    const tg = window.Telegram.WebApp;
+    const tg = window.Telegram.WebApp; // Убедитесь, что tg определен
     const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
     if (savedState) {
         const state = JSON.parse(savedState);
@@ -195,7 +196,8 @@ function loadGameState() {
 }
 
 function initTelegramUser() {
-    if (tg) {
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
         const user = tg.initDataUnsafe?.user;
         if (user) {
             document.getElementById('username').textContent = user.username || 'Anonymous User';
@@ -207,6 +209,25 @@ function initTelegramUser() {
         }
         tg.ready();
     }
+}
+
+function saveGameState() {
+    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) return;
+    
+    const tg = window.Telegram.WebApp; // Убедитесь, что tg определен
+    const now = Date.now();
+    const gameState = {
+        score: Math.floor(score),
+        autoClickPower,
+        lastUpdateTime: now,
+        shopItems,
+        tasks,
+        totalClicks: Math.floor(totalClicks),
+        maxBalance: Math.floor(maxBalance),
+        totalEarned: Math.floor(totalEarned)
+    };
+    
+    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -358,7 +379,7 @@ let shopItems = [
     },
     {
         id: 5,
-        icon: `<img src="https://i.postimg.cc/xTXDzRCV/free-icon-factories-273152.png" alt="Завод">`,
+        icon: `<img src="https://i.postimg.cc/pVsMydD7/free-icon-factories-273152.png" alt="Завод">`,
         title: 'Завод',
         price: 10000,
         basePrice: 10000,
@@ -418,7 +439,7 @@ let shopItems = [
     },
     {
         id: 11,
-        icon: `<img src="https://i.postimg.cc/65h28nHK/free-icon-time-machine-6642136.png" alt="Машина времени">`,
+        icon: `<img src="https://i.postimg.cc/xTXDzRCV/free-icon-time-machine-6642136.png" alt="Машина времени">`,
         title: 'Машина времени',
         price: 1000000,
         basePrice: 1000000,
@@ -875,24 +896,6 @@ function claimTask(taskId) {
     }
     
     saveGameState();
-}
-
-function saveGameState() {
-    if (!tg?.initDataUnsafe?.user?.id) return;
-    
-    const now = Date.now();
-    const gameState = {
-        score: Math.floor(score),
-        autoClickPower,
-        lastUpdateTime: now,
-        shopItems,
-        tasks,
-        totalClicks: Math.floor(totalClicks),
-        maxBalance: Math.floor(maxBalance),
-        totalEarned: Math.floor(totalEarned)
-    };
-    
-    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
 }
 
 function updateStatsSection() {
