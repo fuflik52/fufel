@@ -84,11 +84,11 @@ body {
 
 @keyframes clickEffect {
     0% {
-        transform: scale(0.5) translateY(0);
+        transform: translate(-50%, -50%) scale(0.5);
         opacity: 1;
     }
     100% {
-        transform: scale(1.5) translateY(-20px);
+        transform: translate(-50%, -50%) scale(1.5) translateY(-20px);
         opacity: 0;
     }
 }
@@ -162,8 +162,9 @@ body {
     width: 100%;
     max-width: 420px;
     height: 70px;
-    background: rgba(15, 15, 26, 0.95);
-    backdrop-filter: blur(10px);
+    background-image: url('https://i.postimg.cc/gjTwFC8C/image.png');
+    background-size: cover;
+    background-position: center;
     z-index: 10;
 }
 
@@ -196,7 +197,7 @@ body {
     padding: 8px 15px;
     border: none;
     border-radius: 15px;
-    background: #1c1c2e;
+    background: transparent;
     color: white;
     font-size: 14px;
     display: flex;
@@ -313,9 +314,9 @@ body {
 }
 
 .shop-item-button:disabled {
-    background: #FF3366;
-    opacity: 0.8;
+    background: rgba(128, 128, 128, 0.3);
     cursor: not-allowed;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .shop-item.can-afford .shop-item-button {
@@ -755,4 +756,240 @@ input:checked + .toggle-slider span {
 .price-container {
     background: rgba(0, 204, 102, 0.3);
     border: 1px solid rgba(0, 204, 102, 0.4);
+}
+
+/* Стили для заданий */
+.tasks-grid {
+    display: grid;
+    gap: 15px;
+    padding: 15px;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.tasks-grid::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+#tasks-section {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+#tasks-section::-webkit-scrollbar {
+    display: none;
+}
+
+.tasks-section {
+    margin-bottom: 30px;
+}
+
+.tasks-section-title {
+    color: white;
+    font-size: 24px;
+    margin-bottom: 20px;
+    padding: 0 15px;
+}
+
+.task-item {
+    background: rgba(20, 20, 35, 0.5);
+    border-radius: 12px;
+    padding: 15px;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.task-item.completed {
+    background: rgba(0, 204, 102, 0.1);
+    border-color: rgba(0, 204, 102, 0.3);
+}
+
+.task-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.task-description {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.task-reward {
+    color: #00cc66;
+    font-size: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.task-progress {
+    font-size: 14px;
+    color: #ff3366;
+    margin-bottom: 10px;
+}
+
+.task-button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.task-button.completed {
+    background: rgba(0, 204, 102, 0.2);
+    color: #00cc66;
+    cursor: default;
+}
+
+.task-button:not(.completed) {
+    background: #ff3366;
+    color: white;
+}
+
+.task-button:not(.completed):hover {
+    background: #ff4477;
+    transform: translateY(-2px);
+}
+
+.task-button:not(.completed):active {
+    transform: translateY(0);
+}
+
+.task-progress-container {
+    width: 100%;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin: 10px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.task-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ff3366 0%, #ff6b6b 100%);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.task-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+}
+
+.task-item.completed .task-progress-bar {
+    background: linear-gradient(90deg, #00cc66 0%, #00ff80 100%);
+}
+
+/* Оптимизация для мобильных устройств */
+@media (max-width: 480px) {
+    .phone-container {
+        max-width: 100%;
+        height: 100vh;
+        max-height: none;
+    }
+
+    .click-circle {
+        width: 200px;
+        height: 200px;
+    }
+
+    .score {
+        font-size: 24px;
+    }
+
+    .nav-btn {
+        padding: 8px;
+    }
+
+    .nav-btn img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .shop-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 10px;
+    }
+}
+
+.stat-emoji {
+    font-size: 24px;
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #aaa;
+}
+
+.stat-info p {
+    margin: 5px 0 0;
+    font-size: 20px;
+    color: #fff;
+}
+
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+}
+
+.user-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 51, 102, 0.1);
+    border-radius: 10px;
+}
+
+.user-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }

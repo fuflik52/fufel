@@ -1,3 +1,319 @@
+// Функция форматирования чисел
+function formatNumber(num) {
+    if (num === undefined || num === null) return '0';
+    num = Number(num);
+    if (isNaN(num)) return '0';
+    
+    if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+    if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+    return Math.floor(num).toString();
+}
+
+// В начале файла добавим переменную для Telegram WebApp
+const tg = window.Telegram.WebApp;
+
+// Функция показа уведомлений
+function showNotification(message) {
+    const notification = document.querySelector('.notification');
+    
+    if (window.notificationTimeout) {
+        clearTimeout(window.notificationTimeout);
+    }
+    
+    const isError = message.toLowerCase().includes('недостаточно');
+    notification.style.background = isError ? 'rgba(255, 51, 102, 0.95)' : 'rgba(40, 167, 69, 0.95)';
+    notification.textContent = message;
+    notification.classList.add('show');
+    
+    window.notificationTimeout = setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            notification.style.visibility = 'hidden';
+        }, 300);
+    }, 3000); // Изменено на 3 секунды
+}
+
+// Массив заданий
+let tasks = [
+    {
+        id: 1,
+        title: "Начинающий кликер",
+        description: "Сделайте 100 кликов",
+        type: "clicks",
+        target: 100,
+        reward: 500,
+        claimed: false
+    },
+    {
+        id: 2,
+        title: "Первый час",
+        description: "Играйте в игру 1 час",
+        type: "time",
+        target: 1,
+        reward: 1000,
+        claimed: false
+    },
+    {
+        id: 3,
+        title: "Быстрые пальцы",
+        description: "Достигните серии из 10 кликов подряд",
+        type: "hourly",
+        target: 10,
+        reward: 750,
+        claimed: false
+    },
+    {
+        id: 4,
+        title: "Первые шаги",
+        description: "Сделайте первый клик",
+        type: "clicks",
+        target: 1,
+        reward: 100,
+        claimed: false
+    },
+    {
+        id: 5,
+        title: "Начинающий кликер",
+        description: "Накопите 1,000 кликов",
+        type: "clicks",
+        target: 1000,
+        reward: 200,
+        claimed: false
+    }
+];
+
+// Массив для отслеживания времени кликов
+let clickTimes = [];
+
+// Глобальные переменные
+let score = 0;
+let clickPower = 1;
+let autoClickPower = 0;
+let totalClicks = 0;
+let clicksPerHour = 0;
+let maxBalance = 0;
+let totalEarned = 0;
+let totalPurchases = 0;
+let gameStartTime = Date.now();
+let lastSaveTime = Date.now();
+let lastUpdateTime = Date.now();
+let vibrationEnabled = true;
+
+// DOM элементы
+const sectionContents = document.querySelectorAll('.section-content');
+const gameArea = document.querySelector('.game-area');
+const scoreContainer = document.querySelector('.score-container');
+const scoreElement = document.querySelector('.score');
+
+// Обработчик клика
+gameArea.addEventListener('click', function(e) {
+    if (e.target === gameArea || e.target === scoreContainer || e.target === scoreElement) {
+        score += clickPower;
+        totalClicks++; // Увеличиваем счетчик кликов
+        totalEarned += clickPower; // Увеличиваем общий заработок
+        
+        // Обновляем максимальный баланс
+        maxBalance = Math.max(score, maxBalance);
+        
+        // Обновляем статистику кликов в час
+        const now = Date.now();
+        clickTimes.push(now);
+        // Оставляем только клики за последний час
+        clickTimes = clickTimes.filter(time => now - time <= 3600000);
+        clicksPerHour = clickTimes.length;
+        
+        if (vibrationEnabled && navigator.vibrate) {
+            navigator.vibrate(25);
+        }
+        
+        updateScoreDisplay();
+        checkTasksProgress();
+        saveGameState();
+        
+        // Создаем эффект клика
+        const clickEffect = document.createElement('div');
+        clickEffect.className = 'click-effect';
+        clickEffect.style.left = (e.clientX - 10) + 'px';
+        clickEffect.style.top = (e.clientY - 10) + 'px';
+        document.body.appendChild(clickEffect);
+        
+        setTimeout(() => {
+            document.body.removeChild(clickEffect);
+        }, 1000);
+    }
+});
+
+// Функция подсчета оффлайн прогресса
+function calculateOfflineProgress() {
+    const lastTime = localStorage.getItem('lastOnlineTime');
+    if (lastTime) {
+        const timeDiff = (Date.now() - parseInt(lastTime)) / 1000; // разница в секундах
+        const offlineEarnings = autoClickPower * timeDiff;
+        if (offlineEarnings > 0) {
+            score += offlineEarnings;
+            showNotification(`Пока вас не было, вы заработали: ${formatNumber(Math.floor(offlineEarnings))}`);
+        }
+    }
+    localStorage.setItem('lastOnlineTime', Date.now().toString());
+}
+
+// Функция сохранения состояния игры
+function saveGameState() {
+    // Обновляем максимальный баланс
+    maxBalance = Math.max(score, maxBalance);
+
+    const state = {
+        score,
+        autoClickPower,
+        totalClicks,
+        clicksPerHour,
+        maxBalance,
+        totalEarned,
+        gameStartTime,
+        totalPurchases,
+        tasks,
+        shopItems: shopItems.map(item => ({ count: item.count }))
+    };
+    localStorage.setItem('gameState', JSON.stringify(state));
+    localStorage.setItem('lastOnlineTime', Date.now().toString());
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const mainSection = document.querySelector('.main-section');
+    const savedVibration = localStorage.getItem('vibrationEnabled');
+    vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
+
+    // Загружаем состояние игры и проверяем оффлайн прогресс
+    loadGameState();
+    calculateOfflineProgress();
+    
+    // Инициализируем остальные компоненты
+    initializeNavigation();
+    updateScoreDisplay();
+    updateShopItems();
+    renderTasks();
+    updateStatsSection();
+
+    // Показываем главную страницу
+    const homeBtn = document.querySelector('.nav-btn');
+    if (homeBtn) {
+        homeBtn.click();
+    }
+});
+
+// Обновляем функцию getTaskProgress
+function getTaskProgress(task) {
+    if (!task) return 0;
+    
+    switch(task.type) {
+        case 'clicks':
+            return totalClicks || 0;
+        case 'cps':
+            return autoClickPower || 0;
+        case 'time':
+            const timeInHours = (Date.now() - gameStartTime) / (1000 * 60 * 60);
+            return Math.floor(timeInHours) || 0;
+        case 'hourly':
+            return clicksPerHour || 0;
+        case 'purchases':
+            return totalPurchases || 0;
+        case 'streak':
+            return 0;
+        default:
+            return 0;
+    }
+}
+
+// Обновляем функцию handleClick
+function handleClick(x, y) {
+    const now = Date.now();
+    
+    // Обновляем счетчики
+    totalClicks++;
+    score += clickPower;
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем общий заработок
+    totalEarned += clickPower;
+    
+    // Обновляем клики в час (простая формула: текущие клики * (3600 / прошедшее время в секундах))
+    const timeSinceStart = (now - gameStartTime) / 1000;
+    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    
+    // Создаем визуальный эффект
+    createClickEffect(x, y);
+    
+    // Проверяем выполнение заданий
+    checkTasksProgress();
+    
+    // Вибрация при клике
+    if (vibrationEnabled && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50);
+    }
+}
+
+// Функция для создания эффекта клика
+function createClickEffect(x, y) {
+    const clickEffect = document.createElement('div');
+    clickEffect.className = 'click-effect';
+    clickEffect.style.left = x + 'px';
+    clickEffect.style.top = y + 'px';
+    clickEffect.textContent = '+' + clickPower;
+    
+    document.body.appendChild(clickEffect);
+    
+    // Удаляем эффект после анимации
+    setTimeout(() => {
+        clickEffect.remove();
+    }, 1000);
+}
+
+// Обновляем функцию checkTasksProgress
+function checkTasksProgress() {
+    tasks.forEach(task => {
+        const progress = getTaskProgress(task);
+        if (progress >= task.target && !task.claimed) {
+            // Показываем уведомление только если задание выполнено впервые
+            showNotification(`Задание "${task.title}" выполнено! Нажмите, чтобы получить награду.`);
+        }
+    });
+    renderTasks();
+}
+
+// Обновляем функцию loadGameState
+function loadGameState() {
+    const savedState = localStorage.getItem('gameState');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        score = state.score || 0;
+        autoClickPower = state.autoClickPower || 0;
+        totalClicks = state.totalClicks || 0;
+        clicksPerHour = state.clicksPerHour || 0;
+        maxBalance = state.maxBalance || 0;
+        totalEarned = state.totalEarned || 0;
+        gameStartTime = state.gameStartTime || Date.now();
+        totalPurchases = state.totalPurchases || 0;
+
+        // Load tasks state
+        if (state.tasks) {
+            tasks = state.tasks;
+        }
+    }
+    updateScoreDisplay();
+    renderTasks();
+}
+
+// Обновляем функцию updateShopItems
 function updateShopItems() {
     const shopSection = document.getElementById('shop-section');
     if (!shopSection) return;
@@ -246,10 +562,6 @@ let shopItems = [
     }
 ];
 
-function formatNumber(num) {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
 function updateScoreDisplay() {
     scoreElement.innerHTML = `
         <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
@@ -257,124 +569,255 @@ function updateScoreDisplay() {
     `;
 }
 
-function getTaskProgress(task) {
-    switch(task.type) {
+function getTaskProgressText(task, progress) {
+    switch (task.type) {
         case 'clicks':
-            return `${formatNumber(Math.floor(totalClicks))} / ${formatNumber(task.requirement)} кликов`;
-        case 'purchases':
-            const totalPurchases = shopItems.reduce((sum, item) => sum + item.level, 0);
-            return `${totalPurchases} / ${task.requirement} покупок`;
+            return `${formatNumber(progress)} / ${formatNumber(task.target)} кликов`;
         case 'cps':
-            return `${formatNumber(Math.floor(autoClickPower))} / ${formatNumber(task.requirement)} кликов/сек`;
+            return `${formatNumber(progress)} / ${formatNumber(task.target)} кликов/сек`;
         case 'time':
-            const playTime = Math.floor((Date.now() - (lastUpdateTime || Date.now())) / 1000);
-            return `${Math.floor(playTime / 3600)}ч ${Math.floor((playTime % 3600) / 60)}м ${playTime % 60}с / ${Math.floor(task.requirement / 3600)}ч`;
+            const hours = Math.floor(progress / 3600);
+            const minutes = Math.floor((progress % 3600) / 60);
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} / ${Math.floor(task.target / 3600)}ч`;
         case 'hourly':
-            const hourlyRate = Math.floor(autoClickPower * 3600);
-            return `${formatNumber(hourlyRate)} / ${formatNumber(task.requirement)} кликов/час`;
+            return `${formatNumber(progress)} / ${formatNumber(task.target)} кликов/час`;
+        case 'purchases':
+            return `${progress} / ${task.target} покупок`;
+        case 'balance':
+            return `${progress} / ${task.target}`;
         default:
-            return 'Прогресс неизвестен';
+            return `${progress} / ${task.target}`;
     }
 }
 
 function renderTasks() {
-    const completedTasks = tasks.filter(task => task.claimed);
-    const uncompletedTasks = tasks.filter(task => !task.claimed);
-    
-    return `
-        <div style="margin-bottom: 20px;">
-            <h2 style="color: #fff; margin-bottom: 15px;">Активные задания</h2>
-            ${uncompletedTasks.map(task => `
-                <div class="task-item">
-                    ${task.isNew ? `<span class="task-new">NEW</span>` : ''}
-                    <div class="task-title">${task.title}</div>
-                    <div class="task-description">${task.description}</div>
-                    <div class="task-reward">
-                        Награда: ${formatNumber(task.reward)} 
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" 
-                             style="width: 16px; height: 16px; vertical-align: middle;">
-                    </div>
-                    <div class="task-progress" style="color: #ff3366; font-size: 12px; margin: 5px 0;">
-                        ${getTaskProgress(task)}
-                    </div>
-                    <button class="task-claim-button" 
-                            data-task-id="${task.id}"
-                            ${canClaimTask(task) ? '' : 'disabled'}>
-                        ${canClaimTask(task) ? 'Получить' : 'Не выполнено'}
-                    </button>
-                </div>
-            `).join('')}
-        </div>
-        ${completedTasks.length > 0 ? `
-            <div>
-                <h2 style="color: #fff; margin-bottom: 15px;">Выполненные задания</h2>
-                ${completedTasks.map(task => `
-                    <div class="task-item claimed">
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-description">${task.description}</div>
-                        <div class="task-reward">
-                            Получено: ${formatNumber(task.reward)} 
-                            <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" 
-                                 style="width: 16px; height: 16px; vertical-align: middle;">
+    const tasksSection = document.getElementById('tasks-section');
+    if (!tasksSection) return;
+
+    tasksSection.innerHTML = `
+        <div class="tasks-container">
+            ${tasks.map((task, index) => {
+                const isCompleted = canClaimTask(task);
+                const currentValue = getTaskCurrentValue(task);
+                const progress = getTaskProgress(task);
+                const buttonStyle = isCompleted ? 
+                    'background: #28a745; color: white; cursor: pointer;' : 
+                    'background: #6c757d; color: rgba(255,255,255,0.5); cursor: not-allowed;';
+
+                // Формируем текст прогресса в зависимости от типа задания
+                let progressText = '';
+                switch(task.type) {
+                    case 'clicks':
+                        progressText = `${formatNumber(currentValue)} / ${formatNumber(task.target)} кликов`;
+                        break;
+                    case 'time':
+                        progressText = `${formatNumber(currentValue)} / ${formatNumber(task.target)} час.`;
+                        break;
+                    case 'hourly':
+                        progressText = `${formatNumber(currentValue)} / ${formatNumber(task.target)} кл/сек`;
+                        break;
+                    case 'purchases':
+                        progressText = `${formatNumber(currentValue)} / ${formatNumber(task.target)} покупок`;
+                        break;
+                    default:
+                        progressText = `${formatNumber(currentValue)} / ${formatNumber(task.target)}`;
+                }
+
+                return `
+                    <div class="task-item" style="background: rgba(255, 51, 102, 0.1); border-radius: 15px; padding: 15px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin: 0; color: white;">${task.title}</h3>
+                                <p style="margin: 5px 0; color: #aaa;">${task.description}</p>
+                                <div style="display: flex; align-items: center; gap: 5px;">
+                                    <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 20px; height: 20px;">
+                                    <span style="color: gold;">${formatNumber(task.reward)}</span>
+                                </div>
+                            </div>
+                            <button 
+                                class="task-claim-btn" 
+                                data-index="${index}"
+                                style="padding: 10px 20px; border: none; border-radius: 10px; ${buttonStyle}"
+                                ${isCompleted ? '' : 'disabled'}
+                            >
+                                Получить
+                            </button>
                         </div>
-                        <button class="task-claim-button" disabled>
-                            Выполнено
-                        </button>
+                        <div class="task-progress" style="margin-top: 10px;">
+                            <div class="progress-bar" style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 10px; overflow: hidden;">
+                                <div style="background: ${isCompleted ? '#28a745' : '#ff3366'}; width: ${progress}%; height: 100%; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                                <span style="color: #aaa;">${progressText}</span>
+                                <span style="color: #aaa;">${progress}%</span>
+                            </div>
+                        </div>
                     </div>
-                `).join('')}
+                `;
+            }).join('')}
+        </div>
+    `;
+
+    // Добавляем обработчики для кнопок
+    const claimButtons = tasksSection.querySelectorAll('.task-claim-btn');
+    claimButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const index = parseInt(button.getAttribute('data-index'));
+            const task = tasks[index];
+            if (canClaimTask(task) && !task.claimed) {
+                score += task.reward;
+                totalEarned += task.reward;
+                task.claimed = true;
+                showNotification(`Задание "${task.title}" выполнено! Награда: ${formatNumber(task.reward)}`);
+                updateScoreDisplay();
+                saveGameState();
+                renderTasks();
+            }
+        });
+    });
+}
+
+// Обновляем функцию updateStatsSection
+function updateStatsSection() {
+    const statsSection = document.getElementById('stats-section');
+    if (!statsSection) return;
+
+    const clicksPerSecond = autoClickPower;
+    const clicksPerHour = clicksPerSecond * 3600;
+    const totalTime = Math.floor((Date.now() - gameStartTime) / 1000);
+    const hours = Math.floor(totalTime / 3600);
+    const minutes = Math.floor((totalTime % 3600) / 60);
+
+    // Получаем имя пользователя из Telegram WebApp
+    const username = tg.initDataUnsafe?.user?.username || 'Игрок';
+
+    // Добавляем заголовок с именем пользователя
+    statsSection.innerHTML = `
+        <div class="user-header">
+            <h2>👤 ${username}</h2>
+        </div>
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-emoji">🖱️</div>
+                <div class="stat-info">
+                    <h3>Всего кликов</h3>
+                    <p>${formatNumber(totalClicks)}</p>
+                </div>
             </div>
-        ` : ''}
+            <div class="stat-item">
+                <div class="stat-emoji">⚡</div>
+                <div class="stat-info">
+                    <h3>Кликов в секунду</h3>
+                    <p>${formatNumber(clicksPerSecond)}</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">🚀</div>
+                <div class="stat-info">
+                    <h3>Кликов в час</h3>
+                    <p>${formatNumber(clicksPerHour)}</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">⏰</div>
+                <div class="stat-info">
+                    <h3>Время в игре</h3>
+                    <p>${hours}ч ${minutes}м</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">💰</div>
+                <div class="stat-info">
+                    <h3>Максимальный баланс</h3>
+                    <p>${formatNumber(Math.max(score, maxBalance))}</p>
+                </div>
+            </div>
+        </div>
     `;
 }
 
-function canClaimTask(task) {
+// Функция получения текущего значения для задания
+function getTaskCurrentValue(task) {
+    if (!task || !task.type) return 0;
+    
     switch(task.type) {
         case 'clicks':
-            return Math.floor(totalClicks) >= task.requirement;
-        case 'purchases':
-            const totalPurchases = shopItems.reduce((sum, item) => sum + item.level, 0);
-            return totalPurchases >= task.requirement;
+            return totalClicks || 0;
         case 'cps':
-            return Math.floor(autoClickPower) >= task.requirement;
+            return autoClickPower || 0;
         case 'time':
-            const playTime = Math.floor((Date.now() - (lastUpdateTime || Date.now())) / 1000);
-            return playTime >= task.requirement;
+            return Math.floor((Date.now() - gameStartTime) / (1000 * 60 * 60)) || 0;
         case 'hourly':
-            return Math.floor(autoClickPower * 3600) >= task.requirement;
-        case 'streak':
-            return false;
-        case 'total_achievements':
-            const claimedCount = tasks.filter(t => t.claimed && t.id !== task.id).length;
-            return claimedCount >= task.requirement;
+            return clicksPerHour || 0;
+        case 'purchases':
+            return totalPurchases || 0;
+        case 'balance':
+            return maxBalance || 0;
         default:
-            return false;
+            return 0;
     }
 }
 
-function canAfford(price) {
-    return score >= price;
+// Функция получения прогресса задания в процентах
+function getTaskProgress(task) {
+    if (!task || !task.target) return 0;
+    const currentValue = getTaskCurrentValue(task);
+    return Math.min(100, Math.floor((currentValue / task.target) * 100)) || 0;
 }
 
-function updateGame() {
+// Функция проверки возможности получения награды за задание
+function canClaimTask(task) {
+    if (!task || task.claimed) return false;
+    const currentValue = getTaskCurrentValue(task);
+    return currentValue >= (task.target || 0);
+}
+
+// Функция автоматического сохранения
+function autoSave() {
     const now = Date.now();
-    const deltaTime = (now - lastUpdateTime) / 1000;
-    lastUpdateTime = now;
-    
-    score += autoClickPower * deltaTime;
-    updateScoreDisplay();
-    
-    if (now - lastSaveTime > 5000) {
+    if (now - lastSaveTime >= 10000) { // Сохраняем каждые 10 секунд
         saveGameState();
         lastSaveTime = now;
     }
+}
+
+// Функция автоматического обновления
+function autoUpdate() {
+    const now = Date.now();
+    if (now - lastUpdateTime >= 1000) { // Обновляем каждую секунду
+        score += autoClickPower;
+        totalEarned += autoClickPower;
+        maxBalance = Math.max(score, maxBalance);
+        updateScoreDisplay();
+        checkTasksProgress();
+        lastUpdateTime = now;
+    }
     
-    requestAnimationFrame(updateGame);
+    autoSave(); // Проверяем, нужно ли сохранить игру
+    
+    requestAnimationFrame(autoUpdate);
+}
+
+// Запускаем автоматическое обновление
+requestAnimationFrame(autoUpdate);
+
+function canAfford(price) {
+    return score >= price;
 }
 
 function initializeNavigation() {
     const navBtns = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section-content');
     const changelogBtn = document.getElementById('changelogBtn');
+    const tasksSection = document.getElementById('tasks-section');
+
+    // Create tasks section if it doesn't exist
+    if (!tasksSection) {
+        const newTasksSection = document.createElement('div');
+        newTasksSection.id = 'tasks-section';
+        newTasksSection.className = 'section-content';
+        document.querySelector('.game-area').appendChild(newTasksSection);
+    }
 
     navBtns.forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -392,565 +835,210 @@ function initializeNavigation() {
             
             if (btnText === 'главная') {
                 sections.forEach(s => s.classList.remove('active'));
-                changelogBtn.style.display = 'block'; // Показываем кнопку changelog
+                changelogBtn.style.display = 'block';
             } else {
-                changelogBtn.style.display = 'none'; // Скрываем кнопку changelog
+                changelogBtn.style.display = 'none';
                 if (btnText === 'магазин') {
-                    document.getElementById('shop-section').classList.add('active');
-                } else if (btnText === 'награды' || btnText === 'город' || btnText === 'инвестиции') {
-                    document.getElementById('development-section').classList.add('active');
-                    document.getElementById('development-section').innerHTML = `
-                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
-                            <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                                <h3 style="margin: 0; color: white; font-size: 24px;">Раздел ${btnText} в разработке</h3>
-                            </div>
-                            <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
-                                 alt="Development" 
-                                 style="width: 300px; 
-                                        height: 300px; 
-                                        object-fit: contain;
-                                        filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
-                        </div>
-                    `;
+                    const shopSection = document.getElementById('shop-section');
+                    if (shopSection) {
+                        shopSection.classList.add('active');
+                        updateShopItems(); // Update shop items when showing shop
+                    }
                 } else if (btnText === 'задания') {
-                    document.getElementById('tasks-section').classList.add('active');
+                    const tasksSection = document.getElementById('tasks-section');
+                    if (tasksSection) {
+                        tasksSection.classList.add('active');
+                        renderTasks(); // Re-render tasks when showing tasks section
+                    }
                 } else if (btnText === 'настройки') {
-                    document.getElementById('settings-section').classList.add('active');
-                    document.getElementById('settings-section').innerHTML = `
-                        <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
-                            <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
-                                    <div>
-                                        <h3 style="margin-bottom: 5px;">Вибрация</h3>
-                                        <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                    const settingsSection = document.getElementById('settings-section');
+                    if (settingsSection) {
+                        settingsSection.classList.add('active');
+                        settingsSection.innerHTML = `
+                            <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
+                                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
+                                        <div>
+                                            <h3 style="margin-bottom: 5px;">Вибрация</h3>
+                                            <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
+                                        </div>
                                     </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="vibrationToggle" ${vibrationEnabled ? 'checked' : ''}>
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
-                                <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                                    <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
-                                    <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                                        <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
-                                    </span>
-                                </label>
                             </div>
-                            <div class="settings-option" style="margin-top: 20px;">
-                                <button id="clearShopItemsBtn" style="background-color: #ff3366; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                                    Очистить товары магазина
-                                </button>
+                        `;
+                        
+                        // Добавляем обработчик для переключателя вибрации
+                        const vibrationToggle = document.getElementById('vibrationToggle');
+                        if (vibrationToggle) {
+                            vibrationToggle.addEventListener('change', function() {
+                                vibrationEnabled = this.checked;
+                                localStorage.setItem('vibrationEnabled', vibrationEnabled);
+                            });
+                        }
+                    }
+                } else if (btnText === 'награды' || btnText === 'город' || btnText === 'инвестиции') {
+                    const devSection = document.getElementById('development-section');
+                    if (!devSection) {
+                        const newDevSection = document.createElement('div');
+                        newDevSection.id = 'development-section';
+                        newDevSection.className = 'section-content';
+                        document.querySelector('.game-area').appendChild(newDevSection);
+                    }
+                    const currentDevSection = document.getElementById('development-section');
+                    if (currentDevSection) {
+                        currentDevSection.classList.add('active');
+                        currentDevSection.innerHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
+                                <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
+                                    <h3 style="margin: 0; color: white; font-size: 24px;">Раздел ${btnText} в разработке</h3>
+                                </div>
+                                <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
+                                     alt="Development" 
+                                     style="width: 300px; height: 300px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 } else if (btnText === 'статистика') {
-                    document.getElementById('stats-section').classList.add('active');
-                    updateStatsSection();
-                }
-            }
-        });
-    });
-
-    // Показываем главную страницу при загрузке
-    const homeBtn = navBtns[0];
-    if (homeBtn) {
-        homeBtn.click();
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const mainSection = document.querySelector('.main-section');
-    const savedVibration = localStorage.getItem('vibrationEnabled');
-    vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
-    
-    if (mainSection) {
-        mainSection.addEventListener('click', (e) => {
-            // Проверяем, что клик был непосредственно по main-section, а не по его дочерним элементам
-            if (e.target === mainSection) {
-                score++;
-                totalClicks++;
-                totalEarned++;
-                maxBalance = Math.max(maxBalance, score);
-                
-                if (vibrationEnabled) {
-                    try {
-                        window.navigator.vibrate(15);
-                    } catch (e) {
-                        console.log('Vibration failed:', e);
+                    const statsSection = document.getElementById('stats-section');
+                    if (statsSection) {
+                        statsSection.classList.add('active');
+                        updateStatsSection();
                     }
                 }
-                
-                updateScoreDisplay();
-                
-                const effect = document.createElement('div');
-                effect.className = 'click-effect';
-                effect.textContent = '+1';
-                effect.style.position = 'absolute';
-                effect.style.left = (e.clientX - 20) + 'px';
-                effect.style.top = (e.clientY - 20) + 'px';
-                
-                mainSection.appendChild(effect);
-                
-                setTimeout(() => {
-                    effect.remove();
-                }, 500);
             }
         });
-    }
-    
-    // Проверка подключения к Telegram при загрузке
-    if (!window.Telegram || !window.Telegram.WebApp) {
-        console.error('Telegram WebApp не доступен');
-        showNotification('Ошибка: приложение должно быть открыто в Telegram');
-        return;
-    }
-
-    // Инициализируем Telegram WebApp
-    window.Telegram.WebApp.ready();
-    
-    initializeNavigation();
-    loadGameState();
-    updateShopItems();
-    updateGame();
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.innerHTML = renderTasks();
-    }
-});
-
-function loadGameState() {
-    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-        console.error('Telegram WebApp объект не определен или отсутствует ID пользователя.');
-        return;
-    }
-    
-    const tg = window.Telegram.WebApp;
-    const savedState = localStorage.getItem(`gameState_${tg.initDataUnsafe.user.id}`);
-    
-    // Сброс товаров магазина
-    shopItems.forEach(item => {
-        item.level = 0;
-        item.price = item.basePrice;
     });
-    
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        const now = Date.now();
-        
-        if (state.lastUpdateTime) {
-            const offlineTime = (now - state.lastUpdateTime) / 1000;
-            const offlineEarnings = state.autoClickPower * offlineTime;
-            state.score += offlineEarnings;
-            
-            if (offlineEarnings > 0) {
-                showNotification(`Вы заработали ${formatNumber(Math.floor(offlineEarnings))} пока были офлайн!`);
-            }
-        }
-        
-        score = state.score || 0;
-        autoClickPower = state.autoClickPower || 0;
-        tasks = state.tasks || tasks;
-        totalClicks = state.totalClicks || 0;
-        maxBalance = state.maxBalance || 0;
-        totalEarned = state.totalEarned || 0;
-    } else {
-        score = 0;
-        autoClickPower = 0;
-        totalClicks = 0;
-        maxBalance = 0;
-        totalEarned = 0;
-        tasks.forEach(task => {
-            task.claimed = false;
-        });
-    }
-    
-    updateScoreDisplay();
-    updateShopItems();
-    
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (tasksGrid) {
-        tasksGrid.innerHTML = renderTasks();
-    }
-    
-    lastUpdateTime = Date.now();
-}
-
-function saveGameState() {
-    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe?.user?.id) return;
-    
-    const tg = window.Telegram.WebApp;
-    const now = Date.now();
-    const gameState = {
-        score: Math.floor(score),
-        autoClickPower,
-        lastUpdateTime: now,
-        tasks,
-        totalClicks: Math.floor(totalClicks),
-        maxBalance: Math.floor(maxBalance),
-        totalEarned: Math.floor(totalEarned)
-    };
-    
-    localStorage.setItem(`gameState_${tg.initDataUnsafe.user.id}`, JSON.stringify(gameState));
-}
-
-function updateStatsSection() {
-    const statsSection = document.getElementById('stats-section');
-    if (!statsSection) return;
-    
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user;
-    const perHour = Math.floor(autoClickPower * 3600);
-    
-    statsSection.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; padding: 20px;">
-            <div style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden; margin-bottom: 15px;">
-                <img src="https://i.postimg.cc/qM9QZKXJ/free-icon-boy-avatar-17479088.png" 
-                     style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div style="font-size: 24px; color: #fff;">Статистика</div>
-                <div style="font-size: 16px; color: #aaa; margin-top: 5px;">ID: ${user?.id || 'Unknown'}</div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 400px;">
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(Math.floor(score))}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Текущий баланс</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(maxBalance)}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Максимальный баланс</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/5yjT8FLh/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(perHour)}/час
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Прибыль в час</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(totalClicks)}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Всего монет</div>
-                </div>
-                
-                <div class="stats-item">
-                    <div style="font-size: 24px; color: #0088ff;">
-                        <img src="https://i.postimg.cc/65HRHjFJ/image.png" style="width: 24px; height: 24px; vertical-align: middle;">
-                        ${formatNumber(totalEarned)}
-                    </div>
-                    <div style="color: #fff; margin-top: 5px;">Всего заработано</div>
-                </div>
-            </div>
-        </div>
-    `;
 }
 
 document.addEventListener('click', function(e) {
     if (e.target.classList.contains('shop-item-button')) {
-        const itemId = parseInt(e.target.getAttribute('data-index'));
-        if (!isNaN(itemId)) {
-            purchaseItem(itemId);
-        }
-    }
-    
-    if (e.target.classList.contains('task-claim-button')) {
-        const taskId = parseInt(e.target.getAttribute('data-task-id'));
-        if (!isNaN(taskId)) {
-            claimTask(taskId);
-        }
-    }
-});
-
-function showNotification(message) {
-    const notification = document.querySelector('.notification');
-    
-    if (window.notificationTimeout) {
-        clearTimeout(window.notificationTimeout);
-    }
-    
-    const isError = message.toLowerCase().includes('недостаточно');
-    
-    notification.style.background = isError ? 'rgba(255, 51, 102, 0.95)' : 'rgba(40, 167, 69, 0.95)';
-    
-    const modifiedMessage = message.replace(/клики?в?/g, '<img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" style="width: 16px; height: 16px; vertical-align: middle;">');
-    
-    notification.innerHTML = modifiedMessage;
-    notification.classList.add('show');
-    
-    window.notificationTimeout = setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => {
-            notification.style.visibility = 'hidden';
-        }, 300);
-    }, 3000);
-}
-
-const sectionContents = document.querySelectorAll('.section-content');
-const gameArea = document.querySelector('.game-area');
-const scoreContainer = document.querySelector('.score-container');
-const scoreElement = document.querySelector('.score');
-
-let score = 0;
-let autoClickPower = 0;
-let lastUpdateTime = Date.now();
-let totalClicks = 0;
-let maxBalance = 0;
-let totalEarned = 0;
-let lastSaveTime = Date.now();
-
-let vibrationEnabled = true;
-
-document.getElementById('vibrationToggle').addEventListener('change', function() {
-    vibrationEnabled = this.checked;
-    localStorage.setItem('vibrationEnabled', vibrationEnabled);
-    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-});
-
-document.body.addEventListener('change', function(e) {
-    if (e.target.id === 'vibrationToggle') {
-        vibrationEnabled = e.target.checked;
-        localStorage.setItem('vibrationEnabled', vibrationEnabled);
-        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-        
-        if (vibrationEnabled) {
-            try {
-                window.navigator.vibrate(15);
-            } catch (e) {
-                console.log('Vibration test failed:', e);
+        const index = parseInt(e.target.getAttribute('data-index'));
+        if (!isNaN(index)) {
+            const item = shopItems[index];
+            if (item && canAfford(item.price)) {
+                score -= item.price;
+                item.level++;
+                item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
+                autoClickPower += item.power;
+                
+                updateScoreDisplay();
+                updateShopItems();
+                saveGameState();
+                
+                showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
+            } else if (item) {
+                showNotification(`Недостаточно средств для покупки ${item.title}`);
             }
         }
     }
 });
 
-let tasks = [
-    {
-        id: 1,
-        icon: '',
-        title: 'Первые шаги',
-        description: 'Накопите 100 кликов',
-        reward: 50,
-        requirement: 100,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 2,
-        icon: '',
-        title: 'Начинающий кликер',
-        description: 'Накопите 1,000 кликов',
-        reward: 200,
-        requirement: 1000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 3,
-        icon: '',
-        title: 'Опытный кликер',
-        description: 'Накопите 10,000 кликов',
-        reward: 1000,
-        requirement: 10000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 4,
-        icon: '',
-        title: 'Мастер кликер',
-        description: 'Накопите 100,000 кликов',
-        reward: 5000,
-        requirement: 100000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 5,
-        icon: '',
-        title: 'Король кликов',
-        description: 'Накопите 1,000,000 кликов',
-        reward: 25000,
-        requirement: 1000000,
-        type: 'clicks',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 6,
-        icon: '',
-        title: 'Первая покупка',
-        description: 'Купите любое улучшение',
-        reward: 100,
-        requirement: 1,
-        type: 'purchases',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 7,
-        icon: '',
-        title: 'Шопоголик',
-        description: 'Купите 5 улучшений',
-        reward: 500,
-        requirement: 5,
-        type: 'purchases',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 8,
-        icon: '',
-        title: 'Коллекционер',
-        description: 'Купите 10 улучшений',
-        reward: 1000,
-        requirement: 10,
-        type: 'purchases',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 9,
-        icon: '',
-        title: 'Энергичный старт',
-        description: 'Достигните 10 кликов в секунду',
-        reward: 2000,
-        requirement: 10,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 10,
-        icon: '',
-        title: 'Скоростной кликер',
-        description: 'Достигните 100 кликов в секунду',
-        reward: 5000,
-        requirement: 100,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 11,
-        icon: '',
-        title: 'Звездный путь',
-        description: 'Достигните 1000 кликов в секунду',
-        reward: 10000,
-        requirement: 1000,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 12,
-        icon: '',
-        title: 'Мировое господство',
-        description: 'Достигните 10000 кликов в секунду',
-        reward: 50000,
-        requirement: 10000,
-        type: 'cps',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 13,
-        icon: '',
-        title: 'Игровой марафон',
-        description: 'Играйте 1 час',
-        reward: 1000,
-        requirement: 3600,
-        type: 'time',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 14,
-        icon: '',
-        title: 'Временной магнат',
-        description: 'Играйте 24 часа',
-        reward: 10000,
-        requirement: 86400,
-        type: 'time',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 15,
-        icon: '',
-        title: 'Быстрый рост',
-        description: 'Получите 1000 кликов за час',
-        reward: 500,
-        requirement: 1000,
-        type: 'hourly',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 16,
-        icon: '',
-        title: 'Богатство',
-        description: 'Получите 10000 кликов за час',
-        reward: 2000,
-        requirement: 10000,
-        type: 'hourly',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 17,
-        icon: '',
-        title: 'Фабрика кликов',
-        description: 'Получите 100000 кликов за час',
-        reward: 10000,
-        requirement: 100000,
-        type: 'hourly',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 18,
-        icon: '',
-        title: 'Точность',
-        description: 'Кликните 100 раз подряд',
-        reward: 1000,
-        requirement: 100,
-        type: 'streak',
-        claimed: false,
-        isNew: true
-    },
-    {
-        id: 19,
-        icon: '',
-        title: 'Цирковой артист',
-        description: 'Кликните 1000 раз подряд',
-        reward: 5000,
-        requirement: 1000,
-        type: 'streak',
-        claimed: false,
-        isNew: true
-    },
+tasks = [
+    ...tasks,
     {
         id: 20,
-        icon: '',
-        title: 'Радужный путь',
-        description: 'Соберите все достижения',
-        reward: 100000,
-        requirement: 19,
-        type: 'total_achievements',
-        claimed: false,
-        isNew: true
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Первые шаги">',
+        title: 'Первые шаги',
+        description: 'Сделайте первый клик',
+        type: 'clicks',
+        target: 1,
+        reward: 100,
+        claimed: false
+    },
+    {
+        id: 21,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Начинающий кликер">',
+        title: 'Начинающий кликер',
+        description: 'Накопите 1,000 кликов',
+        type: 'clicks',
+        target: 1000,
+        reward: 200,
+        claimed: false
+    },
+    {
+        id: 22,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Опытный кликер">',
+        title: 'Опытный кликер',
+        description: 'Накопите 10,000 кликов',
+        type: 'clicks',
+        target: 10000,
+        reward: 1000,
+        claimed: false
+    },
+    {
+        id: 23,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Мастер кликер">',
+        title: 'Мастер кликер',
+        description: 'Накопите 100,000 кликов',
+        type: 'clicks',
+        target: 100000,
+        reward: 5000,
+        claimed: false
+    },
+    {
+        id: 24,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Король кликов">',
+        title: 'Король кликов',
+        description: 'Накопите 1,000,000 кликов',
+        type: 'clicks',
+        target: 1000000,
+        reward: 25000,
+        claimed: false
+    },
+    {
+        id: 25,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Первая покупка">',
+        title: 'Первая покупка',
+        description: 'Купите любое улучшение',
+        type: 'purchases',
+        target: 1,
+        reward: 100,
+        claimed: false
+    },
+    {
+        id: 26,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Шопоголик">',
+        title: 'Шопоголик',
+        description: 'Купите 5 улучшений',
+        type: 'purchases',
+        target: 5,
+        reward: 500,
+        claimed: false
+    },
+    {
+        id: 27,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Коллекционер">',
+        title: 'Коллекционер',
+        description: 'Купите 10 улучшений',
+        type: 'purchases',
+        target: 10,
+        reward: 1000,
+        claimed: false
+    },
+    {
+        id: 28,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Энергичный старт">',
+        title: 'Энергичный старт',
+        description: 'Достигните 10 кликов в секунду',
+        type: 'cps',
+        target: 10,
+        reward: 2000,
+        claimed: false
+    },
+    {
+        id: 29,
+        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Скоростной кликер">',
+        title: 'Скоростной кликер',
+        description: 'Достигните 100 кликов в секунду',
+        type: 'cps',
+        target: 100,
+        reward: 5000,
+        claimed: false
     }
 ];
 
@@ -973,124 +1061,24 @@ window.addEventListener('click', (event) => {
     }
 });
 
-const clickCircle = document.querySelector('.click-circle');
-
-document.addEventListener('touchstart', function(e) {
-    // Проверяем, был ли клик внутри кнопки клика
-    const clickRect = clickCircle.getBoundingClientRect();
-    Array.from(e.touches).forEach(touch => {
-        if (isClickInCircle(touch.clientX, touch.clientY, clickRect)) {
-            e.preventDefault(); // Предотвращаем зум только если клик в пределах кнопки
-            handleClick(touch.clientX, touch.clientY);
-        }
-    });
+document.getElementById('vibrationToggle').addEventListener('change', function() {
+    vibrationEnabled = this.checked;
+    localStorage.setItem('vibrationEnabled', vibrationEnabled);
+    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
 });
 
-document.addEventListener('mousedown', function(e) {
-    const clickRect = clickCircle.getBoundingClientRect();
-    if (isClickInCircle(e.clientX, e.clientY, clickRect)) {
-        handleClick(e.clientX, e.clientY);
-    }
-});
-
-function isClickInCircle(x, y, rect) {
-    return (
-        x >= rect.left &&
-        x <= rect.right &&
-        y >= rect.top &&
-        y <= rect.bottom
-    );
-}
-
-function handleClick(x, y) {
-    // Создаем эффект клика
-    const clickEffect = document.createElement('div');
-    clickEffect.className = 'click-effect';
-    clickEffect.style.left = x + 'px';
-    clickEffect.style.top = y + 'px';
-    document.body.appendChild(clickEffect);
-
-    // Удаляем эффект через 1 секунду
-    setTimeout(() => {
-        clickEffect.remove();
-    }, 1000);
-
-    // Увеличиваем счет
-    score += 1;
-    updateScoreDisplay();
-    saveGameState();
-
-    // Вибрация при клике, если включена
-    if (vibrationEnabled && window.navigator.vibrate) {
-        window.navigator.vibrate(50);
-    }
-}
-
-function saveGameState() {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    if (!telegramId) {
-        console.error('Telegram ID not found');
-        return;
-    }
-
-    const gameData = {
-        score: score,
-        autoClickPower: autoClickPower,
-        shopItems: shopItems.map(item => ({
-            id: item.id,
-            level: item.level,
-            price: item.price,
-            basePrice: item.basePrice
-        })),
-        vibrationEnabled: vibrationEnabled
-    };
-
-    localStorage.setItem('gameData_' + telegramId, JSON.stringify(gameData));
-}
-
-function loadGameState() {
-    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    if (!telegramId) {
-        console.error('Telegram ID not found');
-        return;
-    }
-
-    const savedData = localStorage.getItem('gameData_' + telegramId);
-    if (savedData) {
-        const data = JSON.parse(savedData);
+document.body.addEventListener('change', function(e) {
+    if (e.target.id === 'vibrationToggle') {
+        vibrationEnabled = e.target.checked;
+        localStorage.setItem('vibrationEnabled', vibrationEnabled);
+        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
         
-        score = data.score || 0;
-        autoClickPower = data.autoClickPower || 0;
-        vibrationEnabled = data.vibrationEnabled ?? true;
-
-        if (data.shopItems) {
-            shopItems = shopItems.map(item => {
-                const savedItem = data.shopItems.find(i => i.id === item.id);
-                if (savedItem) {
-                    return {
-                        ...item,
-                        level: savedItem.level || 1,
-                        price: savedItem.price || item.basePrice
-                    };
-                }
-                return item;
-            });
+        if (vibrationEnabled) {
+            try {
+                window.navigator.vibrate(15);
+            } catch (e) {
+                console.log('Vibration test failed:', e);
+            }
         }
-
-        updateScoreDisplay();
-        updateShopItems();
     }
-}
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    loadGameState();
-    initializeNavigation();
-    
-    // Обновление игры каждую секунду
-    setInterval(() => {
-        score += autoClickPower;
-        updateScoreDisplay();
-        saveGameState();
-    }, 1000);
 });
