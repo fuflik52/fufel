@@ -1,10 +1,9 @@
 // Функция форматирования чисел
 function formatNumber(num) {
-    if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
-    if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
-    if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-    if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-    return num.toFixed(0);
+    if (typeof num !== 'number' || isNaN(num)) {
+        return '0';
+    }
+    return num.toLocaleString('en-US');
 }
 
 // В начале файла добавим переменную для Telegram WebApp
@@ -32,49 +31,153 @@ function showNotification(message) {
 }
 
 // Массив заданий
-let tasks = [
+const tasks = [
     {
-        id: 1,
+        id: 4,
+        title: "Первые шаги",
+        description: "Сделайте свой первый клик",
+        icon: "🎯",
+        reward: 100,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 5,
         title: "Начинающий кликер",
-        description: "Сделайте 100 кликов",
-        type: "clicks",
-        requirement: 100,
-        reward: 500,
-        claimed: false
-    },
-    {
-        id: 2,
-        title: "Первый час",
-        description: "Играйте в игру 1 час",
-        type: "time",
-        requirement: 1,
+        description: "Наберите 1,000 кликов",
+        icon: "⭐",
         reward: 1000,
+        completed: false,
         claimed: false
     },
     {
-        id: 3,
-        title: "Быстрые пальцы",
-        description: "Достигните серии из 10 кликов подряд",
-        type: "streak",
-        requirement: 10,
-        reward: 750,
+        id: 6,
+        title: "Опытный кликер",
+        description: "Наберите 10,000 кликов",
+        icon: "🌟",
+        reward: 10000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 7,
+        title: "Мастер кликер",
+        description: "Наберите 100,000 кликов",
+        icon: "💫",
+        reward: 100000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 8,
+        title: "Король кликов",
+        description: "Наберите 1,000,000 кликов",
+        icon: "👑",
+        reward: 1000000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 9,
+        title: "Первая покупка",
+        description: "Купите любой предмет в магазине",
+        icon: "🛍️",
+        reward: 5000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 10,
+        title: "Шопоголик",
+        description: "Купите 5 разных предметов",
+        icon: "🛒",
+        reward: 50000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 11,
+        title: "Коллекционер",
+        description: "Купите 10 разных предметов",
+        icon: "💎",
+        reward: 500000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 12,
+        title: "Энергичный старт",
+        description: "Достигните 10 кликов в секунду",
+        icon: "⚡",
+        reward: 10000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 13,
+        title: "Скоростной кликер",
+        description: "Достигните 100 кликов в секунду",
+        icon: "🚀",
+        reward: 100000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 14,
+        title: "Звездный путь",
+        description: "Достигните 1,000 кликов в секунду",
+        icon: "✨",
+        reward: 1000000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 15,
+        title: "Мировое господство",
+        description: "Достигните 10,000 кликов в секунду",
+        icon: "🌍",
+        reward: 10000000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 21,
+        title: "Точность",
+        description: "Сделайте 100 кликов подряд",
+        icon: "🎯",
+        reward: 10000,
+        completed: false,
+        claimed: false
+    },
+    {
+        id: 22,
+        title: "Цирковой артист",
+        description: "Сделайте 1000 кликов подряд",
+        icon: "🎪",
+        reward: 100000,
+        completed: false,
         claimed: false
     }
 ];
 
-// Глобальные переменные
+// Игровые переменные
 let score = 0;
+let clickCount = 0;
+let consecutiveClicks = 0;
 let autoClickPower = 0;
+let clickPower = 1;
 let totalClicks = 0;
 let clicksPerHour = 0;
 let currentStreak = 0;
 let maxBalance = 0;
 let totalEarned = 0;
 let gameStartTime = Date.now();
-let lastClickTime = 0;
+let lastClickTime = Date.now();
+let totalPurchases = 0;
 let lastUpdateTime = Date.now();
 let lastSaveTime = Date.now();
-let totalPurchases = 0;
+
+// Глобальные переменные
 let vibrationEnabled = true;
 
 // DOM элементы
@@ -113,7 +216,11 @@ function saveGameState() {
         gameStartTime,
         totalPurchases,
         tasks,
-        shopItems: shopItems.map(item => ({ count: item.count }))
+        shopItems: shopItems.map(item => ({
+            id: item.id,
+            level: item.level,
+            price: item.price
+        }))
     };
     localStorage.setItem('gameState', JSON.stringify(state));
     localStorage.setItem('lastOnlineTime', Date.now().toString());
@@ -126,11 +233,9 @@ document.addEventListener('DOMContentLoaded', function() {
     vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
 
     // Добавляем обработчик клика для игровой области
-    mainSection.addEventListener('click', function(e) {
-        if (e.target.closest('.game-area')) {
-            handleClick(e.clientX, e.clientY);
-        }
-    });
+    if (mainSection) {
+        mainSection.addEventListener('click', handleClick);
+    }
 
     // Загружаем состояние игры и проверяем оффлайн прогресс
     loadGameState();
@@ -139,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализируем остальные компоненты
     initializeNavigation();
     updateScoreDisplay();
-    updateShopItems();
+    updateShopItems(); // Добавляем инициализацию магазина
     renderTasks();
     updateStatsSection();
 
@@ -154,28 +259,46 @@ document.addEventListener('DOMContentLoaded', function() {
 function getTaskProgress(task) {
     if (!task) return 0;
     
-    switch(task.type) {
-        case 'clicks':
-            return totalClicks || 0;
-        case 'cps':
-            return currentStreak || 0;
-        case 'time':
-            const timeInHours = (Date.now() - gameStartTime) / (1000 * 60 * 60);
-            return Math.floor(timeInHours) || 0;
-        case 'hourly':
-            return clicksPerHour || 0;
-        case 'purchases':
-            return totalPurchases || 0;
-        case 'streak':
-            return currentStreak || 0;
+    switch(task.id) {
+        case 4:
+            return totalClicks >= 1 ? 1 : 0;
+        case 5:
+            return totalClicks >= 1000 ? 1 : 0;
+        case 6:
+            return totalClicks >= 10000 ? 1 : 0;
+        case 7:
+            return totalClicks >= 100000 ? 1 : 0;
+        case 8:
+            return totalClicks >= 1000000 ? 1 : 0;
+        case 9:
+            return shopItems.some(item => item.level > 0) ? 1 : 0;
+        case 10:
+            return shopItems.filter(item => item.level > 0).length >= 5 ? 1 : 0;
+        case 11:
+            return shopItems.filter(item => item.level > 0).length >= 10 ? 1 : 0;
+        case 12:
+            return autoClickPower >= 10 ? 1 : 0;
+        case 13:
+            return autoClickPower >= 100 ? 1 : 0;
+        case 14:
+            return autoClickPower >= 1000 ? 1 : 0;
+        case 15:
+            return autoClickPower >= 10000 ? 1 : 0;
+        case 21:
+            return currentStreak >= 100 ? 1 : 0;
+        case 22:
+            return currentStreak >= 1000 ? 1 : 0;
         default:
             return 0;
     }
 }
 
 // Обновляем функцию handleClick
-function handleClick(x, y) {
-    const now = Date.now();
+function handleClick(e) {
+    if (!e || !e.target) return;
+    
+    const clickCircle = e.target.closest('.click-circle');
+    if (!clickCircle) return;
     
     // Обновляем счетчики
     totalClicks++;
@@ -190,6 +313,7 @@ function handleClick(x, y) {
     totalEarned++;
     
     // Обновляем текущую серию кликов
+    const now = Date.now();
     if (now - lastClickTime < 1000) {
         currentStreak++;
     } else {
@@ -197,23 +321,17 @@ function handleClick(x, y) {
     }
     lastClickTime = now;
     
-    // Обновляем клики в час (простая формула: текущие клики * (3600 / прошедшее время в секундах))
+    // Обновляем клики в час
     const timeSinceStart = (now - gameStartTime) / 1000;
     clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
     
     // Обновляем отображение
     updateScoreDisplay();
+    updateStatsSection();
     
-    // Создаем визуальный эффект
-    createClickEffect(x, y);
-    
-    // Проверяем выполнение заданий
-    checkTasksProgress();
-    
-    // Вибрация при клике
-    if (vibrationEnabled && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(50);
-    }
+    // Сохраняем состояние и проверяем задания
+    saveGameState();
+    checkTasks();
 }
 
 // Функция для создания эффекта клика
@@ -236,9 +354,10 @@ function createClickEffect(x, y) {
 function checkTasksProgress() {
     tasks.forEach(task => {
         const progress = getTaskProgress(task);
-        if (progress >= task.requirement && !task.claimed) {
-            // Показываем уведомление только если задание выполнено впервые
-            showNotification(`Задание "${task.title}" выполнено! Нажмите, чтобы получить награду.`);
+        if (progress >= 1 && !task.completed) {
+            task.completed = true;
+            // Обновляем состояние игры
+            saveGameState();
         }
     });
     renderTasks();
@@ -261,326 +380,104 @@ function loadGameState() {
 
         // Load tasks state
         if (state.tasks) {
-            tasks = state.tasks;
+            tasks.forEach((task, index) => {
+                task.completed = state.tasks[index].completed;
+                task.claimed = state.tasks[index].claimed;
+            });
+        }
+
+        // Загружаем состояние предметов магазина
+        if (state.shopItems) {
+            state.shopItems.forEach(savedItem => {
+                const item = shopItems.find(i => i.id === savedItem.id);
+                if (item) {
+                    item.level = savedItem.level || 0;
+                    item.price = savedItem.price || item.basePrice;
+                }
+            });
         }
     }
     updateScoreDisplay();
+    updateShopItems();
     renderTasks();
 }
 
-// Обновляем функцию updateShopItems
-function updateShopItems() {
-    const shopSection = document.getElementById('shop-section');
-    if (!shopSection) return;
-    
-    shopSection.innerHTML = `
-        <div class="shop-grid">
-            ${shopItems.map((item, index) => `
-                <div class="shop-item ${canAfford(item.price) ? 'can-afford' : ''}">
-                    <img src="${item.icon.match(/src="([^"]+)"/)[1]}" alt="${item.title}" class="shop-item-image">
-                    <div class="shop-item-info">
-                        <div class="shop-item-name">${item.title}</div>
-<div class="shop-item-level">LVL ${item.level}</div>    
-                        <div class="shop-item-description">${item.description}</div>
-                        <div class="price-container">
-                            <span class="price-amount">${formatNumber(item.price)}</span>
-                        </div>
-                        <button class="shop-item-button" data-index="${index}" ${canAfford(item.price) ? '' : 'disabled'}>
-                            ${canAfford(item.price) ? 'Купить' : 'Недостаточно средств'}
-                        </button>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
-
-function purchaseItem(index) {
-    const item = shopItems[index];
-    if (!item || !canAfford(item.price)) {
-        showNotification(`Недостаточно средств для покупки ${item.title}`);
-        return;
-    }
-
-    score -= item.price;
-    item.level++;
-    item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
-    autoClickPower += item.power;
-    
-    updateScoreDisplay();
-    updateShopItems();
-    saveGameState();
-    
-    showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
-}
-
-let shopItems = [
-    {
-        id: 1,
-        icon: `<img src="https://i.postimg.cc/44zLpwFY/image.png" alt="Автокликер">`,
-        title: 'Автокликер',
-        price: 500,
-        basePrice: 500,
-        level: 0,
-        power: 1,
-        description: 'Добавляет 1 клик/сек'
-    },
-    {
-        id: 2,
-        icon: `<img src="https://i.postimg.cc/1znsJbL0/image.png " alt="Робот-помощник">`,
-        title: 'Робот-помощник',
-        price: 1000,
-        basePrice: 1000,
-        level: 0,
-        power: 2,
-        description: 'Добавляет 2 клика/сек'
-    },
-    {
-        id: 3,
-        icon: `<img src="https://i.postimg.cc/KcLt8XP6/free-icon-business-12761812.png" alt="Мини-фабрика">`,
-        title: 'Мини-фабрика',
-        price: 2000,
-        basePrice: 2000,
-        level: 0,
-        power: 5,
-        description: 'Добавляет 5 кликов/сек'
-    },
-    {
-        id: 4,
-        icon: `<img src="https://i.postimg.cc/xCQnGbZy/free-icon-medical-laboratory-2971555.png" alt="Лаборатория">`,
-        title: 'Лаборатория',
-        price: 5000,
-        basePrice: 5000,
-        level: 0,
-        power: 10,
-        description: 'Добавляет 10 кликов/сек'
-    },
-    {
-        id: 5,
-        icon: `<img src="https://i.postimg.cc/pVsMydD7/free-icon-factories-273152.png" alt="Завод">`,
-        title: 'Завод',
-        price: 10000,
-        basePrice: 10000,
-        level: 0,
-        power: 20,
-        description: 'Добавляет 20 кликов/сек'
-    },
-    {
-        id: 6,
-        icon: `<img src="https://i.postimg.cc/2SdHbb4f/free-icon-robot-assistant-12003464.png" alt="Сеть роботов">`,
-        title: 'Сеть роботов',
-        price: 20000,
-        basePrice: 20000,
-        level: 0,
-        power: 50,
-        description: 'Добавляет 50 кликов/сек'
-    },
-    {
-        id: 7,
-        icon: `<img src="https://i.postimg.cc/Hs8WgHbM/free-icon-artificial-intelligence-2104411.png" alt="Искусственный интеллект">`,
-        title: 'Искусственный интеллект',
-        price: 50000,
-        basePrice: 50000,
-        level: 0,
-        power: 100,
-        description: 'Добавляет 100 кликов/сек'
-    },
-    {
-        id: 8,
-        icon: `<img src="https://i.postimg.cc/QxC9KR1N/free-icon-satellite-2536704.png" alt="Спутник">`,
-        title: 'Спутник',
-        price: 100000,
-        basePrice: 100000,
-        level: 0,
-        power: 200,
-        description: 'Добавляет 200 кликов/сек'
-    },
-    {
-        id: 9,
-        icon: `<img src="https://i.postimg.cc/GtQf04qR/free-icon-base-6257298.png" alt="Космическая станция">`,
-        title: 'Космическая станция',
-        price: 200000,
-        basePrice: 200000,
-        level: 0,
-        power: 500,
-        description: 'Добавляет 500 кликов/сек'
-    },
-    {
-        id: 10,
-        icon: `<img src="https://i.postimg.cc/hvTmyYbQ/free-icon-quantum-computer-6554108.png" alt="Квантовый компьютер">`,
-        title: 'Квантовый компьютер',
-        price: 500000,
-        basePrice: 500000,
-        level: 0,
-        power: 1000,
-        description: 'Добавляет 1000 кликов/сек'
-    },
-    {
-        id: 11,
-        icon: `<img src="https://i.postimg.cc/xTXDzRCV/free-icon-time-machine-6642136.png" alt="Машина времени">`,
-        title: 'Машина времени',
-        price: 1000000,
-        basePrice: 1000000,
-        level: 0,
-        power: 2000,
-        description: 'Добавляет 2000 кликов/сек'
-    },
-    {
-        id: 12,
-        icon: `<img src="https://i.postimg.cc/pVsMydD7/free-icon-teleport-1636923.png" alt="Телепорт">`,
-        title: 'Телепорт',
-        price: 2000000,
-        basePrice: 2000000,
-        level: 0,
-        power: 5000,
-        description: 'Добавляет 5000 кликов/сек'
-    },
-    {
-        id: 13,
-        icon: `<img src="https://i.postimg.cc/Wzky9sHm/free-icon-cloning-8595286.png" alt="Клонирование">`,
-        title: 'Клонирование',
-        price: 5000000,
-        basePrice: 5000000,
-        level: 0,
-        power: 10000,
-        description: 'Добавляет 10000 кликов/сек'
-    },
-    {
-        id: 14,
-        icon: `<img src="https://i.postimg.cc/vm5cdnxC/free-icon-virtual-7009709.png" alt="Виртуальная реальность">`,
-        title: 'Виртуальная реальность',
-        price: 10000000,
-        basePrice: 10000000,
-        level: 0,
-        power: 20000,
-        description: 'Добавляет 20000 кликов/сек'
-    },
-    {
-        id: 15,
-        icon: `<img src="https://i.postimg.cc/VsCHPLKn/free-icon-hologram-1387354.png" alt="Голограмма">`,
-        title: 'Голограмма',
-        price: 20000000,
-        basePrice: 20000000,
-        level: 0,
-        power: 50000,
-        description: 'Добавляет 50000 кликов/сек'
-    },
-    {
-        id: 16,
-        icon: `<img src="https://i.postimg.cc/ZRkp8Z6z/free-icon-robot-4136152.png" alt="Армия роботов">`,
-        title: 'Армия роботов',
-        price: 50000000,
-        basePrice: 50000000,
-        level: 0,
-        power: 100000,
-        description: 'Добавляет 100000 кликов/сек'
-    },
-    {
-        id: 17,
-        icon: `<img src="https://i.postimg.cc/Y0v7tcyj/free-icon-moon-2949268.png" alt="Колонизация планет">`,
-        title: 'Колонизация планет',
-        price: 100000000,
-        basePrice: 100000000,
-        level: 0,
-        power: 200000,
-        description: 'Добавляет 200000 кликов/сек'
-    },
-    {
-        id: 18,
-        icon: `<img src="https://i.postimg.cc/YChnJ78P/image.png" alt="Галактическая империя">`,
-        title: 'Галактическая империя',
-        price: 200000000,
-        basePrice: 200000000,
-        level: 0,
-        power: 500000,
-        description: 'Добавляет 500000 кликов/сек'
-    },
-    {
-        id: 19,
-        icon: `<img src="https://i.postimg.cc/sfGDF7Fm/free-icon-space-15300331.png" alt="Контроль вселенной">`,
-        title: 'Контроль вселенной',
-        price: 500000000,
-        basePrice: 500000000,
-        level: 0,
-        power: 1000000,
-        description: 'Добавляет 1000000 кликов/сек'
-    },
-    {
-        id: 20,
-        icon: `<img src="https://i.postimg.cc/RVmGr16x/free-icon-multiverse-10659390.png" alt="Мультивселенная">`,
-        title: 'Мультивселенная',
-        price: 1000000000,
-        basePrice: 1000000000,
-        level: 0,
-        power: 2000000,
-        description: 'Добавляет 2000000 кликов/сек'
-    }
-];
-
+// Обновляем функцию updateScoreDisplay
 function updateScoreDisplay() {
-    scoreElement.innerHTML = `
-        <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
-        ${formatNumber(Math.floor(score))}
-    `;
-}
-
-function getTaskProgressText(task, progress) {
-    switch (task.type) {
-        case 'clicks':
-            return `${formatNumber(progress)} / ${formatNumber(task.requirement)} кликов`;
-        case 'cps':
-            return `${formatNumber(progress)} / ${formatNumber(task.requirement)} кликов/сек`;
-        case 'time':
-            const hours = Math.floor(progress / 3600);
-            const minutes = Math.floor((progress % 3600) / 60);
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} / ${Math.floor(task.requirement / 3600)}ч`;
-        case 'hourly':
-            return `${formatNumber(progress)} / ${formatNumber(task.requirement)} кликов/час`;
-        case 'purchases':
-            return `${progress} / ${task.requirement} покупок`;
-        case 'streak':
-            return `${progress} / ${task.requirement} кликов подряд`;
-        default:
-            return `${progress} / ${task.requirement}`;
+    if (scoreElement) {
+        const displayScore = Math.floor(score || 0);
+        scoreElement.innerHTML = `
+            <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
+            ${formatNumber(displayScore)}
+        `;
     }
 }
 
+// Обновляем функцию getTaskProgressText
+function getTaskProgressText(task, progress) {
+    switch(task.id) {
+        case 4:
+            return `${progress} / 1`;
+        case 5:
+            return `${progress} / 1000`;
+        case 6:
+            return `${progress} / 10000`;
+        case 7:
+            return `${progress} / 100000`;
+        case 8:
+            return `${progress} / 1000000`;
+        case 9:
+            return `${progress} / 1`;
+        case 10:
+            return `${progress} / 5`;
+        case 11:
+            return `${progress} / 10`;
+        case 12:
+            return `${progress} / 10`;
+        case 13:
+            return `${progress} / 100`;
+        case 14:
+            return `${progress} / 1000`;
+        case 15:
+            return `${progress} / 10000`;
+        case 21:
+            return `${progress} / 100`;
+        case 22:
+            return `${progress} / 1000`;
+        default:
+            return `${progress} / 1`;
+    }
+}
+
+// Обновляем функцию renderTasks
 function renderTasks() {
     const tasksGrid = document.querySelector('.tasks-grid');
     if (!tasksGrid) return;
 
     // Разделяем задания на выполненные и невыполненные
-    const completedTasks = tasks.filter(task => task.claimed);
-    const uncompletedTasks = tasks.filter(task => !task.claimed);
+    const completedTasks = tasks.filter(task => task.completed);
+    const uncompletedTasks = tasks.filter(task => !task.completed);
 
     tasksGrid.innerHTML = `
         <div class="tasks-section">
             <h2 class="tasks-section-title">Активные задания</h2>
             ${uncompletedTasks.map(task => {
                 const progress = getTaskProgress(task);
-                const progressPercent = Math.min(100, Math.floor((progress / task.requirement) * 100));
                 
                 return `
                     <div class="task-item">
+                        <div class="task-icon">${task.icon}</div>
                         <div class="task-title">${task.title}</div>
                         <div class="task-description">${task.description}</div>
                         <div class="task-reward">Награда: ${formatNumber(task.reward)} </div>
                         <div class="task-progress-container">
-                            <div class="task-progress-bar" style="width: ${progressPercent}%"></div>
-                            <div class="task-progress-text">
-                                ${formatNumber(progress)} / ${formatNumber(task.requirement)}
-                                ${task.type === 'clicks' ? ' кликов' : 
-                                  task.type === 'cps' ? ' кликов/сек' : 
-                                  task.type === 'time' ? ' часов' : 
-                                  task.type === 'hourly' ? ' кликов/час' : 
-                                  task.type === 'purchases' ? ' покупок' : 
-                                  task.type === 'streak' ? ' кликов подряд' : ''}
-                            </div>
+                            <div class="task-progress-bar" style="width: ${progress * 100}%"></div>
+                            <div class="task-progress-text">${getTaskProgressText(task, progress)}</div>
                         </div>
                         <button class="task-button claim-task-btn" 
                                 data-task-id="${task.id}" 
-                                ${progress >= task.requirement ? '' : 'disabled'}>
-                            ${progress >= task.requirement ? 'Получить' : 'Не выполнено'}
+                                ${progress >= 1 ? '' : 'disabled'}>
+                            ${progress >= 1 ? 'Получить' : 'Не выполнено'}
                         </button>
                     </div>
                 `;
@@ -590,9 +487,9 @@ function renderTasks() {
             <div class="tasks-section">
                 <h2 class="tasks-section-title">Выполненные задания</h2>
                 ${completedTasks.map(task => {
-                    const progress = getTaskProgress(task);
                     return `
                         <div class="task-item completed">
+                            <div class="task-icon">${task.icon}</div>
                             <div class="task-title">${task.title}</div>
                             <div class="task-description">${task.description}</div>
                             <div class="task-reward">Получено: ${formatNumber(task.reward)} </div>
@@ -673,38 +570,62 @@ function updateStatsSection() {
 // Обновляем игру каждую секунду
 setInterval(() => {
     const now = Date.now();
-    score += autoClickPower;
-    updateScoreDisplay();
+    const deltaTime = (now - lastUpdateTime) / 1000;
     
-    // Сохраняем каждые 30 секунд
-    if (now - lastSaveTime >= 30000) {
+    // Добавляем очки от автокликера
+    if (autoClickPower > 0) {
+        score += autoClickPower * deltaTime;
+        totalEarned += autoClickPower * deltaTime;
+    }
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    
+    // Сохраняем состояние каждые 5 секунд
+    if (now - lastSaveTime >= 5000) {
         saveGameState();
         lastSaveTime = now;
     }
     
-    // Обновляем время последнего обновления
     lastUpdateTime = now;
 }, 1000);
 
 function canClaimTask(task) {
-    switch(task.type) {
-        case 'clicks':
-            return Math.floor(totalClicks) >= task.requirement;
-        case 'purchases':
-            const totalPurchases = shopItems.reduce((sum, item) => sum + item.level, 0);
-            return totalPurchases >= task.requirement;
-        case 'cps':
-            return Math.floor(autoClickPower) >= task.requirement;
-        case 'time':
-            const playTime = Math.floor((Date.now() - (lastUpdateTime || Date.now())) / 1000);
-            return playTime >= task.requirement;
-        case 'hourly':
-            return Math.floor(autoClickPower * 3600) >= task.requirement;
-        case 'streak':
-            return false;
-        case 'total_achievements':
-            const claimedCount = tasks.filter(t => t.id === 20 || t.claimed).length;
-            return claimedCount >= task.requirement;
+    switch(task.id) {
+        case 4:
+            return totalClicks >= 1;
+        case 5:
+            return totalClicks >= 1000;
+        case 6:
+            return totalClicks >= 10000;
+        case 7:
+            return totalClicks >= 100000;
+        case 8:
+            return totalClicks >= 1000000;
+        case 9:
+            return shopItems.some(item => item.level > 0);
+        case 10:
+            return shopItems.filter(item => item.level > 0).length >= 5;
+        case 11:
+            return shopItems.filter(item => item.level > 0).length >= 10;
+        case 12:
+            return autoClickPower >= 10;
+        case 13:
+            return autoClickPower >= 100;
+        case 14:
+            return autoClickPower >= 1000;
+        case 15:
+            return autoClickPower >= 10000;
+        case 21:
+            return currentStreak >= 100;
+        case 22:
+            return currentStreak >= 1000;
         default:
             return false;
     }
@@ -767,7 +688,7 @@ function initializeNavigation() {
                     const shopSection = document.getElementById('shop-section');
                     if (shopSection) {
                         shopSection.classList.add('active');
-                        updateShopItems(); // Update shop items when showing shop
+                        updateShopItems(); // Обновляем магазин при показе
                     }
                 } else if (btnText === 'задания') {
                     const tasksSection = document.getElementById('tasks-section');
@@ -841,246 +762,353 @@ function initializeNavigation() {
 }
 
 document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('shop-item-button')) {
-        const index = parseInt(e.target.getAttribute('data-index'));
-        if (!isNaN(index)) {
-            const item = shopItems[index];
-            if (item && canAfford(item.price)) {
-                score -= item.price;
-                item.level++;
-                item.price = Math.floor(item.basePrice * Math.pow(1.2, item.level));
-                autoClickPower += item.power;
-                
-                updateScoreDisplay();
-                updateShopItems();
-                saveGameState();
-                
-                showNotification(`Улучшение "${item.title}" куплено! Уровень: ${item.level}`);
-            } else if (item) {
-                showNotification(`Недостаточно средств для покупки ${item.title}`);
-            }
+    if (e.target.matches('.nav-btn')) {
+        const section = e.target.getAttribute('data-section');
+        if (section) {
+            showSection(section);
         }
     }
 });
 
-tasks.push(
+let shopItems = [
+    {
+        id: 1,
+        icon: `<img src="https://i.postimg.cc/44zLpwFY/image.png" alt="Автокликер">`,
+        title: 'Автокликер',
+        price: 500,
+        basePrice: 500,
+        level: 0,
+        power: 1,
+        description: 'Добавляет 1 клик/сек'
+    },
+    {
+        id: 2,
+        icon: `<img src="https://i.postimg.cc/1znsJbL0/image.png" alt="Робот-помощник">`,
+        title: 'Робот-помощник',
+        price: 1000,
+        basePrice: 1000,
+        level: 0,
+        power: 2,
+        description: 'Добавляет 2 клика/сек'
+    },
+    {
+        id: 3,
+        icon: `<img src="https://i.postimg.cc/KcLt8XP6/free-icon-business-12761812.png" alt="Мини-фабрика">`,
+        title: 'Мини-фабрика',
+        price: 2000,
+        basePrice: 2000,
+        level: 0,
+        power: 5,
+        description: 'Добавляет 5 кликов/сек'
+    },
     {
         id: 4,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Первые шаги">',
-        title: 'Первые шаги',
-        description: 'Сделайте первый клик',
-        requirement: 1,
-        reward: 100,
-        type: 'clicks',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/xCQnGbZy/free-icon-medical-laboratory-2971555.png" alt="Лаборатория">`,
+        title: 'Лаборатория',
+        price: 5000,
+        basePrice: 5000,
+        level: 0,
+        power: 10,
+        description: 'Добавляет 10 кликов/сек'
     },
     {
         id: 5,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Начинающий кликер">',
-        title: 'Начинающий кликер',
-        description: 'Накопите 1,000 кликов',
-        reward: 200,
-        requirement: 1000,
-        type: 'clicks',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/pVsMydD7/free-icon-factories-273152.png" alt="Завод">`,
+        title: 'Завод',
+        price: 10000,
+        basePrice: 10000,
+        level: 0,
+        power: 20,
+        description: 'Добавляет 20 кликов/сек'
     },
     {
         id: 6,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Опытный кликер">',
-        title: 'Опытный кликер',
-        description: 'Накопите 10,000 кликов',
-        reward: 1000,
-        requirement: 10000,
-        type: 'clicks',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/2SdHbb4f/free-icon-robot-assistant-12003464.png" alt="Сеть роботов">`,
+        title: 'Сеть роботов',
+        price: 20000,
+        basePrice: 20000,
+        level: 0,
+        power: 50,
+        description: 'Добавляет 50 кликов/сек'
     },
     {
         id: 7,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Мастер кликер">',
-        title: 'Мастер кликер',
-        description: 'Накопите 100,000 кликов',
-        reward: 5000,
-        requirement: 100000,
-        type: 'clicks',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/Hs8WgHbM/free-icon-artificial-intelligence-2104411.png" alt="Искусственный интеллект">`,
+        title: 'Искусственный интеллект',
+        price: 50000,
+        basePrice: 50000,
+        level: 0,
+        power: 100,
+        description: 'Добавляет 100 кликов/сек'
     },
     {
         id: 8,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Король кликов">',
-        title: 'Король кликов',
-        description: 'Накопите 1,000,000 кликов',
-        reward: 25000,
-        requirement: 1000000,
-        type: 'clicks',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/QxC9KR1N/free-icon-satellite-2536704.png" alt="Спутник">`,
+        title: 'Спутник',
+        price: 100000,
+        basePrice: 100000,
+        level: 0,
+        power: 200,
+        description: 'Добавляет 200 кликов/сек'
     },
     {
         id: 9,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Первая покупка">',
-        title: 'Первая покупка',
-        description: 'Купите любое улучшение',
-        reward: 100,
-        requirement: 1,
-        type: 'purchases',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/GtQf04qR/free-icon-base-6257298.png" alt="Космическая станция">`,
+        title: 'Космическая станция',
+        price: 200000,
+        basePrice: 200000,
+        level: 0,
+        power: 500,
+        description: 'Добавляет 500 кликов/сек'
     },
     {
         id: 10,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Шопоголик">',
-        title: 'Шопоголик',
-        description: 'Купите 5 улучшений',
-        reward: 500,
-        requirement: 5,
-        type: 'purchases',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/xTXDzRCV/free-icon-quantum-computer-6554108.png" alt="Квантовый компьютер">`,
+        title: 'Квантовый компьютер',
+        price: 500000,
+        basePrice: 500000,
+        level: 0,
+        power: 1000,
+        description: 'Добавляет 1000 кликов/сек'
     },
     {
         id: 11,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Коллекционер">',
-        title: 'Коллекционер',
-        description: 'Купите 10 улучшений',
-        reward: 1000,
-        requirement: 10,
-        type: 'purchases',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/xCQnGbZy/free-icon-time-machine-6642136.png" alt="Машина времени">`,
+        title: 'Машина времени',
+        price: 1000000,
+        basePrice: 1000000,
+        level: 0,
+        power: 2000,
+        description: 'Добавляет 2000 кликов/сек'
     },
     {
         id: 12,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Энергичный старт">',
-        title: 'Энергичный старт',
-        description: 'Достигните 10 кликов в секунду',
-        reward: 2000,
-        requirement: 10,
-        type: 'cps',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/pVsMydD7/free-icon-teleport-1636923.png" alt="Телепорт">`,
+        title: 'Телепорт',
+        price: 2000000,
+        basePrice: 2000000,
+        level: 0,
+        power: 5000,
+        description: 'Добавляет 5000 кликов/сек'
     },
     {
         id: 13,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Скоростной кликер">',
-        title: 'Скоростной кликер',
-        description: 'Достигните 100 кликов в секунду',
-        reward: 5000,
-        requirement: 100,
-        type: 'cps',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/Hs8WgHbM/free-icon-cloning-8595286.png" alt="Клонирование">`,
+        title: 'Клонирование',
+        price: 5000000,
+        basePrice: 5000000,
+        level: 0,
+        power: 10000,
+        description: 'Добавляет 10000 кликов/сек'
     },
     {
         id: 14,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Звездный путь">',
-        title: 'Звездный путь',
-        description: 'Достигните 1000 кликов в секунду',
-        reward: 10000,
-        requirement: 1000,
-        type: 'cps',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/vm5cdnxC/free-icon-virtual-7009709.png" alt="Виртуальная реальность">`,
+        title: 'Виртуальная реальность',
+        price: 10000000,
+        basePrice: 10000000,
+        level: 0,
+        power: 20000,
+        description: 'Добавляет 20000 кликов/сек'
     },
     {
         id: 15,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Мировое господство">',
-        title: 'Мировое господство',
-        description: 'Достигните 10000 кликов в секунду',
-        reward: 50000,
-        requirement: 10000,
-        type: 'cps',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/VsCHPLKn/free-icon-hologram-1387354.png" alt="Голограмма">`,
+        title: 'Голограмма',
+        price: 20000000,
+        basePrice: 20000000,
+        level: 0,
+        power: 50000,
+        description: 'Добавляет 50000 кликов/сек'
     },
     {
         id: 16,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Игровой марафон">',
-        title: 'Игровой марафон',
-        description: 'Играйте 1 час',
-        reward: 1000,
-        requirement: 3600,
-        type: 'time',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/ZRkp8Z6z/free-icon-robot-4136152.png" alt="Армия роботов">`,
+        title: 'Армия роботов',
+        price: 50000000,
+        basePrice: 50000000,
+        level: 0,
+        power: 100000,
+        description: 'Добавляет 100000 кликов/сек'
     },
     {
         id: 17,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Временной магнат">',
-        title: 'Временной магнат',
-        description: 'Играйте 24 часа',
-        reward: 10000,
-        requirement: 86400,
-        type: 'time',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/sfGDF7Fm/free-icon-moon-2949268.png" alt="Колонизация планет">`,
+        title: 'Колонизация планет',
+        price: 100000000,
+        basePrice: 100000000,
+        level: 0,
+        power: 200000,
+        description: 'Добавляет 200000 кликов/сек'
     },
     {
         id: 18,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Быстрый рост">',
-        title: 'Быстрый рост',
-        description: 'Получите 1000 кликов за час',
-        reward: 500,
-        requirement: 1000,
-        type: 'hourly',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/RVmGr16x/free-icon-galactic-empire-10659391.png" alt="Галактическая империя">`,
+        title: 'Галактическая империя',
+        price: 200000000,
+        basePrice: 200000000,
+        level: 0,
+        power: 500000,
+        description: 'Добавляет 500000 кликов/сек'
     },
     {
         id: 19,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Богатство">',
-        title: 'Богатство',
-        description: 'Получите 10000 кликов за час',
-        reward: 2000,
-        requirement: 10000,
-        type: 'hourly',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/RVmGr16x/free-icon-multiverse-10659390.png" alt="Контроль вселенной">`,
+        title: 'Контроль вселенной',
+        price: 500000000,
+        basePrice: 500000000,
+        level: 0,
+        power: 1000000,
+        description: 'Добавляет 1000000 кликов/сек'
     },
     {
         id: 20,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Фабрика кликов">',
-        title: 'Фабрика кликов',
-        description: 'Получите 100000 кликов за час',
-        reward: 10000,
-        requirement: 100000,
-        type: 'hourly',
-        claimed: false
-    },
-    {
-        id: 21,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Точность">',
-        title: 'Точность',
-        description: 'Кликните 100 раз подряд',
-        reward: 1000,
-        requirement: 100,
-        type: 'streak',
-        claimed: false
-    },
-    {
-        id: 22,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Цирковой артист">',
-        title: 'Цирковой артист',
-        description: 'Кликните 1000 раз подряд',
-        reward: 5000,
-        requirement: 1000,
-        type: 'streak',
-        claimed: false
-    },
-    {
-        id: 23,
-        icon: '<img src="https://i.postimg.cc/Xq7mZQW9/free-icon-footprint-2790690.png" alt="Радужный путь">',
-        title: 'Радужный путь',
-        description: 'Соберите все достижения',
-        reward: 100000,
-        requirement: 19,
-        type: 'total_achievements',
-        claimed: false
+        icon: `<img src="https://i.postimg.cc/RVmGr16x/free-icon-multiverse-10659390.png" alt="Мультивселенная">`,
+        title: 'Мультивселенная',
+        price: 1000000000,
+        basePrice: 1000000000,
+        level: 0,
+        power: 2000000,
+        description: 'Добавляет 2000000 кликов/сек'
     }
-);
+];
+
+// Обработчик кликов
+function handleClick(e) {
+    if (!e || !e.target) return;
+    
+    const clickCircle = e.target.closest('.click-circle');
+    if (!clickCircle) return;
+    
+    // Обновляем счетчики
+    totalClicks++;
+    score++;
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем общий заработок
+    totalEarned++;
+    
+    // Обновляем текущую серию кликов
+    const now = Date.now();
+    if (now - lastClickTime < 1000) {
+        currentStreak++;
+    } else {
+        currentStreak = 1;
+    }
+    lastClickTime = now;
+    
+    // Обновляем клики в час
+    const timeSinceStart = (now - gameStartTime) / 1000;
+    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    
+    // Сохраняем состояние и проверяем задания
+    saveGameState();
+    checkTasks();
+}
+
+// Добавляем обработчик кликов
+document.addEventListener('DOMContentLoaded', function() {
+    const mainSection = document.querySelector('.game-area');
+    if (mainSection) {
+        mainSection.addEventListener('click', handleClick);
+    }
+});
+
+// Обновляем функцию buyItem
+function buyItem(itemId) {
+    const item = shopItems.find(item => item.id === itemId);
+    if (!item) return;
+
+    if (score >= item.price) {
+        score -= item.price;
+        item.level++;
+        totalPurchases++;
+        
+        // Обновляем цену предмета
+        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
+        
+        // Обновляем автоматический доход
+        autoClickPower = shopItems.reduce((total, item) => {
+            return total + (item.power * (item.level || 0));
+        }, 0);
+        
+        // Обновляем отображение
+        updateScoreDisplay();
+        updateShopItems();
+        updateStatsSection();
+        
+        // Сохраняем состояние
+        saveGameState();
+        checkTasks();
+    } else {
+        showNotification('Недостаточно средств!');
+    }
+}
+
+// Добавляем обработчик кликов по кнопкам покупки
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('buy-button')) {
+        const itemId = parseInt(e.target.closest('.shop-item').getAttribute('data-item-id'));
+        if (!isNaN(itemId)) {
+            buyItem(itemId);
+        }
+    }
+});
+
+// Обновляем функцию updateShopItems
+function updateShopItems() {
+    const shopSection = document.getElementById('shop-section');
+    if (!shopSection) return;
+    
+    shopSection.innerHTML = `<div class="shop-window">` + 
+        shopItems.map((item) => `
+            <div class="shop-item" data-item-id="${item.id}">
+                <div class="item-icon">
+                    ${item.icon}
+                </div>
+                <div class="item-info">
+                    <h3 class="item-title">${item.title}</h3>
+                    <div class="item-level">Ур. ${item.level || 0}</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-profit">+${formatNumber(item.power || 0)} в сек</div>
+                    <button class="buy-button" ${canAfford(item.price) ? '' : 'disabled'}>
+                        <span class="coin-icon"></span>
+                        ${formatNumber(item.price)}
+                    </button>
+                </div>
+            </div>
+        `).join('') + `</div>`;
+}
 
 // Changelog Modal functionality
 const changelogBtn = document.getElementById('changelogBtn');
 const changelogModal = document.getElementById('changelogModal');
 const closeBtn = document.querySelector('.close-btn');
 
-changelogBtn.addEventListener('click', () => {
-    changelogModal.style.display = 'block';
-});
+if (changelogBtn && changelogModal) {
+    changelogBtn.addEventListener('click', () => {
+        changelogModal.style.display = 'block';
+        renderChangelog(); // Вызываем функцию из changelog.js
+    });
+}
 
-closeBtn.addEventListener('click', () => {
-    changelogModal.style.display = 'none';
-});
+if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        changelogModal.style.display = 'none';
+    });
+}
 
-window.addEventListener('click', (event) => {
-    if (event.target === changelogModal) {
+window.addEventListener('click', (e) => {
+    if (e.target === changelogModal) {
         changelogModal.style.display = 'none';
     }
 });
@@ -1106,3 +1134,100 @@ document.body.addEventListener('change', function(e) {
         }
     }
 });
+
+// Обновляем функцию checkTasks
+function checkTasks() {
+    tasks.forEach(task => {
+        if (!task.completed) {
+            let completed = false;
+            
+            switch(task.id) {
+                case 4: // Первые шаги
+                    completed = clickCount >= 1;
+                    break;
+                case 5: // Начинающий кликер
+                    completed = score >= 1000;
+                    break;
+                case 6: // Опытный кликер
+                    completed = score >= 10000;
+                    break;
+                case 7: // Мастер кликер
+                    completed = score >= 100000;
+                    break;
+                case 8: // Король кликов
+                    completed = score >= 1000000;
+                    break;
+                case 9: // Первая покупка
+                    completed = shopItems.some(item => item.level > 0);
+                    break;
+                case 10: // Шопоголик
+                    completed = shopItems.filter(item => item.level > 0).length >= 5;
+                    break;
+                case 11: // Коллекционер
+                    completed = shopItems.filter(item => item.level > 0).length >= 10;
+                    break;
+                case 12: // Энергичный старт
+                    completed = autoClickPower >= 10;
+                    break;
+                case 13: // Скоростной кликер
+                    completed = autoClickPower >= 100;
+                    break;
+                case 14: // Звездный путь
+                    completed = autoClickPower >= 1000;
+                    break;
+                case 15: // Мировое господство
+                    completed = autoClickPower >= 10000;
+                    break;
+                case 21: // Точность
+                    completed = consecutiveClicks >= 100;
+                    break;
+                case 22: // Цирковой артист
+                    completed = consecutiveClicks >= 1000;
+                    break;
+                // Добавьте другие задания по необходимости
+            }
+
+            if (completed) {
+                task.completed = true;
+                // Обновляем состояние игры
+                saveGameState();
+            }
+        }
+    });
+    
+    renderTasks(); // Обновляем отображение заданий
+}
+
+// Функция получения награды за задание
+function claimTaskReward(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task && task.completed && !task.claimed) {
+        score += task.reward;
+        task.claimed = true;
+        updateScoreDisplay();
+        saveGameState();
+        showNotification(`Получена награда: ${formatNumber(task.reward)} кликов!`);
+        renderTasks(); // Обновляем отображение заданий
+    }
+}
+
+// Обновляем функцию renderTasks
+function renderTasks() {
+    const tasksSection = document.getElementById('tasks-section');
+    if (!tasksSection) return;
+
+    tasksSection.innerHTML = tasks.map(task => `
+        <div class="task-item ${task.completed ? 'completed' : ''} ${task.claimed ? 'claimed' : ''}" data-task-id="${task.id}">
+            <div class="task-icon">${task.icon}</div>
+            <div class="task-info">
+                <h3 class="task-title">${task.title}</h3>
+                <div class="task-description">${task.description}</div>
+                <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
+            </div>
+            <button class="claim-button" onclick="claimTaskReward(${task.id})" 
+                ${task.completed && !task.claimed ? '' : 'disabled'}>
+                ${task.claimed ? 'Получено' : (task.completed ? 'Забрать награду' : 'Не выполнено')}
+            </button>
+        </div>
+    `).join('');
+}

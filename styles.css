@@ -63,7 +63,7 @@ body {
     content: '';
     width: 100%;
     height: 100%;
-    background: url('https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png') no-repeat center;
+    background: url('https://i.postimg.cc/wjT5zq8F/image-1.png') no-repeat center;
     background-size: contain;
 }
 
@@ -251,106 +251,40 @@ body {
     display: none; 
 }
 
+.shop-section {
+    display: none;
+}
+
 .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    padding: 10px;
-    max-width: 800px;
-    margin: 0 auto;
+    display: none;
 }
 
 .shop-item {
-    background: rgba(20, 20, 35, 0.5);
-    border-radius: 12px;
-    padding: 20px 15px;
-    text-align: center;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
+    display: none;
 }
 
 .shop-item-image {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 10px;
-    display: block;
-    object-fit: contain;
-    transition: transform 0.2s;
+    display: none;
 }
 
 .shop-item-level {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(28, 28, 46, 0.9);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    color: #FFD700;
-    border: 1px solid rgba(255, 51, 102, 0.3);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    display: none;
 }
 
 .shop-item-name {
-    font-size: 18px;
-    font-weight: bold;
-    color: #fff;
-    margin-bottom: 5px;
+    display: none;
 }
 
 .shop-item-button {
-    background: #FF3366;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
-    transition: background 0.3s;
-}
-
-.shop-item-button:disabled {
-    background: rgba(128, 128, 128, 0.3);
-    cursor: not-allowed;
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.shop-item.can-afford .shop-item-button {
-    background: #00cc66;
-}
-
-.shop-item.can-afford .shop-item-button:hover {
-    background: #00e673;
+    display: none;
 }
 
 .price-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(28, 28, 46, 0.8);
-    padding: 4px 10px;
-    border-radius: 8px;
-    margin: 8px 0;
-    border: 1px solid rgba(255, 51, 102, 0.3);
-    box-shadow: 0 2px 4px rgba(255, 51, 102, 0.2);
-    width: 100%;
-    height: 35px;
+    display: none;
 }
 
 .price-amount::before {
-    content: '';
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    margin-right: 5px;
-    background-image: url('https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    vertical-align: middle;
+    display: none;
 }
 
 .price-icon {
@@ -358,41 +292,11 @@ body {
 }
 
 .price-amount {
-    color: #FFD700;
-    font-weight: bold;
-    font-size: 13px;
-    white-space: nowrap;
-    text-align: center;
-    width: 100%;
+    display: none;
 }
 
 .shop-item-info {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    justify-content: space-between;
-}
-
-.shop-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    padding: 10px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.shop-item {
-    background: rgba(0, 204, 102, 0.2); /* Зеленый полупрозрачный фон */
-    border-radius: 12px;
-    padding: 20px 15px;
-    text-align: center;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    border: 1px solid rgba(0, 204, 102, 0.3);
+    display: none;
 }
 
 .task-item.claimed {
@@ -649,7 +553,7 @@ input:checked + .toggle-slider span {
 }
 
 .modal-content::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none; /* Chrome, Safari and Opera */
 }
 
 .modal-header {
@@ -724,41 +628,115 @@ input:checked + .toggle-slider span {
 }
 
 .shop-container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 20px;
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
+    display: none;
 }
 
 .shop-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    width: 100%;
+    display: none;
 }
 
 .shop-item {
-    background: rgba(0, 204, 102, 0.2);
-    border-radius: 12px;
-    padding: 20px 15px;
-    text-align: center;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    border: 1px solid rgba(0, 204, 102, 0.3);
+    display: none;
 }
 
 .price-container {
-    background: rgba(0, 204, 102, 0.3);
-    border: 1px solid rgba(0, 204, 102, 0.4);
+    display: none;
 }
 
 /* Стили для заданий */
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.task-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('https://i.postimg.cc/MKPrjT14/image.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.3;
+    z-index: -1;
+}
+
+.task-icon {
+    font-size: 2em;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.task-info {
+    flex-grow: 1;
+}
+
+.task-title {
+    margin: 0;
+    font-size: 1.2em;
+    color: #fff;
+}
+
+.task-description {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.task-reward {
+    color: #4CAF50;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.claim-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(76, 175, 80, 0.3);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+.claim-button:not(:disabled):hover {
+    background: rgba(76, 175, 80, 0.4);
+}
+
+.claim-button:disabled {
+    background: rgba(102, 102, 102, 0.3);
+    cursor: not-allowed;
+}
+
+.task-item.completed:not(.claimed) {
+    border-color: rgba(76, 175, 80, 0.3);
+}
+
+.task-item.claimed {
+    opacity: 0.7;
+}
+
+.task-item.claimed .claim-button {
+    background: rgba(102, 102, 102, 0.3);
+}
+
 .tasks-grid {
     display: grid;
     gap: 15px;
@@ -812,7 +790,8 @@ input:checked + .toggle-slider span {
 .task-title {
     font-size: 18px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     color: white;
 }
 
@@ -926,9 +905,7 @@ input:checked + .toggle-slider span {
     }
 
     .shop-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 10px;
+        display: none;
     }
 }
 
@@ -992,4 +969,216 @@ input:checked + .toggle-slider span {
     align-items: center;
     justify-content: center;
     gap: 10px;
+}
+
+.shop-window {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--tg-theme-bg-color, #1a1a1a);
+}
+
+.shop-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(0, 100, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shop-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('https://i.postimg.cc/gjTwFC8C/image.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.15;
+    z-index: -1;
+}
+
+.shop-item[data-item-id="18"]::before,
+.shop-item[data-item-id="19"]::before,
+.shop-item[data-item-id="20"]::before {
+    background-image: url('https://i.postimg.cc/DwCw6KPW/image.png');
+    opacity: 0.2;
+}
+
+.shop-item[data-item-id="18"],
+.shop-item[data-item-id="19"],
+.shop-item[data-item-id="20"] {
+    background: rgba(139, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+.item-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 5px;
+}
+
+.item-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.item-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.item-title {
+    margin: 0;
+    font-size: 1.2em;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.item-level {
+    font-size: 0.9em;
+    color: #aaa;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.item-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+}
+
+.item-profit {
+    font-size: 0.9em;
+    color: #4CAF50;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.buy-button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(76, 175, 80, 0.3);
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.buy-button:hover {
+    background: rgba(76, 175, 80, 0.4);
+}
+
+.buy-button:disabled {
+    background: rgba(102, 102, 102, 0.3);
+    cursor: not-allowed;
+}
+
+.coin-icon {
+    width: 20px;
+    height: 20px;
+    background: #ffd700;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+#shop-section {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    background: var(--tg-theme-bg-color, #1a1a1a);
+}
+
+/* Стили для changelog */
+.changelog-container {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.changelog-version {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.changelog-version.new {
+    background: rgba(40, 167, 69, 0.2);
+    border: 2px solid rgba(40, 167, 69, 0.5);
+}
+
+.version-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.version-header h3 {
+    margin: 0;
+    color: #fff;
+}
+
+.version-date {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.new-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+.changes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.changes-list li {
+    padding: 5px 0;
+    padding-left: 20px;
+    position: relative;
+}
+
+.changes-list li:before {
+    content: "•";
+    color: #0088ff;
+    position: absolute;
+    left: 0;
 }
