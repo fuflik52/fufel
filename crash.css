@@ -1,0 +1,220 @@
+.crash-game-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    position: relative;
+}
+
+.crash-game {
+    width: 100%;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.crash-multiplier {
+    font-size: 48px;
+    font-weight: bold;
+    text-align: center;
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    margin-top: 20px;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.crash-controls {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.bet-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#bet-amount {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+    text-align: center;
+}
+
+.quick-bet-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.quick-bet-btn {
+    padding: 5px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-bet-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.bet-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.game-button {
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.bet-button {
+    background: #00ff00;
+    border: none;
+    color: black;
+}
+
+.bet-button:hover {
+    background: #00cc00;
+}
+
+.bet-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.cashout-button {
+    background: #ff3366;
+    border: none;
+    color: white;
+}
+
+.cashout-button:hover {
+    background: #ff1a1a;
+}
+
+.cashout-button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.history-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.history-button img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0.8);
+    transition: all 0.3s ease;
+}
+
+.history-button:hover img {
+    filter: brightness(1);
+}
+
+.history-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.history-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1c1c2e;
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+}
+
+.history-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-history-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.history-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.history-item {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+}
+
+.history-item.win {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    color: #00ff00;
+}
+
+.history-item.lose {
+    background: rgba(255, 51, 102, 0.1);
+    border: 1px solid rgba(255, 51, 102, 0.3);
+    color: #ff3366;
+}
+
+.balance-display {
+    text-align: center;
+    font-size: 18px;
+    color: white;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.balance-amount {
+    color: #00ff00;
+    font-weight: bold;
+}

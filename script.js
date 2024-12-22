@@ -186,6 +186,216 @@ const gameArea = document.querySelector('.game-area');
 const scoreContainer = document.querySelector('.score-container');
 const scoreElement = document.querySelector('.score');
 
+// Объект для хранения таймеров
+const itemTimers = {};
+
+// Константы для локального хранилища
+const STORAGE_KEYS = {
+    TIMERS: 'gameTimers',
+    LAST_UPDATE: 'lastTimerUpdate'
+};
+
+// Функция для сохранения состояния таймеров
+function saveTimersState() {
+    try {
+        const timerState = {};
+        Object.keys(itemTimers).forEach(itemId => {
+            if (itemTimers[itemId]) {
+                timerState[itemId] = {
+                    endTime: itemTimers[itemId].endTime,
+                    upgradeCount: itemTimers[itemId].upgradeCount,
+                    price: itemTimers[itemId].price,
+                    startTime: Date.now()
+                };
+            }
+        });
+        
+        localStorage.setItem(STORAGE_KEYS.TIMERS, JSON.stringify(timerState));
+        localStorage.setItem(STORAGE_KEYS.LAST_UPDATE, Date.now().toString());
+    } catch (error) {
+        console.error('Error saving timers:', error);
+    }
+}
+
+// Функция для загрузки состояния таймеров
+function loadTimersState() {
+    try {
+        const savedTimers = localStorage.getItem(STORAGE_KEYS.TIMERS);
+        if (!savedTimers) return;
+
+        const timerState = JSON.parse(savedTimers);
+        const now = Date.now();
+
+        Object.keys(timerState).forEach(itemId => {
+            const timer = timerState[itemId];
+            if (timer && timer.endTime > now) {
+                startTimer(parseInt(itemId), timer.endTime, timer.upgradeCount);
+            } else if (timer) {
+                // Если таймер истек, восстанавливаем цену
+                const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
+                if (buyButton) {
+                    const formattedPrice = formatNumber(timer.price);
+                    buyButton.innerHTML = formattedPrice;
+                    buyButton.disabled = false;
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error loading timers:', error);
+    }
+}
+
+// Функция для обновления всех активных таймеров
+function updateAllTimers() {
+    const now = Date.now();
+    Object.keys(itemTimers).forEach(itemId => {
+        const timer = itemTimers[itemId];
+        if (!timer) return;
+
+        const timeLeft = timer.endTime - now;
+        const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
+        
+        if (!buyButton) {
+            stopTimer(itemId);
+            return;
+        }
+
+        if (timeLeft <= 0) {
+            stopTimer(itemId);
+            const formattedPrice = formatNumber(timer.price);
+            buyButton.innerHTML = formattedPrice;
+            buyButton.disabled = false;
+        } else {
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            // Создаем иконку
+            const upgradeIcon = document.createElement('img');
+            upgradeIcon.src = 'https://i.postimg.cc/qq4L82vs/image.png';
+            upgradeIcon.className = 'upgrade-icon';
+            
+            buyButton.innerHTML = '';
+            buyButton.appendChild(upgradeIcon);
+            buyButton.appendChild(document.createTextNode(`${minutes}:${seconds.toString().padStart(2, '0')}`));
+        }
+    });
+    
+    saveTimersState();
+}
+
+// Инициализация системы таймеров
+function initializeTimerSystem() {
+    // Загружаем сохраненные таймеры
+    loadTimersState();
+    
+    // Запускаем регулярное обновление таймеров
+    setInterval(updateAllTimers, 1000);
+    
+    // Сохраняем перед закрытием страницы
+    window.addEventListener('beforeunload', saveTimersState);
+    
+    // Сохраняем при переключении вкладок
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            saveTimersState();
+        } else {
+            loadTimersState();
+        }
+    });
+}
+
+// Запускаем инициализацию при загрузке страницы
+document.addEventListener('DOMContentLoaded', initializeTimerSystem);
+
+// Функция для получения следующего времени задержки
+function getNextDelay(upgradeCount) {
+    const delays = {
+        1: 15,    // 15 секунд
+        2: 30,    // 30 секунд
+        3: 60,    // 1 минута
+        4: 300,   // 5 минут
+        5: 600,   // 10 минут
+        6: 1800,  // 30 минут
+    };
+    return delays[upgradeCount] || 3600; // 60 минут для 7+ улучшений
+}
+
+// Функция для остановки таймера
+function stopTimer(itemId) {
+    if (itemTimers[itemId] && itemTimers[itemId].interval) {
+        clearInterval(itemTimers[itemId].interval);
+        delete itemTimers[itemId];
+    }
+}
+
+// Функция для запуска таймера
+function startTimer(itemId, endTime, upgradeCount) {
+    const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
+    if (!buyButton) return;
+
+    // Получаем цену предмета для восстановления после таймера
+    const itemPrice = shopItems.find(item => item.id === parseInt(itemId))?.price || 0;
+
+    // Остановить предыдущий таймер для этого предмета, если он существует
+    stopTimer(itemId);
+
+    // Создаем иконку
+    const upgradeIcon = document.createElement('img');
+    upgradeIcon.src = 'https://i.postimg.cc/qq4L82vs/image.png';
+    upgradeIcon.className = 'upgrade-icon';
+
+    itemTimers[itemId] = {
+        endTime: endTime,
+        upgradeCount: upgradeCount,
+        price: itemPrice,
+        interval: setInterval(() => {
+            const now = Date.now();
+            const timeLeft = endTime - now;
+
+            if (timeLeft <= 0) {
+                stopTimer(itemId);
+                const formattedPrice = formatNumber(itemPrice);
+                buyButton.innerHTML = formattedPrice;
+                buyButton.disabled = false;
+                saveTimersState();
+                return;
+            }
+
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            
+            buyButton.innerHTML = '';
+            buyButton.appendChild(upgradeIcon.cloneNode(true));
+            buyButton.appendChild(document.createTextNode(`${minutes}:${seconds.toString().padStart(2, '0')}`));
+        }, 1000)
+    };
+
+    // Инициализируем начальное отображение
+    const minutes = Math.floor((endTime - Date.now()) / 60000);
+    const seconds = Math.floor(((endTime - Date.now()) % 60000) / 1000);
+    buyButton.innerHTML = '';
+    buyButton.appendChild(upgradeIcon);
+    buyButton.appendChild(document.createTextNode(`${minutes}:${seconds.toString().padStart(2, '0')}`));
+    buyButton.disabled = true;
+
+    saveTimersState();
+}
+
+// Функция для обработки покупки
+function handlePurchase(itemId) {
+    const currentTimer = itemTimers[itemId] || { upgradeCount: 0 };
+    const nextUpgradeCount = currentTimer.upgradeCount + 1;
+    const delay = getNextDelay(nextUpgradeCount) * 1000; // конвертируем в миллисекунды
+    const endTime = Date.now() + delay;
+    
+    startTimer(itemId, endTime, nextUpgradeCount);
+    
+    const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
+    if (buyButton) {
+        buyButton.disabled = true;
+    }
+}
+
 // Функция подсчета оффлайн прогресса
 function calculateOfflineProgress() {
     const lastTime = localStorage.getItem('lastOnlineTime');
@@ -253,6 +463,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (homeBtn) {
         homeBtn.click();
     }
+    
+    loadTimersState();
 });
 
 // Обновляем функцию getTaskProgress
@@ -652,123 +864,294 @@ function updateGame() {
 }
 
 function initializeNavigation() {
-    const navBtns = document.querySelectorAll('.nav-btn');
-    const sections = document.querySelectorAll('.section-content');
-    const changelogBtn = document.getElementById('changelogBtn');
-    const tasksSection = document.getElementById('tasks-section');
-
-    // Create tasks section if it doesn't exist
-    if (!tasksSection) {
-        const newTasksSection = document.createElement('div');
-        newTasksSection.id = 'tasks-section';
-        newTasksSection.className = 'section-content';
-        document.querySelector('.game-area').appendChild(newTasksSection);
-    }
-
-    navBtns.forEach((btn) => {
+    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
         btn.addEventListener('click', () => {
-            navBtns.forEach(b => {
-                b.classList.remove('active');
-                b.style.background = '#1c1c2e';
-            });
-            
-            sections.forEach(s => s.classList.remove('active'));
-            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            btn.style.background = '#ff3366';
             
-            const btnText = btn.textContent.trim().toLowerCase();
-            
-            if (btnText === 'главная') {
-                sections.forEach(s => s.classList.remove('active'));
-                changelogBtn.style.display = 'block';
-            } else {
-                changelogBtn.style.display = 'none';
-                if (btnText === 'магазин') {
-                    const shopSection = document.getElementById('shop-section');
-                    if (shopSection) {
-                        shopSection.classList.add('active');
-                        updateShopItems(); // Обновляем магазин при показе
-                    }
-                } else if (btnText === 'задания') {
-                    const tasksSection = document.getElementById('tasks-section');
-                    if (tasksSection) {
-                        tasksSection.classList.add('active');
-                        renderTasks(); // Re-render tasks when showing tasks section
-                    }
-                } else if (btnText === 'настройки') {
-                    const settingsSection = document.getElementById('settings-section');
-                    if (settingsSection) {
-                        settingsSection.classList.add('active');
-                        settingsSection.innerHTML = `
-                            <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
-                                <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
-                                        <div>
-                                            <h3 style="margin-bottom: 5px;">Вибрация</h3>
-                                            <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
-                                        </div>
-                                    </div>
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="vibrationToggle" ${vibrationEnabled ? 'checked' : ''}>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-                        `;
-                        
-                        // Добавляем обработчик для переключателя вибрации
-                        const vibrationToggle = document.getElementById('vibrationToggle');
-                        if (vibrationToggle) {
-                            vibrationToggle.addEventListener('change', function() {
-                                vibrationEnabled = this.checked;
-                                localStorage.setItem('vibrationEnabled', vibrationEnabled);
-                            });
-                        }
-                    }
-                } else if (btnText === 'награды' || btnText === 'город' || btnText === 'инвестиции') {
-                    const devSection = document.getElementById('development-section');
-                    if (!devSection) {
-                        const newDevSection = document.createElement('div');
-                        newDevSection.id = 'development-section';
-                        newDevSection.className = 'section-content';
-                        document.querySelector('.game-area').appendChild(newDevSection);
-                    }
-                    const currentDevSection = document.getElementById('development-section');
-                    if (currentDevSection) {
-                        currentDevSection.classList.add('active');
-                        currentDevSection.innerHTML = `
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
-                                <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                                    <h3 style="margin: 0; color: white; font-size: 24px;">Раздел ${btnText} в разработке</h3>
-                                </div>
-                                <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
-                                     alt="Development" 
-                                     style="width: 300px; height: 300px; object-fit: contain; filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
-                            </div>
-                        `;
-                    }
-                } else if (btnText === 'статистика') {
-                    const statsSection = document.getElementById('stats-section');
-                    if (statsSection) {
-                        statsSection.classList.add('active');
-                        updateStatsSection();
-                    }
-                }
+            // Скрываем все секции
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Показываем нужную секцию в зависимости от кнопки
+            switch(index) {
+                case 0: // Главная
+                    document.getElementById('changelogBtn').style.display = 'block';
+                    break;
+                case 1: // Магазин
+                    document.getElementById('shop-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    updateShopItems();
+                    break;
+                case 2: // Награды
+                    document.getElementById('development-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 3: // Задания
+                    document.getElementById('tasks-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    renderTasks();
+                    break;
+                case 4: // Мини игры
+                    document.getElementById('mini-games-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 5: // Инвестиции
+                    document.getElementById('development-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 6: // Настройки
+                    document.getElementById('settings-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 7: // Статистика
+                    document.getElementById('stats-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    updateStatsSection();
+                    break;
             }
         });
     });
 }
 
+// Обновляем функцию buyItem
+function buyItem(itemId) {
+    const item = shopItems.find(item => item.id === itemId);
+    if (!item) return;
+
+    if (score >= item.price) {
+        score -= item.price;
+        item.level++;
+        totalPurchases++;
+        
+        // Обновляем цену предмета
+        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
+        
+        // Обновляем автоматический доход
+        autoClickPower = shopItems.reduce((total, item) => {
+            return total + (item.power * (item.level || 0));
+        }, 0);
+        
+        // Обновляем отображение
+        updateScoreDisplay();
+        updateShopItems();
+        updateStatsSection();
+        
+        // Сохраняем состояние
+        saveGameState();
+        checkTasks();
+        
+        // Обработка покупки
+        handlePurchase(itemId);
+    } else {
+        showNotification('Недостаточно средств!');
+    }
+}
+
+// Добавляем обработчик кликов по кнопкам покупки
 document.addEventListener('click', function(e) {
-    if (e.target.matches('.nav-btn')) {
-        const section = e.target.getAttribute('data-section');
-        if (section) {
-            showSection(section);
+    if (e.target.classList.contains('buy-button')) {
+        const itemId = parseInt(e.target.closest('.shop-item').getAttribute('data-item-id'));
+        if (!isNaN(itemId)) {
+            buyItem(itemId);
         }
     }
 });
+
+// Обновляем функцию updateShopItems
+function updateShopItems() {
+    const shopSection = document.getElementById('shop-section');
+    if (!shopSection) return;
+    
+    shopSection.innerHTML = `<div class="shop-window">` + 
+        shopItems.map((item) => `
+            <div class="shop-item" data-item-id="${item.id}" id="item-${item.id}">
+                <div class="item-icon">
+                    ${item.icon}
+                </div>
+                <div class="item-info">
+                    <h3 class="item-title">${item.title}</h3>
+                    <div class="item-level">Ур. ${item.level || 0}</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-profit">+${formatNumber(item.power || 0)} в сек</div>
+                    <button class="buy-button" ${canAfford(item.price) ? '' : 'disabled'}>
+                        <span class="coin-icon"></span>
+                        ${formatNumber(item.price)}
+                    </button>
+                </div>
+            </div>
+        `).join('') + `</div>`;
+}
+
+// Changelog Modal functionality
+const changelogBtn = document.getElementById('changelogBtn');
+const changelogModal = document.getElementById('changelogModal');
+const closeBtn = document.querySelector('.close-btn');
+
+if (changelogBtn && changelogModal) {
+    changelogBtn.addEventListener('click', () => {
+        changelogModal.style.display = 'block';
+        renderChangelog(); // Вызываем функцию из changelog.js
+    });
+}
+
+if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        changelogModal.style.display = 'none';
+    });
+}
+
+window.addEventListener('click', (e) => {
+    if (e.target === changelogModal) {
+        changelogModal.style.display = 'none';
+    }
+});
+
+document.getElementById('vibrationToggle').addEventListener('change', function() {
+    vibrationEnabled = this.checked;
+    localStorage.setItem('vibrationEnabled', vibrationEnabled);
+    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+});
+
+document.body.addEventListener('change', function(e) {
+    if (e.target.id === 'vibrationToggle') {
+        vibrationEnabled = e.target.checked;
+        localStorage.setItem('vibrationEnabled', vibrationEnabled);
+        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+        
+        if (vibrationEnabled) {
+            try {
+                window.navigator.vibrate(15);
+            } catch (e) {
+                console.log('Vibration test failed:', e);
+            }
+        }
+    }
+});
+
+// Обновляем функцию checkTasks
+function checkTasks() {
+    tasks.forEach(task => {
+        if (!task.completed) {
+            let completed = false;
+            
+            switch(task.id) {
+                case 4: // Первые шаги
+                    completed = clickCount >= 1;
+                    break;
+                case 5: // Начинающий кликер
+                    completed = score >= 1000;
+                    break;
+                case 6: // Опытный кликер
+                    completed = score >= 10000;
+                    break;
+                case 7: // Мастер кликер
+                    completed = score >= 100000;
+                    break;
+                case 8: // Король кликов
+                    completed = score >= 1000000;
+                    break;
+                case 9: // Первая покупка
+                    completed = shopItems.some(item => item.level > 0);
+                    break;
+                case 10: // Шопоголик
+                    completed = shopItems.filter(item => item.level > 0).length >= 5;
+                    break;
+                case 11: // Коллекционер
+                    completed = shopItems.filter(item => item.level > 0).length >= 10;
+                    break;
+                case 12: // Энергичный старт
+                    completed = autoClickPower >= 10;
+                    break;
+                case 13: // Скоростной кликер
+                    completed = autoClickPower >= 100;
+                    break;
+                case 14: // Звездный путь
+                    completed = autoClickPower >= 1000;
+                    break;
+                case 15: // Мировое господство
+                    completed = autoClickPower >= 10000;
+                    break;
+                case 21: // Точность
+                    completed = currentStreak >= 100;
+                    break;
+                case 22: // Цирковой артист
+                    completed = currentStreak >= 1000;
+                    break;
+                // Добавьте другие задания по необходимости
+            }
+
+            if (completed) {
+                task.completed = true;
+                // Обновляем состояние игры
+                saveGameState();
+            }
+        }
+    });
+    
+    renderTasks(); // Обновляем отображение заданий
+}
+
+// Функция получения награды за задание
+function claimTaskReward(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task && task.completed && !task.claimed) {
+        score += task.reward;
+        task.claimed = true;
+        updateScoreDisplay();
+        saveGameState();
+        showNotification(`Получена награда: ${formatNumber(task.reward)} кликов!`);
+        renderTasks(); // Обновляем отображение заданий
+    }
+}
+
+// Обновляем функцию renderTasks
+function renderTasks() {
+    const tasksSection = document.getElementById('tasks-section');
+    if (!tasksSection) return;
+
+    tasksSection.innerHTML = tasks.map(task => `
+        <div class="task-item ${task.completed ? 'completed' : ''} ${task.claimed ? 'claimed' : ''}" data-task-id="${task.id}">
+            <div class="task-icon">${task.icon}</div>
+            <div class="task-info">
+                <h3 class="task-title">${task.title}</h3>
+                <div class="task-description">${task.description}</div>
+                <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
+            </div>
+            <button class="claim-button" onclick="claimTaskReward(${task.id})" 
+                ${task.completed && !task.claimed ? '' : 'disabled'}>
+                ${task.claimed ? 'Получено' : (task.completed ? 'Забрать награду' : 'Не выполнено')}
+            </button>
+        </div>
+    `).join('');
+}
+
+// Добавляем обработчик для загрузки состояния при загрузке страницы
+window.addEventListener('load', loadTimersState);
+
+// Сохраняем состояние перед закрытием страницы
+window.addEventListener('beforeunload', () => {
+    saveTimersState();
+});
+
+// Проверяем и обновляем таймеры каждую секунду
+setInterval(() => {
+    Object.keys(itemTimers).forEach(itemId => {
+        const timer = itemTimers[itemId];
+        if (timer && timer.endTime <= Date.now()) {
+            const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
+            if (buyButton) {
+                const formattedPrice = formatNumber(timer.price);
+                buyButton.innerHTML = formattedPrice;
+                buyButton.disabled = false;
+            }
+            stopTimer(itemId);
+        }
+    });
+    saveTimersState();
+}, 1000);
 
 let shopItems = [
     {
@@ -973,261 +1356,69 @@ let shopItems = [
     }
 ];
 
-// Обработчик кликов
-function handleClick(e) {
-    if (!e || !e.target) return;
-    
-    const clickCircle = e.target.closest('.click-circle');
-    if (!clickCircle) return;
-    
-    // Обновляем счетчики
-    totalClicks++;
-    score++;
-    
-    // Обновляем максимальный баланс
-    if (score > maxBalance) {
-        maxBalance = score;
-    }
-    
-    // Обновляем общий заработок
-    totalEarned++;
-    
-    // Обновляем текущую серию кликов
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-        currentStreak++;
-    } else {
-        currentStreak = 1;
-    }
-    lastClickTime = now;
-    
-    // Обновляем клики в час
-    const timeSinceStart = (now - gameStartTime) / 1000;
-    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
-    
-    // Обновляем отображение
-    updateScoreDisplay();
-    updateStatsSection();
-    
-    // Сохраняем состояние и проверяем задания
-    saveGameState();
-    checkTasks();
-}
-
-// Добавляем обработчик кликов
-document.addEventListener('DOMContentLoaded', function() {
-    const mainSection = document.querySelector('.game-area');
-    if (mainSection) {
-        mainSection.addEventListener('click', handleClick);
-    }
-});
-
-// Обновляем функцию buyItem
-function buyItem(itemId) {
-    const item = shopItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    if (score >= item.price) {
-        score -= item.price;
-        item.level++;
-        totalPurchases++;
+// Обработка навигации
+document.querySelectorAll('.nav-btn').forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
         
-        // Обновляем цену предмета
-        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
-        
-        // Обновляем автоматический доход
-        autoClickPower = shopItems.reduce((total, item) => {
-            return total + (item.power * (item.level || 0));
-        }, 0);
-        
-        // Обновляем отображение
-        updateScoreDisplay();
-        updateShopItems();
-        updateStatsSection();
-        
-        // Сохраняем состояние
-        saveGameState();
-        checkTasks();
-    } else {
-        showNotification('Недостаточно средств!');
-    }
-}
+        // Скрываем все секции
+        document.querySelectorAll('.section-content').forEach(section => {
+            section.style.display = 'none';
+        });
 
-// Добавляем обработчик кликов по кнопкам покупки
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('buy-button')) {
-        const itemId = parseInt(e.target.closest('.shop-item').getAttribute('data-item-id'));
-        if (!isNaN(itemId)) {
-            buyItem(itemId);
-        }
-    }
-});
-
-// Обновляем функцию updateShopItems
-function updateShopItems() {
-    const shopSection = document.getElementById('shop-section');
-    if (!shopSection) return;
-    
-    shopSection.innerHTML = `<div class="shop-window">` + 
-        shopItems.map((item) => `
-            <div class="shop-item" data-item-id="${item.id}">
-                <div class="item-icon">
-                    ${item.icon}
-                </div>
-                <div class="item-info">
-                    <h3 class="item-title">${item.title}</h3>
-                    <div class="item-level">Ур. ${item.level || 0}</div>
-                </div>
-                <div class="item-right">
-                    <div class="item-profit">+${formatNumber(item.power || 0)} в сек</div>
-                    <button class="buy-button" ${canAfford(item.price) ? '' : 'disabled'}>
-                        <span class="coin-icon"></span>
-                        ${formatNumber(item.price)}
-                    </button>
-                </div>
-            </div>
-        `).join('') + `</div>`;
-}
-
-// Changelog Modal functionality
-const changelogBtn = document.getElementById('changelogBtn');
-const changelogModal = document.getElementById('changelogModal');
-const closeBtn = document.querySelector('.close-btn');
-
-if (changelogBtn && changelogModal) {
-    changelogBtn.addEventListener('click', () => {
-        changelogModal.style.display = 'block';
-        renderChangelog(); // Вызываем функцию из changelog.js
-    });
-}
-
-if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        changelogModal.style.display = 'none';
-    });
-}
-
-window.addEventListener('click', (e) => {
-    if (e.target === changelogModal) {
-        changelogModal.style.display = 'none';
-    }
-});
-
-document.getElementById('vibrationToggle').addEventListener('change', function() {
-    vibrationEnabled = this.checked;
-    localStorage.setItem('vibrationEnabled', vibrationEnabled);
-    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-});
-
-document.body.addEventListener('change', function(e) {
-    if (e.target.id === 'vibrationToggle') {
-        vibrationEnabled = e.target.checked;
-        localStorage.setItem('vibrationEnabled', vibrationEnabled);
-        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-        
-        if (vibrationEnabled) {
-            try {
-                window.navigator.vibrate(15);
-            } catch (e) {
-                console.log('Vibration test failed:', e);
-            }
-        }
-    }
-});
-
-// Обновляем функцию checkTasks
-function checkTasks() {
-    tasks.forEach(task => {
-        if (!task.completed) {
-            let completed = false;
-            
-            switch(task.id) {
-                case 4: // Первые шаги
-                    completed = clickCount >= 1;
-                    break;
-                case 5: // Начинающий кликер
-                    completed = score >= 1000;
-                    break;
-                case 6: // Опытный кликер
-                    completed = score >= 10000;
-                    break;
-                case 7: // Мастер кликер
-                    completed = score >= 100000;
-                    break;
-                case 8: // Король кликов
-                    completed = score >= 1000000;
-                    break;
-                case 9: // Первая покупка
-                    completed = shopItems.some(item => item.level > 0);
-                    break;
-                case 10: // Шопоголик
-                    completed = shopItems.filter(item => item.level > 0).length >= 5;
-                    break;
-                case 11: // Коллекционер
-                    completed = shopItems.filter(item => item.level > 0).length >= 10;
-                    break;
-                case 12: // Энергичный старт
-                    completed = autoClickPower >= 10;
-                    break;
-                case 13: // Скоростной кликер
-                    completed = autoClickPower >= 100;
-                    break;
-                case 14: // Звездный путь
-                    completed = autoClickPower >= 1000;
-                    break;
-                case 15: // Мировое господство
-                    completed = autoClickPower >= 10000;
-                    break;
-                case 21: // Точность
-                    completed = consecutiveClicks >= 100;
-                    break;
-                case 22: // Цирковой артист
-                    completed = consecutiveClicks >= 1000;
-                    break;
-                // Добавьте другие задания по необходимости
-            }
-
-            if (completed) {
-                task.completed = true;
-                // Обновляем состояние игры
-                saveGameState();
-            }
+        // Показываем нужную секцию в зависимости от кнопки
+        switch(index) {
+            case 0: // Главная
+                document.getElementById('changelogBtn').style.display = 'block';
+                break;
+            case 1: // Магазин
+                document.getElementById('shop-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                updateShopItems();
+                break;
+            case 2: // Награды
+                document.getElementById('development-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                break;
+            case 3: // Задания
+                document.getElementById('tasks-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                renderTasks();
+                break;
+            case 4: // Мини игры
+                document.getElementById('mini-games-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                break;
+            case 5: // Инвестиции
+                document.getElementById('development-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                break;
+            case 6: // Настройки
+                document.getElementById('settings-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                break;
+            case 7: // Статистика
+                document.getElementById('stats-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                updateStatsSection();
+                break;
         }
     });
-    
-    renderTasks(); // Обновляем отображение заданий
-}
+});
 
-// Функция получения награды за задание
-function claimTaskReward(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (task && task.completed && !task.claimed) {
-        score += task.reward;
-        task.claimed = true;
-        updateScoreDisplay();
-        saveGameState();
-        showNotification(`Получена награда: ${formatNumber(task.reward)} кликов!`);
-        renderTasks(); // Обновляем отображение заданий
+function updateScore() {
+    const scoreElement = document.querySelector('.score');
+    if (scoreElement) {
+        scoreElement.textContent = formatNumber(score);
     }
 }
 
-// Обновляем функцию renderTasks
-function renderTasks() {
-    const tasksSection = document.getElementById('tasks-section');
-    if (!tasksSection) return;
-
-    tasksSection.innerHTML = tasks.map(task => `
-        <div class="task-item ${task.completed ? 'completed' : ''} ${task.claimed ? 'claimed' : ''}" data-task-id="${task.id}">
-            <div class="task-icon">${task.icon}</div>
-            <div class="task-info">
-                <h3 class="task-title">${task.title}</h3>
-                <div class="task-description">${task.description}</div>
-                <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
-            </div>
-            <button class="claim-button" onclick="claimTaskReward(${task.id})" 
-                ${task.completed && !task.claimed ? '' : 'disabled'}>
-                ${task.claimed ? 'Получено' : (task.completed ? 'Забрать награду' : 'Не выполнено')}
-            </button>
-        </div>
-    `).join('');
+function formatNumber(num) {
+    if (num >= 1e6) {
+        return (num / 1e6).toFixed(1) + 'M';
+    } else if (num >= 1e3) {
+        return (num / 1e3).toFixed(1) + 'K';
+    }
+    return num.toString();
 }

@@ -10,6 +10,7 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="crash.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>Автокликер</title>
@@ -57,6 +58,50 @@
             <div class="section-content" id="tasks-section">
                 <div class="tasks-grid"></div>
             </div>
+            <div class="section-content" id="mini-games-section">
+                <div class="crash-game-container">
+                    <button class="history-button" id="historyBtn">
+                        <img src="https://i.postimg.cc/rpfc0Jn2/image.png" alt="History">
+                    </button>
+                    <div class="crash-game">
+                        <div class="crash-multiplier">1.00x</div>
+                        <canvas id="crash-chart"></canvas>
+                        <div class="crash-controls">
+                            <div class="bet-input-container">
+                                <input type="number" id="bet-amount" placeholder="Введите сумму ставки">
+                                <div class="quick-bet-buttons">
+                                    <button class="quick-bet-btn" data-percent="10">10%</button>
+                                    <button class="quick-bet-btn" data-percent="25">25%</button>
+                                    <button class="quick-bet-btn" data-percent="50">50%</button>
+                                    <button class="quick-bet-btn" data-percent="100">MAX</button>
+                                </div>
+                            </div>
+                            <div class="bet-buttons">
+                                <button id="place-bet" class="game-button bet-button">Поставить</button>
+                                <button id="cash-out" class="game-button cashout-button" disabled>Забрать</button>
+                            </div>
+                            <div class="balance-display">
+                                Баланс: <span class="balance-amount">0</span>
+                            </div>
+                            <div class="game-history">
+                                <div class="history-items"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Модальное окно истории -->
+                <div id="historyModal" class="history-modal">
+                    <div class="history-modal-content">
+                        <div class="history-modal-header">
+                            <h2>История игр</h2>
+                            <button class="close-history-btn">&times;</button>
+                        </div>
+                        <div class="history-modal-body">
+                            <div class="full-history-items"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="section-content" id="development-section">
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
                     <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
@@ -95,8 +140,9 @@
                         <span>Задания</span>
                     </button>
                     <button class="nav-btn">
-                        <img src="https://i.postimg.cc/SRRVH7vs/free-icon-skyscraper-5776308.png" alt="City">
-                        <span>Город</span>
+                        <img src="https://i.postimg.cc/xT9WVHjw/image.png" alt="Mini games">
+                        <span>Мини игры</span>
+                        <div class="new-label">New</div>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/DZycbPFg/free-icon-investment-5530639.png" alt="Investments">
@@ -169,6 +215,7 @@
     <canvas id="performanceChart" style="display: none;"></canvas>
 
     <script src="script.js"></script>
+    <script src="crash.js"></script>
     <script src="changelog.js"></script>
 </body>
 </html>

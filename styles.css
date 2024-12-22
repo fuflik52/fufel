@@ -206,6 +206,7 @@ body {
     gap: 5px;
     transition: 0.3s;
     cursor: pointer;
+    position: relative;
 }
 
 .nav-btn img {
@@ -221,6 +222,20 @@ body {
 
 .nav-btn:active {
     transform: scale(0.95);
+}
+
+.new-label {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid #00ff00;
+    text-transform: uppercase;
 }
 
 .section-content {
@@ -1081,9 +1096,12 @@ input:checked + .toggle-slider span {
 }
 
 .buy-button {
-    display: flex;
+    position: relative;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
+    min-width: 120px;
     padding: 8px 15px;
     border: none;
     border-radius: 5px;
@@ -1093,6 +1111,13 @@ input:checked + .toggle-slider span {
     transition: background 0.3s;
     backdrop-filter: blur(5px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.upgrade-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .buy-button:hover {
@@ -1124,6 +1149,12 @@ input:checked + .toggle-slider span {
     padding: 20px;
     max-height: 70vh;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.changelog-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .changelog-version {
@@ -1181,4 +1212,80 @@ input:checked + .toggle-slider span {
     color: #0088ff;
     position: absolute;
     left: 0;
+}
+
+.cooldown-timer {
+    position: relative;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 15px;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.cooldown-icon {
+    width: 16px;
+    height: 16px;
+    background-image: url('https://i.postimg.cc/qq4L82vs/image.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+.item-locked .buy-button {
+    display: none;
+}
+
+.cooldown-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.shop-item {
+    position: relative;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.upgrade-icon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 20px;
+    height: 20px;
+    z-index: 2;
+}
+
+.buy-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Удаляем все стили, связанные с краш игрой */
+
+.modal-content {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.modal-content::-webkit-scrollbar {
+    display: none;
 }
