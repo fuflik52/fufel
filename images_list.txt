@@ -1,0 +1,72 @@
+Список всех изображений в проекте:
+
+1. Основные элементы интерфейса:
+- https://i.postimg.cc/wjT5zq8F/image-1.png
+  Описание: Основная кнопка для клика в игре
+
+- https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png
+  Описание: Иконка приложения и favicon сайта
+
+2. Иконки навигации:
+- https://i.postimg.cc/s2zm3RNb/free-icon-home-8706612.png
+  Описание: Иконка "Главная" в нижней навигации
+
+- https://i.postimg.cc/NMppNPbS/free-icon-shopping-cart-3643914.png
+  Описание: Иконка "Магазин" в нижней навигации
+
+- https://i.postimg.cc/sxLKzQkJ/free-icon-star-5782443.png
+  Описание: Иконка "Награды" в нижней навигации
+
+- https://i.postimg.cc/fWq8mpV0/free-icon-to-do-list-6019756.png
+  Описание: Иконка "Задания" в нижней навигации
+
+- https://i.postimg.cc/xT9WVHjw/image.png
+  Описание: Иконка "Мини игры" в нижней навигации
+
+- https://i.postimg.cc/DZycbPFg/free-icon-investment-5530639.png
+  Описание: Иконка "Инвестиции" в нижней навигации
+
+- https://i.postimg.cc/nLfRMmCR/free-icon-setting-3288004.png
+  Описание: Иконка "Настройки" в нижней навигации
+
+- https://i.postimg.cc/YSx39sc0/free-icon-inferential-statistics-8921140.png
+  Описание: Иконка "Статистика" в нижней навигации
+
+3. Иконки магазина:
+- https://i.postimg.cc/QxPJ4hWg/image.png
+  Описание: Иконка "Колонизация планет" (Товар в магазине)
+
+- https://i.postimg.cc/VkXyD1XY/image.png
+  Описание: Иконка "Автоматический сборщик" (Товар в магазине)
+
+- https://i.postimg.cc/QCcDRfVQ/image.png
+  Описание: Иконка "Улучшенный кликер" (Товар в магазине)
+
+- https://i.postimg.cc/Vk2Bx6PB/image.png
+  Описание: Иконка "Космическая станция" (Товар в магазине)
+
+- https://i.postimg.cc/Y0vgH0ng/image.png
+  Описание: Иконка "Межгалактический корабль" (Товар в магазине)
+
+4. Иконки функциональных элементов:
+- https://i.postimg.cc/85KmdfzV/free-icon-newspaper-8417401.png
+  Описание: Иконка кнопки "Changelog" (список обновлений)
+
+- https://i.postimg.cc/nVTK9hF1/image.png
+  Описание: Иконка настройки вибрации в настройках
+
+- https://i.postimg.cc/rpfc0Jn2/image.png
+  Описание: Иконка истории в мини-игре Crash
+
+5. Декоративные элементы:
+- https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png
+  Описание: Изображение для раздела "В разработке"
+
+6. Фоновые изображения:
+- https://i.postimg.cc/nzxVsBxm/image.png
+  Описание: Фоновое изображение для баннера (новое)
+
+- https://i.postimg.cc/TY0tB6hv/image.png
+  Описание: Фоновое изображение для второго баннера
+
+Примечание: Все изображения оптимизированы для веб-использования и хранятся на сервисе postimg.cc

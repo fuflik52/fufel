@@ -30,7 +30,7 @@ function initCrashGame() {
                 label: 'Multiplier',
                 data: [1, 1],
                 borderColor: '#00ff00',
-                borderWidth: 2,
+                borderWidth: 3, 
                 fill: false,
                 tension: 0
             }]
@@ -38,10 +38,13 @@ function initCrashGame() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false,
             layout: {
                 padding: {
-                    top: 10,
-                    bottom: 10
+                    top: 5,
+                    right: 5,
+                    bottom: 5,
+                    left: 35 
                 }
             },
             scales: {
@@ -53,15 +56,21 @@ function initCrashGame() {
                 },
                 y: {
                     min: 1,
-                    max: 1.5,
+                    max: 3, 
                     grid: {
                         color: 'rgba(255, 255, 255, 0.1)',
-                        drawBorder: false
+                        drawBorder: false,
+                        tickLength: 5,
+                        lineWidth: 1 
                     },
                     ticks: {
                         color: 'white',
-                        padding: 10,
-                        stepSize: 0.1,
+                        padding: 5,
+                        stepSize: 0.5, 
+                        font: {
+                            size: 12, 
+                            weight: 'bold' 
+                        },
                         callback: function(value) {
                             return value.toFixed(1) + 'x';
                         }
@@ -125,11 +134,12 @@ function updateBalanceDisplay() {
 
 function showHistory() {
     const modal = document.getElementById('historyModal');
-    const historyContainer = document.querySelector('.full-history-items');
+    const historyContainer = document.querySelector('.history-items');
     
     if (modal && historyContainer) {
         historyContainer.innerHTML = '';
-        crashGame.history.slice().reverse().forEach(item => {
+        // Показываем последние 10 игр
+        crashGame.history.slice(-10).reverse().forEach(item => {
             const historyItem = document.createElement('div');
             historyItem.className = `history-item ${item.won ? 'win' : 'lose'}`;
             historyItem.textContent = item.multiplier.toFixed(2) + 'x';
@@ -137,6 +147,13 @@ function showHistory() {
         });
         
         modal.style.display = 'block';
+        
+        // Добавляем обработчик клика вне модального окна для закрытия
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                hideHistory();
+            }
+        };
     }
 }
 
@@ -259,22 +276,15 @@ function cashOut() {
 function endCrashGame() {
     clearInterval(crashGame.gameInterval);
     crashGame.isRunning = false;
-    crashGame.lastCrashPoint = crashGame.crashPoint;
+    crashGame.lastCrashPoint = crashGame.currentMultiplier;
     
-    if (!crashGame.hasPlayerCashed) {
-        addHistoryItem(crashGame.crashPoint, false);
-        // Показываем уведомление о проигрыше
-        showCrashNotification(`Проигрыш: ${formatNumber(crashGame.betAmount)}`, false);
-    }
+    // Добавляем в историю
+    addHistoryItem(crashGame.currentMultiplier, crashGame.hasPlayerCashed);
+    
+    // Очищаем поле ставки
+    document.getElementById('bet-amount').value = '';
     
     updateCrashUI(true);
-    
-    setTimeout(() => {
-        if (!crashGame.isRunning) {
-            crashGame.currentMultiplier = 1;
-            updateCrashUI();
-        }
-    }, 2000);
 }
 
 function addHistoryItem(multiplier, won) {

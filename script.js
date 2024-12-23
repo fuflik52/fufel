@@ -454,6 +454,17 @@ function saveGameState() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
+    // Инициализируем Telegram WebApp
+    window.telegramApi.init();
+    
+    // Загружаем баланс
+    if (window.telegramApi.isTelegramUser()) {
+        window.telegramApi.loadBalance();
+    } else {
+        // Если пользователь не из Telegram, используем локальное хранилище
+        loadLocalBalance();
+    }
+    
     const mainSection = document.querySelector('.game-area');
     const savedVibration = localStorage.getItem('vibrationEnabled');
     vibrationEnabled = savedVibration === null ? true : savedVibration === 'true';
@@ -527,395 +538,6 @@ function handleClick(e) {
     
     const clickCircle = e.target.closest('.click-circle');
     if (!clickCircle) return;
-    
-    // Обновляем счетчики
-    totalClicks++;
-    score++;
-    
-    // Обновляем максимальный баланс
-    if (score > maxBalance) {
-        maxBalance = score;
-    }
-    
-    // Обновляем общий заработок
-    totalEarned++;
-    
-    // Обновляем текущую серию кликов
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-        currentStreak++;
-    } else {
-        currentStreak = 1;
-    }
-    lastClickTime = now;
-    
-    // Обновляем клики в час
-    const timeSinceStart = (now - gameStartTime) / 1000;
-    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
-    
-    // Обновляем отображение
-    updateScoreDisplay();
-    updateStatsSection();
-    
-    // Сохраняем состояние и проверяем задания
-    saveGameState();
-    checkTasks();
-}
-
-// Функция для создания эффекта клика
-function createClickEffect(x, y) {
-    const clickEffect = document.createElement('div');
-    clickEffect.className = 'click-effect';
-    clickEffect.style.left = x + 'px';
-    clickEffect.style.top = y + 'px';
-    clickEffect.textContent = '+1';
-    
-    document.body.appendChild(clickEffect);
-    
-    // Удаляем эффект после анимации
-    setTimeout(() => {
-        clickEffect.remove();
-    }, 1000);
-}
-
-// Обновляем функцию checkTasksProgress
-function checkTasksProgress() {
-    tasks.forEach(task => {
-        const progress = getTaskProgress(task);
-        if (progress >= 1 && !task.completed) {
-            task.completed = true;
-            // Обновляем состояние игры
-            saveGameState();
-        }
-    });
-    renderTasks();
-}
-
-// Обновляем функцию loadGameState
-function loadGameState() {
-    const savedState = localStorage.getItem('gameState');
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        score = state.score || 0;
-        autoClickPower = state.autoClickPower || 0;
-        totalClicks = state.totalClicks || 0;
-        clicksPerHour = state.clicksPerHour || 0;
-        currentStreak = state.currentStreak || 0;
-        maxBalance = state.maxBalance || 0;
-        totalEarned = state.totalEarned || 0;
-        gameStartTime = state.gameStartTime || Date.now();
-        totalPurchases = state.totalPurchases || 0;
-
-        // Load tasks state
-        if (state.tasks) {
-            tasks.forEach((task, index) => {
-                task.completed = state.tasks[index].completed;
-                task.claimed = state.tasks[index].claimed;
-            });
-        }
-
-        // Загружаем состояние предметов магазина
-        if (state.shopItems) {
-            state.shopItems.forEach(savedItem => {
-                const item = shopItems.find(i => i.id === savedItem.id);
-                if (item) {
-                    item.level = savedItem.level || 0;
-                    item.price = savedItem.price || item.basePrice;
-                }
-            });
-        }
-    }
-    updateScoreDisplay();
-    updateShopItems();
-    renderTasks();
-}
-
-// Обновляем функцию updateScoreDisplay
-function updateScoreDisplay() {
-    if (scoreElement) {
-        const displayScore = Math.floor(score || 0);
-        scoreElement.innerHTML = `
-            <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
-            ${formatNumber(displayScore)}
-        `;
-    }
-}
-
-// Обновляем функцию getTaskProgressText
-function getTaskProgressText(task, progress) {
-    switch(task.id) {
-        case 4:
-            return `${progress} / 1`;
-        case 5:
-            return `${progress} / 1000`;
-        case 6:
-            return `${progress} / 10000`;
-        case 7:
-            return `${progress} / 100000`;
-        case 8:
-            return `${progress} / 1000000`;
-        case 9:
-            return `${progress} / 1`;
-        case 10:
-            return `${progress} / 5`;
-        case 11:
-            return `${progress} / 10`;
-        case 12:
-            return `${progress} / 10`;
-        case 13:
-            return `${progress} / 100`;
-        case 14:
-            return `${progress} / 1000`;
-        case 15:
-            return `${progress} / 10000`;
-        case 21:
-            return `${progress} / 100`;
-        case 22:
-            return `${progress} / 1000`;
-        default:
-            return `${progress} / 1`;
-    }
-}
-
-// Обновляем функцию renderTasks
-function renderTasks() {
-    const tasksGrid = document.querySelector('.tasks-grid');
-    if (!tasksGrid) return;
-
-    // Разделяем задания на выполненные и невыполненные
-    const completedTasks = tasks.filter(task => task.completed);
-    const uncompletedTasks = tasks.filter(task => !task.completed);
-
-    tasksGrid.innerHTML = `
-        <div class="tasks-section">
-            <h2 class="tasks-section-title">Активные задания</h2>
-            ${uncompletedTasks.map(task => {
-                const progress = getTaskProgress(task);
-                
-                return `
-                    <div class="task-item">
-                        <div class="task-icon">${task.icon}</div>
-                        <div class="task-title">${task.title}</div>
-                        <div class="task-description">${task.description}</div>
-                        <div class="task-reward">Награда: ${formatNumber(task.reward)} </div>
-                        <div class="task-progress-container">
-                            <div class="task-progress-bar" style="width: ${progress * 100}%"></div>
-                            <div class="task-progress-text">${getTaskProgressText(task, progress)}</div>
-                        </div>
-                        <button class="task-button claim-task-btn" 
-                                data-task-id="${task.id}" 
-                                ${progress >= 1 ? '' : 'disabled'}>
-                            ${progress >= 1 ? 'Получить' : 'Не выполнено'}
-                        </button>
-                    </div>
-                `;
-            }).join('')}
-        </div>
-        ${completedTasks.length > 0 ? `
-            <div class="tasks-section">
-                <h2 class="tasks-section-title">Выполненные задания</h2>
-                ${completedTasks.map(task => {
-                    return `
-                        <div class="task-item completed">
-                            <div class="task-icon">${task.icon}</div>
-                            <div class="task-title">${task.title}</div>
-                            <div class="task-description">${task.description}</div>
-                            <div class="task-reward">Получено: ${formatNumber(task.reward)} </div>
-                            <div class="task-progress-container">
-                                <div class="task-progress-bar" style="width: 100%"></div>
-                                <div class="task-progress-text">Выполнено!</div>
-                            </div>
-                            <button class="task-button completed" disabled>
-                                Выполнено
-                            </button>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        ` : ''}
-    `;
-}
-
-// Обновляем функцию updateStatsSection
-function updateStatsSection() {
-    const statsSection = document.getElementById('stats-section');
-    if (!statsSection) return;
-
-    const clicksPerSecond = autoClickPower;
-    const clicksPerHour = clicksPerSecond * 3600;
-    const totalTime = Math.floor((Date.now() - gameStartTime) / 1000);
-    const hours = Math.floor(totalTime / 3600);
-    const minutes = Math.floor((totalTime % 3600) / 60);
-
-    // Получаем имя пользователя из Telegram WebApp
-    const username = tg.initDataUnsafe?.user?.username || 'Игрок';
-
-    // Добавляем заголовок с именем пользователя
-    statsSection.innerHTML = `
-        <div class="user-header">
-            <h2>👤 ${username}</h2>
-        </div>
-        <div class="stats-container">
-            <div class="stat-item">
-                <div class="stat-emoji">🖱️</div>
-                <div class="stat-info">
-                    <h3>Всего кликов</h3>
-                    <p>${formatNumber(totalClicks)}</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-emoji">⚡</div>
-                <div class="stat-info">
-                    <h3>Кликов в секунду</h3>
-                    <p>${formatNumber(clicksPerSecond)}</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-emoji">🚀</div>
-                <div class="stat-info">
-                    <h3>Кликов в час</h3>
-                    <p>${formatNumber(clicksPerHour)}</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-emoji">⏰</div>
-                <div class="stat-info">
-                    <h3>Время в игре</h3>
-                    <p>${hours}ч ${minutes}м</p>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-emoji">💰</div>
-                <div class="stat-info">
-                    <h3>Максимальный баланс</h3>
-                    <p>${formatNumber(Math.max(score, maxBalance))}</p>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-// Обновляем игру каждые 10 секунд
-setInterval(() => {
-    const now = Date.now();
-    const deltaTime = 10; // фиксированный интервал в 10 секунд
-    
-    // Добавляем очки от автокликера
-    if (autoClickPower > 0) {
-        score += autoClickPower * deltaTime;
-        totalEarned += autoClickPower * deltaTime;
-    }
-
-    // Добавляем очки от автодохода
-    const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
-    if (autoIncome > 0) {
-        score += autoIncome;
-        totalEarned += autoIncome;
-    }
-    
-    // Обновляем максимальный баланс
-    if (score > maxBalance) {
-        maxBalance = score;
-    }
-    
-    // Обновляем отображение
-    updateScoreDisplay();
-    updateStatsSection();
-    updateShopItems();
-    
-    // Сохраняем состояние
-    saveGameState();
-    lastSaveTime = now;
-    lastUpdateTime = now;
-}, 10000);
-
-function canClaimTask(task) {
-    switch(task.id) {
-        case 4:
-            return totalClicks >= 1;
-        case 5:
-            return totalClicks >= 1000;
-        case 6:
-            return totalClicks >= 10000;
-        case 7:
-            return totalClicks >= 100000;
-        case 8:
-            return totalClicks >= 1000000;
-        case 9:
-            return shopItems.some(item => item.level > 0);
-        case 10:
-            return shopItems.filter(item => item.level > 0).length >= 5;
-        case 11:
-            return shopItems.filter(item => item.level > 0).length >= 10;
-        case 12:
-            return autoClickPower >= 10;
-        case 13:
-            return autoClickPower >= 100;
-        case 14:
-            return autoClickPower >= 1000;
-        case 15:
-            return autoClickPower >= 10000;
-        case 21:
-            return currentStreak >= 100;
-        case 22:
-            return currentStreak >= 1000;
-        default:
-            return false;
-    }
-}
-
-function canAfford(price) {
-    return score >= price;
-}
-
-let gameInterval;
-
-function startGameInterval() {
-    if (gameInterval) {
-        clearInterval(gameInterval);
-    }
-    
-    gameInterval = setInterval(() => {
-        const now = Date.now();
-        const deltaTime = 10; // фиксированный интервал в 10 секунд
-        
-        // Добавляем очки от автокликера
-        if (autoClickPower > 0) {
-            score += autoClickPower * deltaTime;
-            totalEarned += autoClickPower * deltaTime;
-        }
-
-        // Добавляем очки от автодохода
-        const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
-        if (autoIncome > 0) {
-            score += autoIncome;
-            totalEarned += autoIncome;
-        }
-        
-        // Обновляем максимальный баланс
-        if (score > maxBalance) {
-            maxBalance = score;
-        }
-        
-        // Обновляем отображение
-        updateScoreDisplay();
-        updateStatsSection();
-        updateShopItems();
-        
-        // Сохраняем состояние
-        saveGameState();
-        lastSaveTime = now;
-        lastUpdateTime = now;
-    }, 10000);
-}
-
-function restartGameIntervals() {
-    startGameInterval();
-}
-
-// Обновляем функцию handleClick
-function handleClick(e) {
-    if (!canClick) return;
     
     // Обновляем счетчики
     totalClicks++;
@@ -1936,3 +1558,203 @@ function initializeNavigation() {
 
 // Экспортируем функцию для использования в gameSettings.js
 window.initializeNavigation = initializeNavigation;
+
+// Функция сохранения баланса
+function saveBalance() {
+    if (window.telegramApi.isTelegramUser()) {
+        window.telegramApi.saveBalance();
+    } else {
+        // Если пользователь не из Telegram, сохраняем локально
+        localStorage.setItem('userBalance', score.toString());
+    }
+}
+
+// Функция загрузки локального баланса
+function loadLocalBalance() {
+    const savedBalance = localStorage.getItem('userBalance');
+    if (savedBalance !== null) {
+        score = parseInt(savedBalance);
+        updateBalanceDisplay();
+    }
+}
+
+let gameInterval;
+
+function startGameInterval() {
+    if (gameInterval) {
+        clearInterval(gameInterval);
+    }
+    
+    gameInterval = setInterval(() => {
+        const now = Date.now();
+        const deltaTime = 10; // фиксированный интервал в 10 секунд
+        
+        // Добавляем очки от автокликера
+        if (autoClickPower > 0) {
+            score += autoClickPower * deltaTime;
+            totalEarned += autoClickPower * deltaTime;
+        }
+
+        // Добавляем очки от автодохода
+        const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
+        if (autoIncome > 0) {
+            score += autoIncome;
+            totalEarned += autoIncome;
+        }
+        
+        // Обновляем максимальный баланс
+        if (score > maxBalance) {
+            maxBalance = score;
+        }
+        
+        // Обновляем отображение
+        updateScoreDisplay();
+        updateStatsSection();
+        updateShopItems();
+        
+        // Сохраняем состояние
+        saveGameState();
+        lastSaveTime = now;
+        lastUpdateTime = now;
+    }, 10000);
+}
+
+function restartGameIntervals() {
+    startGameInterval();
+}
+
+// Обновляем функцию handleClick
+function handleClick(e) {
+    if (!canClick) return;
+    
+    // Обновляем счетчики
+    totalClicks++;
+    score++;
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем общий заработок
+    totalEarned++;
+    
+    // Обновляем текущую серию кликов
+    const now = Date.now();
+    if (now - lastClickTime < 1000) {
+        currentStreak++;
+    } else {
+        currentStreak = 1;
+    }
+    lastClickTime = now;
+    
+    // Обновляем клики в час
+    const timeSinceStart = (now - gameStartTime) / 1000;
+    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    
+    // Сохраняем состояние и проверяем задания
+    saveGameState();
+    checkTasks();
+}
+
+// Функция для создания эффекта клика
+function createClickEffect(x, y) {
+    const clickEffect = document.createElement('div');
+    clickEffect.className = 'click-effect';
+    clickEffect.style.left = x + 'px';
+    clickEffect.style.top = y + 'px';
+    clickEffect.textContent = '+1';
+    
+    document.body.appendChild(clickEffect);
+    
+    // Удаляем эффект после анимации
+    setTimeout(() => {
+        clickEffect.remove();
+    }, 1000);
+}
+
+function canClaimTask(task) {
+    switch(task.id) {
+        case 4:
+            return totalClicks >= 1;
+        case 5:
+            return totalClicks >= 1000;
+        case 6:
+            return totalClicks >= 10000;
+        case 7:
+            return totalClicks >= 100000;
+        case 8:
+            return totalClicks >= 1000000;
+        case 9:
+            return shopItems.some(item => item.level > 0);
+        case 10:
+            return shopItems.filter(item => item.level > 0).length >= 5;
+        case 11:
+            return shopItems.filter(item => item.level > 0).length >= 10;
+        case 12:
+            return autoClickPower >= 10;
+        case 13:
+            return autoClickPower >= 100;
+        case 14:
+            return autoClickPower >= 1000;
+        case 15:
+            return autoClickPower >= 10000;
+        case 21:
+            return currentStreak >= 100;
+        case 22:
+            return currentStreak >= 1000;
+        default:
+            return false;
+    }
+}
+
+// Обновляем функцию checkTasksProgress
+function checkTasksProgress() {
+    tasks.forEach(task => {
+        const progress = getTaskProgress(task);
+        if (progress >= 1 && !task.completed) {
+            task.completed = true;
+            // Обновляем состояние игры
+            saveGameState();
+        }
+    });
+    renderTasks();
+}
+
+// Обновляем игру каждые 10 секунд
+setInterval(() => {
+    const now = Date.now();
+    const deltaTime = 10; // фиксированный интервал в 10 секунд
+    
+    // Добавляем очки от автокликера
+    if (autoClickPower > 0) {
+        score += autoClickPower * deltaTime;
+        totalEarned += autoClickPower * deltaTime;
+    }
+
+    // Добавляем очки от автодохода
+    const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
+    if (autoIncome > 0) {
+        score += autoIncome;
+        totalEarned += autoIncome;
+    }
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    updateShopItems();
+    
+    // Сохраняем состояние
+    saveGameState();
+    lastSaveTime = now;
+    lastUpdateTime = now;
+}, 10000);

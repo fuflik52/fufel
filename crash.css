@@ -1,66 +1,51 @@
 .crash-game-container {
     width: 100%;
-    height: calc(100vh - 70px); /* Вычитаем высоту нижней навигации */
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0;
     position: relative;
-    background: #1a1a2e;
-    display: flex;
-    flex-direction: column;
 }
 
 .crash-game {
-    flex: 1;
+    width: 100%;
+    height: 400px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    padding-bottom: 20px;
-}
-
-#crash-chart {
-    position: absolute;
-    top: 60px; /* Отступ для коэффициента */
-    left: 0;
-    width: 100%;
-    height: calc(100% - 220px); /* Увеличиваем размер графика */
-    z-index: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 10px;
 }
 
 .crash-multiplier {
-    position: absolute;
-    top: 10px; /* Размещаем коэффициент вверху */
-    left: 50%;
-    transform: translateX(-50%);
     font-size: 48px;
-    color: #00ff00;
     font-weight: bold;
+    text-align: center;
+    color: #00ff00;
     text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-    z-index: 2;
+    margin: 10px 0;
+    font-family: 'Roboto Mono', monospace;
 }
 
 .crash-controls {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 15px;
-    z-index: 3;
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
 }
 
 .bet-input-container {
-    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 #bet-amount {
     width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
     color: white;
     font-size: 16px;
     text-align: center;
@@ -68,20 +53,18 @@
 
 .quick-bet-buttons {
     display: flex;
-    gap: 8px;
-    justify-content: space-between;
-    margin-top: 8px;
+    gap: 10px;
+    justify-content: center;
 }
 
 .quick-bet-btn {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
+    padding: 5px 15px;
     background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
     color: white;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
 }
 
 .quick-bet-btn:hover {
@@ -90,75 +73,48 @@
 
 .bet-buttons {
     display: flex;
-    gap: 10px;
-    justify-content: space-between;
-    margin-top: 8px;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 .game-button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
+    padding: 10px 30px;
+    border-radius: 5px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .bet-button {
     background: #00ff00;
+    border: none;
     color: black;
 }
 
-.cashout-button {
-    background: #666;
-    color: white;
+.bet-button:hover {
+    background: #00cc00;
 }
 
-.cashout-button:disabled {
-    opacity: 0.5;
+.bet-button:disabled {
+    background: #666;
     cursor: not-allowed;
 }
 
-.balance-display {
-    text-align: center;
-    font-size: 16px;
+.cashout-button {
+    background: #ff3366;
+    border: none;
     color: white;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    margin-top: 8px;
 }
 
-.balance-amount {
-    color: #00ff00;
-    font-weight: bold;
+.cashout-button:hover {
+    background: #ff1a1a;
 }
 
-.game-history {
-    display: flex;
-    justify-content: center;
-    gap: 5px;
-    overflow-x: auto;
-    padding: 5px;
-}
-
-.history-item {
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    min-width: 60px;
-    text-align: center;
-}
-
-.win {
-    background: rgba(0, 255, 0, 0.2);
-    color: #00ff00;
-}
-
-.lose {
-    background: rgba(255, 0, 0, 0.2);
-    color: #ff0000;
+.cashout-button:disabled {
+    background: #666;
+    cursor: not-allowed;
 }
 
 .history-button {
@@ -259,6 +215,22 @@
     color: #ff3366;
 }
 
+.balance-display {
+    text-align: center;
+    font-size: 18px;
+    color: white;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.balance-amount {
+    color: #00ff00;
+    font-weight: bold;
+}
+
 .crash-notification {
     position: absolute;
     bottom: 100px;
@@ -296,107 +268,96 @@
     opacity: 1;
 }
 
+.game-history {
+    display: none;
+}
+
 /* Медиа-запросы для мобильных устройств */
 @media screen and (max-width: 768px) {
     .crash-game-container {
-        height: calc(100vh - 70px);
+        padding: 5px;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        height: calc(100vh - 60px); /* Уменьшаем высоту, учитывая навигацию */
     }
 
     .crash-game {
-        height: 350px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-bottom: 60px; /* Отступ для навигации */
     }
 
     .crash-multiplier {
-        font-size: 36px;
+        font-size: 32px;
         margin: 5px 0;
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
     .crash-controls {
-        margin-top: 10px;
-        padding: 10px;
+        margin-top: auto;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 10px 10px 0 0;
+        position: fixed;
+        bottom: 60px; /* Отступ для навигации */
+        left: 0;
+        right: 0;
+        z-index: 100;
     }
 
-    #crash-chart {
-        height: calc(100% - 180px); /* Ещё больше места для графика на мобильных */
+    canvas#crash-chart {
+        height: calc(100vh - 250px) !important;
+        margin-top: 40px; /* Отступ для коэффициента */
+        margin-bottom: 150px; /* Отступ для контролов и навигации */
     }
 
     .bet-input-container {
-        gap: 5px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
     }
 
     #bet-amount {
-        padding: 8px;
+        padding: 6px;
         font-size: 14px;
+        height: 35px;
     }
 
     .quick-bet-buttons {
-        gap: 5px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 8px;
     }
 
     .quick-bet-btn {
-        padding: 4px 10px;
+        flex: 1 1 calc(25% - 4px);
+        min-width: 50px;
+        padding: 4px 8px;
         font-size: 12px;
+        height: 25px;
     }
 
     .bet-buttons {
-        gap: 10px;
-        margin-top: 10px;
+        display: flex;
+        gap: 8px;
     }
 
     .game-button {
-        padding: 8px 20px;
+        flex: 1;
+        padding: 8px 0;
         font-size: 14px;
-    }
-
-    .history-button {
-        top: 5px;
-        right: 5px;
-    }
-
-    .history-button img {
-        width: 20px;
-        height: 20px;
-    }
-
-    /* Стили для модального окна истории на мобильных */
-    .history-modal-content {
-        width: 95%;
-        max-width: none;
-        padding: 15px;
-        margin: 10px;
-    }
-
-    .history-modal-header h2 {
-        font-size: 18px;
-    }
-
-    .close-history-btn {
-        font-size: 20px;
-    }
-
-    .history-modal-body {
-        max-height: 300px;
-    }
-
-    .history-items {
-        gap: 5px;
-    }
-
-    .history-item {
-        padding: 4px 8px;
-        font-size: 12px;
+        height: 35px;
     }
 
     .balance-display {
-        font-size: 14px;
-        margin-top: 10px;
-        text-align: center;
-    }
-
-    /* Улучшенное отображение сетки графика */
-    canvas#crash-chart {
-        height: 200px !important;
+        font-size: 12px;
+        padding: 6px;
+        margin: 5px 0;
     }
 }
 
