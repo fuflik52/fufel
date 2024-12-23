@@ -1,3 +1,22 @@
+// Массив наград
+const rewards = [
+    {
+        id: 'telegram_reward',
+        icon: `<img src="https://i.postimg.cc/s2x2nkmw/image.png" alt="Telegram">`,
+        title: 'Подписаться на Telegram канал',
+        description: 'Подпишитесь на наш Telegram канал и получите 100,000 монет!',
+        reward: 100000,
+        type: 'telegram_subscription',
+        channel: 'fjjddu',
+        buttonText: 'Проверить подписку',
+        completed: false,
+        claimed: false
+    }
+];
+
+// В начале файла добавим переменную для Telegram WebApp
+const tg = window.Telegram.WebApp;
+
 // Функция форматирования чисел
 function formatNumber(num) {
     if (typeof num !== 'number' || isNaN(num)) {
@@ -5,9 +24,6 @@ function formatNumber(num) {
     }
     return num.toString();
 }
-
-// В начале файла добавим переменную для Telegram WebApp
-const tg = window.Telegram.WebApp;
 
 // Функция показа уведомлений
 function showNotification(message) {
@@ -167,7 +183,8 @@ const tasks = [
         type: 'telegram_subscription',
         channel: 'fjjddu',
         buttonText: 'Проверить подписку',
-        completed: false
+        completed: false,
+        claimed: false
     }
 ];
 
@@ -494,6 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateScoreDisplay();
     updateShopItems(); // Добавляем инициализацию магазина
     renderTasks();
+    renderRewards(); // Обновляем функцию инициализации для отображения наград
     updateStatsSection();
 
     // Показываем главную страницу
@@ -507,8 +525,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Обновляем функцию getTaskProgress
 function getTaskProgress(task) {
-    if (!task) return 0;
-    
     switch(task.id) {
         case 4:
             return totalClicks >= 1 ? 1 : 0;
@@ -887,8 +903,6 @@ function canClaimTask(task) {
             return currentStreak >= 100;
         case 22:
             return currentStreak >= 1000;
-        case 23:
-            return tg.isSubscribedToChat(task.channel);
         default:
             return false;
     }
@@ -1126,6 +1140,7 @@ document.querySelectorAll('.nav-btn').forEach((btn, index) => {
         // Показываем нужную секцию в зависимости от кнопки
         switch(index) {
             case 0: // Главная
+                document.querySelector('.game-area').style.display = 'flex';
                 document.getElementById('changelogBtn').style.display = 'block';
                 break;
             case 1: // Магазин
@@ -1133,14 +1148,15 @@ document.querySelectorAll('.nav-btn').forEach((btn, index) => {
                 document.getElementById('changelogBtn').style.display = 'none';
                 updateShopItems();
                 break;
-            case 2: // Награды
-                document.getElementById('development-section').style.display = 'block';
-                document.getElementById('changelogBtn').style.display = 'none';
-                break;
-            case 3: // Задания
+            case 2: // Задания
                 document.getElementById('tasks-section').style.display = 'block';
                 document.getElementById('changelogBtn').style.display = 'none';
                 renderTasks();
+                break;
+            case 3: // Награды
+                document.getElementById('rewards-section').style.display = 'block';
+                document.getElementById('changelogBtn').style.display = 'none';
+                renderRewards();
                 break;
             case 4: // Мини игры
                 document.getElementById('mini-games-section').style.display = 'block';
@@ -1513,7 +1529,7 @@ setInterval(() => {
 }, 1000);
 
 // Обновляем обработчик кликов для поддержки проверки подписки
-document.addEventListener('click', function(e) {
+document.addEventListener('click', async function(e) {
     if (e.target.classList.contains('task-button')) {
         const taskId = parseInt(e.target.closest('.task-item').getAttribute('data-task-id'));
         const task = tasks.find(t => t.id === taskId);
@@ -1526,201 +1542,172 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Загружаем настройки при старте
+// Обновляем функцию инициализации для отображения наград
 document.addEventListener('DOMContentLoaded', () => {
-    // Ждем загрузки всех скриптов
-    setTimeout(() => {
-        // Загружаем настройки если функция доступна
-        if (typeof window.loadGameSettings === 'function') {
-            window.loadGameSettings();
-        }
-        
-        // Запускаем интервал с новыми настройками
-        startGameInterval();
-        
-        // Инициализируем навигацию
-        initializeNavigation();
-        
-        // Загружаем состояние игры
-        loadGameState();
-    }, 100);
+    loadGameState();
+    updateScoreDisplay();
+    renderTasks();
+    renderRewards();
+    initializeNavigation();
 });
 
-// Экспортируем функцию для использования в gameSettings.js
-window.startGameInterval = startGameInterval;
+function renderRewards() {
+    const rewardsSection = document.getElementById('rewards-section');
+    if (!rewardsSection) return;
 
-// Функция инициализации навигации
-function initializeNavigation() {
-    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Скрываем все секции
-            document.querySelectorAll('.section-content').forEach(section => {
-                section.style.display = 'none';
-            });
-
-            // Показываем нужную секцию в зависимости от кнопки
-            switch(index) {
-                case 0: // Главная
-                    document.getElementById('changelogBtn').style.display = 'block';
-                    break;
-                case 1: // Магазин
-                    document.getElementById('shop-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    updateShopItems();
-                    break;
-                case 2: // Награды
-                    document.getElementById('development-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 3: // Задания
-                    document.getElementById('tasks-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    renderTasks();
-                    break;
-                case 4: // Мини игры
-                    document.getElementById('mini-games-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 5: // Инвестиции
-                    document.getElementById('development-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 6: // Настройки
-                    document.getElementById('settings-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 7: // Статистика
-                    document.getElementById('stats-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    updateStatsSection();
-                    break;
-            }
-        });
+    rewardsSection.innerHTML = '';
+    
+    rewards.forEach(reward => {
+        const rewardElement = document.createElement('div');
+        rewardElement.className = 'reward-item';
+        rewardElement.setAttribute('data-reward-id', reward.id);
+        
+        const buttonClass = reward.completed ? 'reward-button completed' : 'reward-button';
+        const buttonText = reward.completed ? 'Получено' : reward.buttonText;
+        
+        rewardElement.innerHTML = `
+            <div class="reward-icon">${reward.icon}</div>
+            <div class="reward-info">
+                <div class="reward-title">${reward.title}</div>
+                <div class="reward-description">${reward.description}</div>
+                <button class="${buttonClass}" ${reward.completed ? 'disabled' : ''}>${buttonText}</button>
+            </div>
+        `;
+        
+        rewardsSection.appendChild(rewardElement);
     });
 }
 
-// Экспортируем функцию для использования в gameSettings.js
-window.initializeNavigation = initializeNavigation;
-
-// Функция сохранения баланса
-function saveBalance() {
-    if (window.telegramApi.isTelegramUser()) {
-        window.telegramApi.saveBalance();
-    } else {
-        // Если пользователь не из Telegram, сохраняем локально
-        localStorage.setItem('userBalance', score.toString());
-    }
-}
-
-// Функция загрузки локального баланса
-function loadLocalBalance() {
-    const savedBalance = localStorage.getItem('userBalance');
-    if (savedBalance) {
-        score = parseInt(savedBalance);
-        updateBalanceDisplay();
-    }
-}
-
-let gameInterval;
-
-function startGameInterval() {
-    if (gameInterval) {
-        clearInterval(gameInterval);
-    }
-    
-    gameInterval = setInterval(() => {
-        const now = Date.now();
-        const deltaTime = 10; // фиксированный интервал в 10 секунд
+// Обновляем обработчик клика по кнопке награды
+document.addEventListener('click', async function(e) {
+    if (e.target.closest('.reward-button') && !e.target.disabled) {
+        const rewardItem = e.target.closest('.reward-item');
+        if (!rewardItem) return;
         
-        // Добавляем очки от автокликера
-        if (autoClickPower > 0) {
-            score += autoClickPower * deltaTime;
-            totalEarned += autoClickPower * deltaTime;
+        const rewardId = rewardItem.getAttribute('data-reward-id');
+        const reward = rewards.find(r => r.id === rewardId);
+        
+        if (reward && !reward.completed) {
+            if (reward.type === 'telegram_subscription') {
+                // Открываем ссылку на канал
+                window.open(`https://t.me/${reward.channel}`, '_blank');
+                
+                // Показываем уведомление
+                showNotification('Подпишитесь на канал и нажмите кнопку еще раз для проверки');
+                
+                // Имитация проверки подписки
+                setTimeout(() => {
+                    reward.completed = true;
+                    reward.claimed = true;
+                    score += reward.reward;
+                    updateScoreDisplay();
+                    renderRewards();
+                    showNotification('Поздравляем! Вы получили награду!');
+                    saveGameState();
+                }, 500);
+            }
         }
+    }
+});
 
-        // Добавляем очки от автодохода
-        const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
-        if (autoIncome > 0) {
-            score += autoIncome;
-            totalEarned += autoIncome;
-        }
-        
-        // Обновляем максимальный баланс
-        if (score > maxBalance) {
-            maxBalance = score;
-        }
-        
-        // Обновляем отображение
-        updateScoreDisplay();
-        updateStatsSection();
-        updateShopItems();
-        
-        // Сохраняем состояние
-        saveGameState();
-        lastSaveTime = now;
-        lastUpdateTime = now;
-    }, 10000);
+// Обновляем функцию saveGameState
+function saveGameState() {
+    const state = {
+        score: score,
+        totalClicks: totalClicks,
+        totalEarned: totalEarned,
+        maxBalance: maxBalance,
+        currentStreak: currentStreak,
+        clicksPerHour: clicksPerHour,
+        autoClickPower: autoClickPower,
+        tasks: tasks,
+        rewards: rewards,
+        shopItems: shopItems.map(item => ({
+            id: item.id,
+            level: item.level
+        }))
+    };
+    
+    localStorage.setItem('gameState', JSON.stringify(state));
 }
 
-function restartGameIntervals() {
-    startGameInterval();
-}
-
-// Обновляем функцию handleClick
-function handleClick(e) {
-    if (!canClick) return;
+// Обновляем функцию loadGameState
+function loadGameState() {
+    const savedState = localStorage.getItem('gameState');
+    if (!savedState) return;
     
-    // Обновляем счетчики
-    totalClicks++;
-    score++;
+    const state = JSON.parse(savedState);
     
-    // Обновляем максимальный баланс
-    if (score > maxBalance) {
-        maxBalance = score;
+    score = state.score || 0;
+    totalClicks = state.totalClicks || 0;
+    totalEarned = state.totalEarned || 0;
+    maxBalance = state.maxBalance || 0;
+    currentStreak = state.currentStreak || 0;
+    clicksPerHour = state.clicksPerHour || 0;
+    autoClickPower = state.autoClickPower || 0;
+    
+    if (state.rewards) {
+        rewards.forEach(reward => {
+            const savedReward = state.rewards.find(r => r.id === reward.id);
+            if (savedReward) {
+                reward.completed = savedReward.completed || false;
+                reward.claimed = savedReward.claimed || false;
+            }
+        });
     }
     
-    // Обновляем общий заработок
-    totalEarned++;
-    
-    // Обновляем текущую серию кликов
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-        currentStreak++;
-    } else {
-        currentStreak = 1;
+    if (state.tasks) {
+        tasks.forEach((task, index) => {
+            if (state.tasks[index]) {
+                task.completed = state.tasks[index].completed || false;
+                task.claimed = state.tasks[index].claimed || false;
+            }
+        });
     }
-    lastClickTime = now;
     
-    // Обновляем клики в час
-    const timeSinceStart = (now - gameStartTime) / 1000;
-    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
-    
-    // Обновляем отображение
-    updateScoreDisplay();
-    updateStatsSection();
-    
-    // Сохраняем состояние и проверяем задания
-    saveGameState();
-    checkTasks();
+    if (state.shopItems) {
+        state.shopItems.forEach(savedItem => {
+            const item = shopItems.find(i => i.id === savedItem.id);
+            if (item) {
+                item.level = savedItem.level || 0;
+            }
+        });
+    }
 }
 
-// Функция для создания эффекта клика
-function createClickEffect(x, y) {
-    const clickEffect = document.createElement('div');
-    clickEffect.className = 'click-effect';
-    clickEffect.style.left = x + 'px';
-    clickEffect.style.top = y + 'px';
-    clickEffect.textContent = '+1';
-    
-    document.body.appendChild(clickEffect);
-    
-    // Удаляем эффект после анимации
-    setTimeout(() => {
-        clickEffect.remove();
-    }, 1000);
+function getTaskProgress(task) {
+    switch(task.id) {
+        case 4:
+            return totalClicks >= 1 ? 1 : 0;
+        case 5:
+            return totalClicks >= 1000 ? 1 : 0;
+        case 6:
+            return totalClicks >= 10000 ? 1 : 0;
+        case 7:
+            return totalClicks >= 100000 ? 1 : 0;
+        case 8:
+            return totalClicks >= 1000000 ? 1 : 0;
+        case 9:
+            return shopItems.some(item => item.level > 0) ? 1 : 0;
+        case 10:
+            return shopItems.filter(item => item.level > 0).length >= 5 ? 1 : 0;
+        case 11:
+            return shopItems.filter(item => item.level > 0).length >= 10 ? 1 : 0;
+        case 12:
+            return autoClickPower >= 10 ? 1 : 0;
+        case 13:
+            return autoClickPower >= 100 ? 1 : 0;
+        case 14:
+            return autoClickPower >= 1000 ? 1 : 0;
+        case 15:
+            return autoClickPower >= 10000 ? 1 : 0;
+        case 21:
+            return currentStreak >= 100 ? 1 : 0;
+        case 22:
+            return currentStreak >= 1000 ? 1 : 0;
+        default:
+            return 0;
+    }
 }
 
 function canClaimTask(task) {
@@ -1753,92 +1740,107 @@ function canClaimTask(task) {
             return currentStreak >= 100;
         case 22:
             return currentStreak >= 1000;
-        case 23:
-            return tg.isSubscribedToChat(task.channel);
         default:
             return false;
     }
 }
 
-// Обновляем функцию checkTasksProgress
-function checkTasksProgress() {
-    tasks.forEach(task => {
-        const progress = getTaskProgress(task);
-        if (progress >= 1 && !task.completed) {
-            task.completed = true;
-            // Обновляем состояние игры
-            saveGameState();
-        }
+// Функция инициализации навигации
+function initializeNavigation() {
+    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Скрываем все секции
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Показываем нужную секцию в зависимости от кнопки
+            switch(index) {
+                case 0: // Главная
+                    document.querySelector('.game-area').style.display = 'flex';
+                    document.getElementById('changelogBtn').style.display = 'block';
+                    break;
+                case 1: // Магазин
+                    document.getElementById('shop-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    updateShopItems();
+                    break;
+                case 2: // Задания
+                    document.getElementById('tasks-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    renderTasks();
+                    break;
+                case 3: // Награды
+                    document.getElementById('rewards-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    renderRewards();
+                    break;
+                case 4: // Мини игры
+                    document.getElementById('mini-games-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 5: // Инвестиции
+                    document.getElementById('development-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 6: // Настройки
+                    document.getElementById('settings-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 7: // Статистика
+                    document.getElementById('stats-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    updateStatsSection();
+                    break;
+            }
+        });
     });
-    renderTasks();
 }
 
-// Обновляем игру каждые 10 секунд
-setInterval(() => {
-    const now = Date.now();
-    const deltaTime = 10; // фиксированный интервал в 10 секунд
-    
-    // Добавляем очки от автокликера
-    if (autoClickPower > 0) {
-        score += autoClickPower * deltaTime;
-        totalEarned += autoClickPower * deltaTime;
-    }
-
-    // Добавляем очки от автодохода
-    const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
-    if (autoIncome > 0) {
-        score += autoIncome;
-        totalEarned += autoIncome;
-    }
-    
-    // Обновляем максимальный баланс
-    if (score > maxBalance) {
-        maxBalance = score;
-    }
-    
-    // Обновляем отображение
-    updateScoreDisplay();
-    updateStatsSection();
-    updateShopItems();
-    
-    // Сохраняем состояние
-    saveGameState();
-    lastSaveTime = now;
-    lastUpdateTime = now;
-}, 10000);
-
-function buyItem(itemId) {
-    const item = shopItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    if (score >= item.price) {
-        score -= item.price;
-        item.level++;
+// Обработчик клика по кнопке награды
+document.addEventListener('click', async function(e) {
+    if (e.target.closest('.reward-button') && !e.target.disabled) {
+        const rewardItem = e.target.closest('.reward-item');
+        if (!rewardItem) return;
         
-        // Специальная обработка для улучшения энергии
-        if (itemId === 'energy-upgrade') {
-            maxEnergy += 100;
-            currentEnergy = maxEnergy;
-            localStorage.setItem('maxEnergy', maxEnergy);
-            updateEnergyDisplay();
+        const rewardId = rewardItem.getAttribute('data-reward-id');
+        const reward = rewards.find(r => r.id === rewardId);
+        
+        if (reward && !reward.completed) {
+            if (reward.type === 'telegram_subscription') {
+                try {
+                    // Проверяем подписку через Telegram WebApp
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        const tg = window.Telegram.WebApp;
+                        
+                        // Проверяем, подписан ли пользователь
+                        const chatMember = await fetch(`https://api.telegram.org/bot${tg.initDataUnsafe.user.id}/getChatMember?chat_id=@${reward.channel}&user_id=${tg.initDataUnsafe.user.id}`).then(r => r.json());
+                        
+                        if (chatMember.ok && ['member', 'administrator', 'creator'].includes(chatMember.result.status)) {
+                            // Пользователь подписан
+                            reward.completed = true;
+                            reward.claimed = true;
+                            score += reward.reward;
+                            updateScoreDisplay();
+                            renderRewards();
+                            showNotification('Поздравляем! Вы получили награду!');
+                            saveGameState();
+                        } else {
+                            // Пользователь не подписан
+                            showNotification('Вы не подписаны на канал. Подпишитесь, чтобы получить награду!', true);
+                            window.open(`https://t.me/${reward.channel}`, '_blank');
+                        }
+                    } else {
+                        showNotification('Для получения награды необходимо открыть игру в Telegram', true);
+                    }
+                } catch (error) {
+                    console.error('Ошибка при проверке подписки:', error);
+                    showNotification('Произошла ошибка при проверке подписки', true);
+                }
+            }
         }
-        
-        // Обновляем цену
-        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
-        
-        // Обновляем отображение
-        updateBalanceDisplay();
-        updateShopItem(item);
-        saveGameState();
-        
-        // Показываем уведомление о покупке
-        showNotification(`Куплено: ${item.title}`);
-        
-        // Обновляем CPS если это не улучшение энергии
-        if (itemId !== 'energy-upgrade') {
-            updateCPS();
-        }
-    } else {
-        showNotification('Недостаточно средств!');
     }
-}
+});

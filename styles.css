@@ -1413,3 +1413,60 @@ input:checked + .toggle-slider span {
     object-fit: contain;
     margin-right: 10px;
 }
+
+/* Стили для раздела наград */
+.reward-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.reward-icon {
+    flex-shrink: 0;
+}
+
+.reward-icon img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.reward-info {
+    flex-grow: 1;
+}
+
+.reward-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.reward-description {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.reward-button {
+    background: linear-gradient(135deg, #ff3366 0%, #ff6b6b 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.reward-button:disabled {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    cursor: default;
+}
+
+.reward-button:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 51, 102, 0.3);
+}
