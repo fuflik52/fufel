@@ -3,7 +3,7 @@ function formatNumber(num) {
     if (typeof num !== 'number' || isNaN(num)) {
         return '0';
     }
-    return num.toLocaleString('en-US');
+    return num.toString();
 }
 
 // В начале файла добавим переменную для Telegram WebApp
@@ -160,30 +160,35 @@ const tasks = [
     }
 ];
 
-// Игровые переменные
+// Глобальные переменные
 let score = 0;
-let clickCount = 0;
-let consecutiveClicks = 0;
 let autoClickPower = 0;
-let clickPower = 1;
 let totalClicks = 0;
+let clicksPerSecond = 0;
 let clicksPerHour = 0;
 let currentStreak = 0;
 let maxBalance = 0;
 let totalEarned = 0;
-let gameStartTime = Date.now();
-let lastClickTime = Date.now();
-let totalPurchases = 0;
 let lastUpdateTime = Date.now();
 let lastSaveTime = Date.now();
-
-// Глобальные переменные
+let gameStartTime = Date.now();
+let lastClickTime = Date.now();
+let canClick = true;
+let clickTimes = [];
 let vibrationEnabled = true;
+
+// Используем gameSettings из gameSettings.js
+if (!window.gameSettings) {
+    window.gameSettings = {
+        autoIncomeInterval: 1,
+        clickPower: 1,
+        autoClickMultiplier: 1,
+        saveInterval: 1
+    };
+}
 
 // DOM элементы
 const sectionContents = document.querySelectorAll('.section-content');
-const gameArea = document.querySelector('.game-area');
-const scoreContainer = document.querySelector('.score-container');
 const scoreElement = document.querySelector('.score');
 
 // Объект для хранения таймеров
@@ -265,6 +270,7 @@ function updateAllTimers() {
             const formattedPrice = formatNumber(timer.price);
             buyButton.innerHTML = formattedPrice;
             buyButton.disabled = false;
+            buyButton.style.opacity = '1';
         } else {
             const minutes = Math.floor(timeLeft / 60000);
             const seconds = Math.floor((timeLeft % 60000) / 1000);
@@ -275,8 +281,9 @@ function updateAllTimers() {
             upgradeIcon.className = 'upgrade-icon';
             
             buyButton.innerHTML = '';
-            buyButton.appendChild(upgradeIcon);
+            buyButton.appendChild(upgradeIcon.cloneNode(true));
             buyButton.appendChild(document.createTextNode(`${minutes}:${seconds.toString().padStart(2, '0')}`));
+            buyButton.style.opacity = '0.5';
         }
     });
     
@@ -357,6 +364,8 @@ function startTimer(itemId, endTime, upgradeCount) {
                 const formattedPrice = formatNumber(itemPrice);
                 buyButton.innerHTML = formattedPrice;
                 buyButton.disabled = false;
+                buyButton.style.opacity = '1';
+                buyButton.style.cursor = 'pointer';
                 saveTimersState();
                 return;
             }
@@ -367,6 +376,10 @@ function startTimer(itemId, endTime, upgradeCount) {
             buyButton.innerHTML = '';
             buyButton.appendChild(upgradeIcon.cloneNode(true));
             buyButton.appendChild(document.createTextNode(`${minutes}:${seconds.toString().padStart(2, '0')}`));
+            // Блокируем кнопку во время таймера
+            buyButton.disabled = true;
+            buyButton.style.opacity = '0.5';
+            buyButton.style.cursor = 'not-allowed';
         }, 1000)
     };
 
@@ -376,7 +389,10 @@ function startTimer(itemId, endTime, upgradeCount) {
     buyButton.innerHTML = '';
     buyButton.appendChild(upgradeIcon);
     buyButton.appendChild(document.createTextNode(`${minutes}:${seconds.toString().padStart(2, '0')}`));
+    // Блокируем кнопку сразу при запуске таймера
     buyButton.disabled = true;
+    buyButton.style.opacity = '0.5';
+    buyButton.style.cursor = 'not-allowed';
 
     saveTimersState();
 }
@@ -779,15 +795,22 @@ function updateStatsSection() {
     `;
 }
 
-// Обновляем игру каждую секунду
+// Обновляем игру каждые 10 секунд
 setInterval(() => {
     const now = Date.now();
-    const deltaTime = (now - lastUpdateTime) / 1000;
+    const deltaTime = 10; // фиксированный интервал в 10 секунд
     
     // Добавляем очки от автокликера
     if (autoClickPower > 0) {
         score += autoClickPower * deltaTime;
         totalEarned += autoClickPower * deltaTime;
+    }
+
+    // Добавляем очки от автодохода
+    const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
+    if (autoIncome > 0) {
+        score += autoIncome;
+        totalEarned += autoIncome;
     }
     
     // Обновляем максимальный баланс
@@ -798,15 +821,13 @@ setInterval(() => {
     // Обновляем отображение
     updateScoreDisplay();
     updateStatsSection();
+    updateShopItems();
     
-    // Сохраняем состояние каждые 5 секунд
-    if (now - lastSaveTime >= 5000) {
-        saveGameState();
-        lastSaveTime = now;
-    }
-    
+    // Сохраняем состояние
+    saveGameState();
+    lastSaveTime = now;
     lastUpdateTime = now;
-}, 1000);
+}, 10000);
 
 function canClaimTask(task) {
     switch(task.id) {
@@ -847,312 +868,396 @@ function canAfford(price) {
     return score >= price;
 }
 
-function updateGame() {
-    const now = Date.now();
-    const deltaTime = (now - lastUpdateTime) / 1000;
-    lastUpdateTime = now;
-    
-    score += autoClickPower * deltaTime;
-    updateScoreDisplay();
-    
-    if (now - lastSaveTime > 5000) {
-        saveGameState();
-        lastSaveTime = now;
+let gameInterval;
+
+function startGameInterval() {
+    if (gameInterval) {
+        clearInterval(gameInterval);
     }
     
-    requestAnimationFrame(updateGame);
-}
-
-function initializeNavigation() {
-    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Скрываем все секции
-            document.querySelectorAll('.section-content').forEach(section => {
-                section.style.display = 'none';
-            });
-
-            // Показываем нужную секцию в зависимости от кнопки
-            switch(index) {
-                case 0: // Главная
-                    document.getElementById('changelogBtn').style.display = 'block';
-                    break;
-                case 1: // Магазин
-                    document.getElementById('shop-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    updateShopItems();
-                    break;
-                case 2: // Награды
-                    document.getElementById('development-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 3: // Задания
-                    document.getElementById('tasks-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    renderTasks();
-                    break;
-                case 4: // Мини игры
-                    document.getElementById('mini-games-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 5: // Инвестиции
-                    document.getElementById('development-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 6: // Настройки
-                    document.getElementById('settings-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    break;
-                case 7: // Статистика
-                    document.getElementById('stats-section').style.display = 'block';
-                    document.getElementById('changelogBtn').style.display = 'none';
-                    updateStatsSection();
-                    break;
-            }
-        });
-    });
-}
-
-// Обновляем функцию buyItem
-function buyItem(itemId) {
-    const item = shopItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    if (score >= item.price) {
-        score -= item.price;
-        item.level++;
-        totalPurchases++;
+    gameInterval = setInterval(() => {
+        const now = Date.now();
+        const deltaTime = 10; // фиксированный интервал в 10 секунд
         
-        // Обновляем цену предмета
-        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
+        // Добавляем очки от автокликера
+        if (autoClickPower > 0) {
+            score += autoClickPower * deltaTime;
+            totalEarned += autoClickPower * deltaTime;
+        }
+
+        // Добавляем очки от автодохода
+        const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
+        if (autoIncome > 0) {
+            score += autoIncome;
+            totalEarned += autoIncome;
+        }
         
-        // Обновляем автоматический доход
-        autoClickPower = shopItems.reduce((total, item) => {
-            return total + (item.power * (item.level || 0));
-        }, 0);
+        // Обновляем максимальный баланс
+        if (score > maxBalance) {
+            maxBalance = score;
+        }
         
         // Обновляем отображение
         updateScoreDisplay();
-        updateShopItems();
         updateStatsSection();
+        updateShopItems();
         
         // Сохраняем состояние
         saveGameState();
-        checkTasks();
-        
-        // Обработка покупки
-        handlePurchase(itemId);
+        lastSaveTime = now;
+        lastUpdateTime = now;
+    }, 10000);
+}
+
+function restartGameIntervals() {
+    startGameInterval();
+}
+
+// Обновляем функцию handleClick
+function handleClick(e) {
+    if (!canClick) return;
+    
+    // Обновляем счетчики
+    totalClicks++;
+    score++;
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем общий заработок
+    totalEarned++;
+    
+    // Обновляем текущую серию кликов
+    const now = Date.now();
+    if (now - lastClickTime < 1000) {
+        currentStreak++;
     } else {
-        showNotification('Недостаточно средств!');
+        currentStreak = 1;
     }
-}
-
-// Добавляем обработчик кликов по кнопкам покупки
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('buy-button')) {
-        const itemId = parseInt(e.target.closest('.shop-item').getAttribute('data-item-id'));
-        if (!isNaN(itemId)) {
-            buyItem(itemId);
-        }
-    }
-});
-
-// Обновляем функцию updateShopItems
-function updateShopItems() {
-    const shopSection = document.getElementById('shop-section');
-    if (!shopSection) return;
+    lastClickTime = now;
     
-    shopSection.innerHTML = `<div class="shop-window">` + 
-        shopItems.map((item) => `
-            <div class="shop-item" data-item-id="${item.id}" id="item-${item.id}">
-                <div class="item-icon">
-                    ${item.icon}
-                </div>
-                <div class="item-info">
-                    <h3 class="item-title">${item.title}</h3>
-                    <div class="item-level">Ур. ${item.level || 0}</div>
-                </div>
-                <div class="item-right">
-                    <div class="item-profit">+${formatNumber(item.power || 0)} в сек</div>
-                    <button class="buy-button" ${canAfford(item.price) ? '' : 'disabled'}>
-                        <span class="coin-icon"></span>
-                        ${formatNumber(item.price)}
-                    </button>
-                </div>
-            </div>
-        `).join('') + `</div>`;
+    // Обновляем клики в час
+    const timeSinceStart = (now - gameStartTime) / 1000;
+    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    
+    // Сохраняем состояние и проверяем задания
+    saveGameState();
+    checkTasks();
 }
 
-// Changelog Modal functionality
-const changelogBtn = document.getElementById('changelogBtn');
-const changelogModal = document.getElementById('changelogModal');
-const closeBtn = document.querySelector('.close-btn');
-
-if (changelogBtn && changelogModal) {
-    changelogBtn.addEventListener('click', () => {
-        changelogModal.style.display = 'block';
-        renderChangelog(); // Вызываем функцию из changelog.js
-    });
+// Функция для создания эффекта клика
+function createClickEffect(x, y) {
+    const clickEffect = document.createElement('div');
+    clickEffect.className = 'click-effect';
+    clickEffect.style.left = x + 'px';
+    clickEffect.style.top = y + 'px';
+    clickEffect.textContent = '+1';
+    
+    document.body.appendChild(clickEffect);
+    
+    // Удаляем эффект после анимации
+    setTimeout(() => {
+        clickEffect.remove();
+    }, 1000);
 }
 
-if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-        changelogModal.style.display = 'none';
-    });
-}
-
-window.addEventListener('click', (e) => {
-    if (e.target === changelogModal) {
-        changelogModal.style.display = 'none';
-    }
-});
-
-document.getElementById('vibrationToggle').addEventListener('change', function() {
-    vibrationEnabled = this.checked;
-    localStorage.setItem('vibrationEnabled', vibrationEnabled);
-    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-});
-
-document.body.addEventListener('change', function(e) {
-    if (e.target.id === 'vibrationToggle') {
-        vibrationEnabled = e.target.checked;
-        localStorage.setItem('vibrationEnabled', vibrationEnabled);
-        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
-        
-        if (vibrationEnabled) {
-            try {
-                window.navigator.vibrate(15);
-            } catch (e) {
-                console.log('Vibration test failed:', e);
-            }
-        }
-    }
-});
-
-// Обновляем функцию checkTasks
-function checkTasks() {
+// Обновляем функцию checkTasksProgress
+function checkTasksProgress() {
     tasks.forEach(task => {
-        if (!task.completed) {
-            let completed = false;
-            
-            switch(task.id) {
-                case 4: // Первые шаги
-                    completed = clickCount >= 1;
-                    break;
-                case 5: // Начинающий кликер
-                    completed = score >= 1000;
-                    break;
-                case 6: // Опытный кликер
-                    completed = score >= 10000;
-                    break;
-                case 7: // Мастер кликер
-                    completed = score >= 100000;
-                    break;
-                case 8: // Король кликов
-                    completed = score >= 1000000;
-                    break;
-                case 9: // Первая покупка
-                    completed = shopItems.some(item => item.level > 0);
-                    break;
-                case 10: // Шопоголик
-                    completed = shopItems.filter(item => item.level > 0).length >= 5;
-                    break;
-                case 11: // Коллекционер
-                    completed = shopItems.filter(item => item.level > 0).length >= 10;
-                    break;
-                case 12: // Энергичный старт
-                    completed = autoClickPower >= 10;
-                    break;
-                case 13: // Скоростной кликер
-                    completed = autoClickPower >= 100;
-                    break;
-                case 14: // Звездный путь
-                    completed = autoClickPower >= 1000;
-                    break;
-                case 15: // Мировое господство
-                    completed = autoClickPower >= 10000;
-                    break;
-                case 21: // Точность
-                    completed = currentStreak >= 100;
-                    break;
-                case 22: // Цирковой артист
-                    completed = currentStreak >= 1000;
-                    break;
-                // Добавьте другие задания по необходимости
-            }
-
-            if (completed) {
-                task.completed = true;
-                // Обновляем состояние игры
-                saveGameState();
-            }
+        const progress = getTaskProgress(task);
+        if (progress >= 1 && !task.completed) {
+            task.completed = true;
+            // Обновляем состояние игры
+            saveGameState();
         }
     });
-    
-    renderTasks(); // Обновляем отображение заданий
+    renderTasks();
 }
 
-// Функция получения награды за задание
-function claimTaskReward(taskId) {
-    const task = tasks.find(t => t.id === taskId);
-    if (task && task.completed && !task.claimed) {
-        score += task.reward;
-        task.claimed = true;
-        updateScoreDisplay();
-        saveGameState();
-        showNotification(`Получена награда: ${formatNumber(task.reward)} кликов!`);
-        renderTasks(); // Обновляем отображение заданий
+// Обновляем функцию loadGameState
+function loadGameState() {
+    const savedState = localStorage.getItem('gameState');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        score = state.score || 0;
+        autoClickPower = state.autoClickPower || 0;
+        totalClicks = state.totalClicks || 0;
+        clicksPerHour = state.clicksPerHour || 0;
+        currentStreak = state.currentStreak || 0;
+        maxBalance = state.maxBalance || 0;
+        totalEarned = state.totalEarned || 0;
+        gameStartTime = state.gameStartTime || Date.now();
+        totalPurchases = state.totalPurchases || 0;
+
+        // Load tasks state
+        if (state.tasks) {
+            tasks.forEach((task, index) => {
+                task.completed = state.tasks[index].completed;
+                task.claimed = state.tasks[index].claimed;
+            });
+        }
+
+        // Загружаем состояние предметов магазина
+        if (state.shopItems) {
+            state.shopItems.forEach(savedItem => {
+                const item = shopItems.find(i => i.id === savedItem.id);
+                if (item) {
+                    item.level = savedItem.level || 0;
+                    item.price = savedItem.price || item.basePrice;
+                }
+            });
+        }
+    }
+    updateScoreDisplay();
+    updateShopItems();
+    renderTasks();
+}
+
+// Обновляем функцию updateScoreDisplay
+function updateScoreDisplay() {
+    if (scoreElement) {
+        const displayScore = Math.floor(score || 0);
+        scoreElement.innerHTML = `
+            <img src="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png" alt="Coins">
+            ${formatNumber(displayScore)}
+        `;
+    }
+}
+
+// Обновляем функцию getTaskProgressText
+function getTaskProgressText(task, progress) {
+    switch(task.id) {
+        case 4:
+            return `${progress} / 1`;
+        case 5:
+            return `${progress} / 1000`;
+        case 6:
+            return `${progress} / 10000`;
+        case 7:
+            return `${progress} / 100000`;
+        case 8:
+            return `${progress} / 1000000`;
+        case 9:
+            return `${progress} / 1`;
+        case 10:
+            return `${progress} / 5`;
+        case 11:
+            return `${progress} / 10`;
+        case 12:
+            return `${progress} / 10`;
+        case 13:
+            return `${progress} / 100`;
+        case 14:
+            return `${progress} / 1000`;
+        case 15:
+            return `${progress} / 10000`;
+        case 21:
+            return `${progress} / 100`;
+        case 22:
+            return `${progress} / 1000`;
+        default:
+            return `${progress} / 1`;
     }
 }
 
 // Обновляем функцию renderTasks
 function renderTasks() {
-    const tasksSection = document.getElementById('tasks-section');
-    if (!tasksSection) return;
+    const tasksGrid = document.querySelector('.tasks-grid');
+    if (!tasksGrid) return;
 
-    tasksSection.innerHTML = tasks.map(task => `
-        <div class="task-item ${task.completed ? 'completed' : ''} ${task.claimed ? 'claimed' : ''}" data-task-id="${task.id}">
-            <div class="task-icon">${task.icon}</div>
-            <div class="task-info">
-                <h3 class="task-title">${task.title}</h3>
-                <div class="task-description">${task.description}</div>
-                <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
-            </div>
-            <button class="claim-button" onclick="claimTaskReward(${task.id})" 
-                ${task.completed && !task.claimed ? '' : 'disabled'}>
-                ${task.claimed ? 'Получено' : (task.completed ? 'Забрать награду' : 'Не выполнено')}
-            </button>
+    // Разделяем задания на выполненные и невыполненные
+    const completedTasks = tasks.filter(task => task.completed);
+    const uncompletedTasks = tasks.filter(task => !task.completed);
+
+    tasksGrid.innerHTML = `
+        <div class="tasks-section">
+            <h2 class="tasks-section-title">Активные задания</h2>
+            ${uncompletedTasks.map(task => {
+                const progress = getTaskProgress(task);
+                
+                return `
+                    <div class="task-item">
+                        <div class="task-icon">${task.icon}</div>
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-description">${task.description}</div>
+                        <div class="task-reward">Награда: ${formatNumber(task.reward)} </div>
+                        <div class="task-progress-container">
+                            <div class="task-progress-bar" style="width: ${progress * 100}%"></div>
+                            <div class="task-progress-text">${getTaskProgressText(task, progress)}</div>
+                        </div>
+                        <button class="task-button claim-task-btn" 
+                                data-task-id="${task.id}" 
+                                ${progress >= 1 ? '' : 'disabled'}>
+                            ${progress >= 1 ? 'Получить' : 'Не выполнено'}
+                        </button>
+                    </div>
+                `;
+            }).join('')}
         </div>
-    `).join('');
+        ${completedTasks.length > 0 ? `
+            <div class="tasks-section">
+                <h2 class="tasks-section-title">Выполненные задания</h2>
+                ${completedTasks.map(task => {
+                    return `
+                        <div class="task-item completed">
+                            <div class="task-icon">${task.icon}</div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-description">${task.description}</div>
+                            <div class="task-reward">Получено: ${formatNumber(task.reward)} </div>
+                            <div class="task-progress-container">
+                                <div class="task-progress-bar" style="width: 100%"></div>
+                                <div class="task-progress-text">Выполнено!</div>
+                            </div>
+                            <button class="task-button completed" disabled>
+                                Выполнено
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        ` : ''}
+    `;
 }
 
-// Добавляем обработчик для загрузки состояния при загрузке страницы
-window.addEventListener('load', loadTimersState);
+// Обновляем функцию updateStatsSection
+function updateStatsSection() {
+    const statsSection = document.getElementById('stats-section');
+    if (!statsSection) return;
 
-// Сохраняем состояние перед закрытием страницы
-window.addEventListener('beforeunload', () => {
-    saveTimersState();
-});
+    const clicksPerSecond = autoClickPower;
+    const clicksPerHour = clicksPerSecond * 3600;
+    const totalTime = Math.floor((Date.now() - gameStartTime) / 1000);
+    const hours = Math.floor(totalTime / 3600);
+    const minutes = Math.floor((totalTime % 3600) / 60);
 
-// Проверяем и обновляем таймеры каждую секунду
+    // Получаем имя пользователя из Telegram WebApp
+    const username = tg.initDataUnsafe?.user?.username || 'Игрок';
+
+    // Добавляем заголовок с именем пользователя
+    statsSection.innerHTML = `
+        <div class="user-header">
+            <h2>👤 ${username}</h2>
+        </div>
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-emoji">🖱️</div>
+                <div class="stat-info">
+                    <h3>Всего кликов</h3>
+                    <p>${formatNumber(totalClicks)}</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">⚡</div>
+                <div class="stat-info">
+                    <h3>Кликов в секунду</h3>
+                    <p>${formatNumber(clicksPerSecond)}</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">🚀</div>
+                <div class="stat-info">
+                    <h3>Кликов в час</h3>
+                    <p>${formatNumber(clicksPerHour)}</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">⏰</div>
+                <div class="stat-info">
+                    <h3>Время в игре</h3>
+                    <p>${hours}ч ${minutes}м</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">💰</div>
+                <div class="stat-info">
+                    <h3>Максимальный баланс</h3>
+                    <p>${formatNumber(Math.max(score, maxBalance))}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Обновляем игру каждые 10 секунд
 setInterval(() => {
-    Object.keys(itemTimers).forEach(itemId => {
-        const timer = itemTimers[itemId];
-        if (timer && timer.endTime <= Date.now()) {
-            const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
-            if (buyButton) {
-                const formattedPrice = formatNumber(timer.price);
-                buyButton.innerHTML = formattedPrice;
-                buyButton.disabled = false;
-            }
-            stopTimer(itemId);
-        }
-    });
-    saveTimersState();
-}, 1000);
+    const now = Date.now();
+    const deltaTime = 10; // фиксированный интервал в 10 секунд
+    
+    // Добавляем очки от автокликера
+    if (autoClickPower > 0) {
+        score += autoClickPower * deltaTime;
+        totalEarned += autoClickPower * deltaTime;
+    }
 
+    // Добавляем очки от автодохода
+    const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
+    if (autoIncome > 0) {
+        score += autoIncome;
+        totalEarned += autoIncome;
+    }
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    updateShopItems();
+    
+    // Сохраняем состояние
+    saveGameState();
+    lastSaveTime = now;
+    lastUpdateTime = now;
+}, 10000);
+
+function canClaimTask(task) {
+    switch(task.id) {
+        case 4:
+            return totalClicks >= 1;
+        case 5:
+            return totalClicks >= 1000;
+        case 6:
+            return totalClicks >= 10000;
+        case 7:
+            return totalClicks >= 100000;
+        case 8:
+            return totalClicks >= 1000000;
+        case 9:
+            return shopItems.some(item => item.level > 0);
+        case 10:
+            return shopItems.filter(item => item.level > 0).length >= 5;
+        case 11:
+            return shopItems.filter(item => item.level > 0).length >= 10;
+        case 12:
+            return autoClickPower >= 10;
+        case 13:
+            return autoClickPower >= 100;
+        case 14:
+            return autoClickPower >= 1000;
+        case 15:
+            return autoClickPower >= 10000;
+        case 21:
+            return currentStreak >= 100;
+        case 22:
+            return currentStreak >= 1000;
+        default:
+            return false;
+    }
+}
+
+function canAfford(price) {
+    return score >= price;
+}
+
+// Настройки игры
 let shopItems = [
     {
         id: 1,
@@ -1186,7 +1291,7 @@ let shopItems = [
     },
     {
         id: 4,
-        icon: `<img src="https://i.postimg.cc/xCQnGbZy/free-icon-medical-laboratory-2971555.png" alt="Лаборатория">`,
+        icon: `<img src="https://i.postimg.cc/xTXDzRCV/free-icon-medical-laboratory-2971555.png" alt="Лаборатория">`,
         title: 'Лаборатория',
         price: 5000,
         basePrice: 5000,
@@ -1246,7 +1351,7 @@ let shopItems = [
     },
     {
         id: 10,
-        icon: `<img src="https://i.postimg.cc/xTXDzRCV/free-icon-quantum-computer-6554108.png" alt="Квантовый компьютер">`,
+        icon: `<img src="https://i.postimg.cc/KcLt8XP6/free-icon-quantum-computer-6554108.png" alt="Квантовый компьютер">`,
         title: 'Квантовый компьютер',
         price: 500000,
         basePrice: 500000,
@@ -1422,3 +1527,412 @@ function formatNumber(num) {
     }
     return num.toString();
 }
+
+// Функция подсчета дохода в секунду
+function calculateAutoIncomePerSecond() {
+    let totalIncome = 0;
+    // Подсчитываем доход от всех купленных предметов
+    shopItems.forEach(item => {
+        if (item.count > 0) {
+            totalIncome += item.income * item.count;
+        }
+    });
+    return totalIncome;
+}
+
+// Обновляем игру каждые N секунд
+setInterval(() => {
+    const now = Date.now();
+    const deltaTime = gameSettings.autoIncomeInterval;
+    
+    // Добавляем очки от автокликера с учетом множителя
+    if (autoClickPower > 0) {
+        const autoClickIncome = autoClickPower * deltaTime * gameSettings.autoClickMultiplier;
+        score += autoClickIncome;
+        totalEarned += autoClickIncome;
+    }
+
+    // Добавляем очки от автодохода
+    const autoIncome = calculateAutoIncomePerSecond() * deltaTime;
+    if (autoIncome > 0) {
+        score += autoIncome;
+        totalEarned += autoIncome;
+    }
+    
+    // Обновляем максимальный баланс
+    if (score > maxBalance) {
+        maxBalance = score;
+    }
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    updateShopItems();
+    
+    // Сохраняем состояние
+    if (now - lastSaveTime >= gameSettings.saveInterval * 1000) {
+        saveGameState();
+        lastSaveTime = now;
+    }
+    
+    lastUpdateTime = now;
+}, gameSettings.autoIncomeInterval * 1000);
+
+// Обновляем функцию handleClick
+function handleClick(e) {
+    if (!canClick) return;
+    
+    // Добавляем очки с учетом силы клика
+    score += gameSettings.clickPower;
+    totalClicks++;
+    totalEarned += gameSettings.clickPower;
+    
+    // Обновляем статистику
+    const now = Date.now();
+    clickTimes.push(now);
+    
+    // Удаляем старые клики (старше 1 секунды)
+    while (clickTimes.length > 0 && now - clickTimes[0] > 1000) {
+        clickTimes.shift();
+    }
+    
+    // Обновляем CPS
+    clicksPerSecond = clickTimes.length;
+    clicksPerHour = Math.floor(clicksPerSecond * 3600);
+    
+    // Обновляем отображение
+    updateScoreDisplay();
+    updateStatsSection();
+    
+    // Сохраняем состояние и проверяем задания
+    saveGameState();
+    checkTasks();
+}
+
+// Обновляем функцию buyItem
+function buyItem(itemId) {
+    const item = shopItems.find(item => item.id === itemId);
+    if (!item) return;
+
+    // Проверяем, есть ли активный таймер для этого предмета
+    const timer = itemTimers[itemId];
+    if (timer) {
+        // Для всех предметов нужно ждать окончания таймера
+        if (timer.endTime - Date.now() > 1000) {
+            showNotification('Подождите, пока закончится таймер!');
+            return;
+        }
+    }
+
+    if (score >= item.price) {
+        score -= item.price;
+        item.level++;
+        totalPurchases++;
+        
+        // Обновляем цену предмета
+        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
+        
+        // Обновляем автоматический доход
+        autoClickPower = shopItems.reduce((total, item) => {
+            return total + (item.power * (item.level || 0));
+        }, 0);
+        
+        // Обновляем отображение
+        updateScoreDisplay();
+        updateShopItems();
+        updateStatsSection();
+        
+        // Сохраняем состояние
+        saveGameState();
+        checkTasks();
+        
+        // Обработка покупки
+        handlePurchase(itemId);
+    } else {
+        showNotification('Недостаточно средств!');
+    }
+}
+
+// Добавляем обработчик кликов по кнопкам покупки
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('buy-button')) {
+        const itemId = parseInt(e.target.closest('.shop-item').getAttribute('data-item-id'));
+        if (!isNaN(itemId)) {
+            buyItem(itemId);
+        }
+    }
+});
+
+// Обновляем функцию updateShopItems
+function updateShopItems() {
+    const shopSection = document.getElementById('shop-section');
+    if (!shopSection) return;
+    
+    shopSection.innerHTML = `<div class="shop-window">` + 
+        shopItems.map((item) => `
+            <div class="shop-item" data-item-id="${item.id}" id="item-${item.id}">
+                <div class="item-icon">
+                    ${item.icon}
+                </div>
+                <div class="item-info">
+                    <h3 class="item-title">${item.title}</h3>
+                    <div class="item-level">Ур. ${item.level || 0}</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-profit">+${formatNumber(item.power || 0)} в сек</div>
+                    <button class="buy-button" ${canAfford(item.price) ? '' : 'disabled'}>
+                        <span class="coin-icon"></span>
+                        ${formatNumber(item.price)}
+                    </button>
+                </div>
+            </div>
+        `).join('') + `</div>`;
+}
+
+// Обработчик для кнопки changelog
+const changelogBtn = document.getElementById('changelogBtn');
+if (changelogBtn) {
+    changelogBtn.addEventListener('click', () => {
+        showChangelog(); // Используем функцию из changelog.js
+    });
+}
+
+// Changelog Modal functionality
+const changelogModal = document.getElementById('changelogModal');
+const closeBtn = document.querySelector('.close-btn');
+
+if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+        changelogModal.style.display = 'none';
+    });
+}
+
+window.addEventListener('click', (e) => {
+    if (e.target === changelogModal) {
+        changelogModal.style.display = 'none';
+    }
+});
+
+document.getElementById('vibrationToggle').addEventListener('change', function() {
+    vibrationEnabled = this.checked;
+    localStorage.setItem('vibrationEnabled', vibrationEnabled);
+    showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+});
+
+document.body.addEventListener('change', function(e) {
+    if (e.target.id === 'vibrationToggle') {
+        vibrationEnabled = e.target.checked;
+        localStorage.setItem('vibrationEnabled', vibrationEnabled);
+        showNotification(`Вибрация ${vibrationEnabled ? 'включена' : 'выключена'}`);
+        
+        if (vibrationEnabled) {
+            try {
+                window.navigator.vibrate(15);
+            } catch (e) {
+                console.log('Vibration test failed:', e);
+            }
+        }
+    }
+});
+
+// Обновляем функцию checkTasks
+function checkTasks() {
+    tasks.forEach(task => {
+        if (!task.completed) {
+            let completed = false;
+            
+            switch(task.id) {
+                case 4: // Первые шаги
+                    completed = clickCount >= 1;
+                    break;
+                case 5: // Начинающий кликер
+                    completed = score >= 1000;
+                    break;
+                case 6: // Опытный кликер
+                    completed = score >= 10000;
+                    break;
+                case 7: // Мастер кликер
+                    completed = score >= 100000;
+                    break;
+                case 8: // Король кликов
+                    completed = score >= 1000000;
+                    break;
+                case 9: // Первая покупка
+                    completed = shopItems.some(item => item.level > 0);
+                    break;
+                case 10: // Шопоголик
+                    completed = shopItems.filter(item => item.level > 0).length >= 5;
+                    break;
+                case 11: // Коллекционер
+                    completed = shopItems.filter(item => item.level > 0).length >= 10;
+                    break;
+                case 12: // Энергичный старт
+                    completed = autoClickPower >= 10;
+                    break;
+                case 13: // Скоростной кликер
+                    completed = autoClickPower >= 100;
+                    break;
+                case 14: // Звездный путь
+                    completed = autoClickPower >= 1000;
+                    break;
+                case 15: // Мировое господство
+                    completed = autoClickPower >= 10000;
+                    break;
+                case 21: // Точность
+                    completed = currentStreak >= 100;
+                    break;
+                case 22: // Цирковой артист
+                    completed = currentStreak >= 1000;
+                    break;
+                // Добавьте другие задания по необходимости
+            }
+
+            if (completed) {
+                task.completed = true;
+                // Обновляем состояние игры
+                saveGameState();
+            }
+        }
+    });
+    
+    renderTasks(); // Обновляем отображение заданий
+}
+
+// Функция получения награды за задание
+function claimTaskReward(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (task && task.completed && !task.claimed) {
+        score += task.reward;
+        task.claimed = true;
+        updateScoreDisplay();
+        saveGameState();
+        showNotification(`Получена награда: ${formatNumber(task.reward)} кликов!`);
+        renderTasks(); // Обновляем отображение заданий
+    }
+}
+
+// Обновляем функцию renderTasks
+function renderTasks() {
+    const tasksSection = document.getElementById('tasks-section');
+    if (!tasksSection) return;
+
+    tasksSection.innerHTML = tasks.map(task => `
+        <div class="task-item ${task.completed ? 'completed' : ''} ${task.claimed ? 'claimed' : ''}" data-task-id="${task.id}">
+            <div class="task-icon">${task.icon}</div>
+            <div class="task-info">
+                <h3 class="task-title">${task.title}</h3>
+                <div class="task-description">${task.description}</div>
+                <div class="task-reward">Награда: ${formatNumber(task.reward)} кликов</div>
+            </div>
+            <button class="claim-button" onclick="claimTaskReward(${task.id})" 
+                ${task.completed && !task.claimed ? '' : 'disabled'}>
+                ${task.claimed ? 'Получено' : (task.completed ? 'Забрать награду' : 'Не выполнено')}
+            </button>
+        </div>
+    `).join('');
+}
+
+// Добавляем обработчик для загрузки состояния при загрузке страницы
+window.addEventListener('load', loadTimersState);
+
+// Сохраняем состояние перед закрытием страницы
+window.addEventListener('beforeunload', () => {
+    saveTimersState();
+});
+
+// Проверяем и обновляем таймеры каждую секунду
+setInterval(() => {
+    Object.keys(itemTimers).forEach(itemId => {
+        const timer = itemTimers[itemId];
+        if (timer && timer.endTime <= Date.now()) {
+            const buyButton = document.querySelector(`#item-${itemId} .buy-button`);
+            if (buyButton) {
+                const formattedPrice = formatNumber(timer.price);
+                buyButton.innerHTML = formattedPrice;
+                buyButton.disabled = false;
+                buyButton.style.opacity = '1';
+            }
+            stopTimer(itemId);
+        }
+    });
+    saveTimersState();
+}, 1000);
+
+// Загружаем настройки при старте
+document.addEventListener('DOMContentLoaded', () => {
+    // Ждем загрузки всех скриптов
+    setTimeout(() => {
+        // Загружаем настройки если функция доступна
+        if (typeof window.loadGameSettings === 'function') {
+            window.loadGameSettings();
+        }
+        
+        // Запускаем интервал с новыми настройками
+        startGameInterval();
+        
+        // Инициализируем навигацию
+        initializeNavigation();
+        
+        // Загружаем состояние игры
+        loadGameState();
+    }, 100);
+});
+
+// Экспортируем функцию для использования в gameSettings.js
+window.startGameInterval = startGameInterval;
+
+// Функция инициализации навигации
+function initializeNavigation() {
+    document.querySelectorAll('.nav-btn').forEach((btn, index) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Скрываем все секции
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+
+            // Показываем нужную секцию в зависимости от кнопки
+            switch(index) {
+                case 0: // Главная
+                    document.getElementById('changelogBtn').style.display = 'block';
+                    break;
+                case 1: // Магазин
+                    document.getElementById('shop-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    updateShopItems();
+                    break;
+                case 2: // Награды
+                    document.getElementById('development-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 3: // Задания
+                    document.getElementById('tasks-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    renderTasks();
+                    break;
+                case 4: // Мини игры
+                    document.getElementById('mini-games-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 5: // Инвестиции
+                    document.getElementById('development-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 6: // Настройки
+                    document.getElementById('settings-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    break;
+                case 7: // Статистика
+                    document.getElementById('stats-section').style.display = 'block';
+                    document.getElementById('changelogBtn').style.display = 'none';
+                    updateStatsSection();
+                    break;
+            }
+        });
+    });
+}
+
+// Экспортируем функцию для использования в gameSettings.js
+window.initializeNavigation = initializeNavigation;

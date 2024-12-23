@@ -2,9 +2,7 @@
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 15px;
+    padding: 0;
     position: relative;
 }
 
@@ -13,6 +11,9 @@
     height: 400px;
     display: flex;
     flex-direction: column;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 10px;
 }
 
 .crash-multiplier {
@@ -21,7 +22,7 @@
     text-align: center;
     color: #00ff00;
     text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-    margin-top: 20px;
+    margin: 10px 0;
     font-family: 'Roboto Mono', monospace;
 }
 
@@ -177,6 +178,17 @@
     cursor: pointer;
 }
 
+.history-modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.history-modal-body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
 .history-items {
     display: flex;
     flex-wrap: wrap;
@@ -217,4 +229,185 @@
 .balance-amount {
     color: #00ff00;
     font-weight: bold;
+}
+
+.crash-notification {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    padding: 12px 24px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    text-align: center;
+    pointer-events: none;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    min-width: 200px;
+}
+
+.crash-notification.success {
+    background: rgba(0, 255, 0, 0.95);
+    border: 2px solid #00ff00;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.crash-notification.error {
+    background: rgba(255, 51, 102, 0.95);
+    border: 2px solid #ff3366;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.crash-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.game-history {
+    display: none;
+}
+
+/* Медиа-запросы для мобильных устройств */
+@media screen and (max-width: 768px) {
+    .crash-game-container {
+        padding: 10px;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .crash-game {
+        height: 350px;
+    }
+
+    .crash-multiplier {
+        font-size: 36px;
+        margin: 5px 0;
+    }
+
+    .crash-controls {
+        margin-top: 10px;
+        padding: 10px;
+    }
+
+    .bet-input-container {
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    #bet-amount {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .quick-bet-buttons {
+        gap: 5px;
+    }
+
+    .quick-bet-btn {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+
+    .bet-buttons {
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .game-button {
+        padding: 8px 20px;
+        font-size: 14px;
+    }
+
+    .history-button {
+        top: 5px;
+        right: 5px;
+    }
+
+    .history-button img {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Стили для модального окна истории на мобильных */
+    .history-modal-content {
+        width: 95%;
+        max-width: none;
+        padding: 15px;
+        margin: 10px;
+    }
+
+    .history-modal-header h2 {
+        font-size: 18px;
+    }
+
+    .close-history-btn {
+        font-size: 20px;
+    }
+
+    .history-modal-body {
+        max-height: 300px;
+    }
+
+    .history-items {
+        gap: 5px;
+    }
+
+    .history-item {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .balance-display {
+        font-size: 14px;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    /* Улучшенное отображение сетки графика */
+    canvas#crash-chart {
+        height: 200px !important;
+    }
+}
+
+/* Стили для очень маленьких экранов */
+@media screen and (max-width: 320px) {
+    .crash-multiplier {
+        font-size: 32px;
+    }
+
+    .quick-bet-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .quick-bet-btn {
+        flex: 0 0 calc(50% - 5px);
+        text-align: center;
+    }
+
+    .bet-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .game-button {
+        width: 100%;
+    }
+}
+
+/* Улучшение читаемости на устройствах с высоким DPI */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .crash-multiplier {
+        text-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+    }
+
+    .game-button {
+        font-weight: 500;
+    }
 }

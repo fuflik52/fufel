@@ -679,7 +679,7 @@ input:checked + .toggle-slider span {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url('https://i.postimg.cc/MKPrjT14/image.png');
+    background-image: url('https://i.postimg.cc/nzxVsBxm/image.png');
     background-size: cover;
     background-position: center;
     opacity: 0.3;
@@ -1002,7 +1002,8 @@ input:checked + .toggle-slider span {
     align-items: center;
     padding: 15px;
     border-radius: 10px;
-    background: rgba(0, 100, 0, 0.3);
+    background-color: rgba(0, 255, 0, 0);
+    border: 2px solid #00ff00;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     width: 100%;
     gap: 15px;
@@ -1019,7 +1020,7 @@ input:checked + .toggle-slider span {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url('https://i.postimg.cc/gjTwFC8C/image.png');
+    background-image: url('https://i.postimg.cc/TY0tB6hv/image.png');
     background-size: cover;
     background-position: center;
     opacity: 0.15;
@@ -1145,73 +1146,133 @@ input:checked + .toggle-slider span {
 }
 
 /* Стили для changelog */
-.changelog-container {
-    padding: 20px;
-    max-height: 70vh;
-    overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-}
-
-.changelog-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-}
-
-.changelog-version {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+.changelog-entry {
+    margin-bottom: 20px;
     padding: 15px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.changelog-entry.new {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.changelog-entry.old {
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.changelog-entry.planned {
+    background: rgba(0, 136, 255, 0.1);
+    border-color: rgba(0, 136, 255, 0.3);
+}
+
+.changelog-entry.important {
+    border: 2px solid #ff3333;
+    background: rgba(255, 51, 51, 0.1);
+}
+
+.changelog-date {
+    font-weight: bold;
     margin-bottom: 15px;
-}
-
-.changelog-version.new {
-    background: rgba(40, 167, 69, 0.2);
-    border: 2px solid rgba(40, 167, 69, 0.5);
-}
-
-.version-header {
+    color: #0088ff;
+    font-size: 1.2em;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    align-items: center;
 }
 
-.version-header h3 {
-    margin: 0;
-    color: #fff;
-}
-
-.version-date {
-    color: #888;
-    font-size: 0.9em;
+.new-badge, .old-label, .planned-label, .important-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    color: white;
+    margin-left: 8px;
 }
 
 .new-badge {
     background: #28a745;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: bold;
 }
 
-.changes-list {
+.old-label {
+    background: rgba(128, 128, 128, 0.8);
+}
+
+.planned-label {
+    background: #0088ff;
+}
+
+.important-badge {
+    background: #ff3333;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #0088ff;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0 8px;
+    transition: transform 0.3s ease;
+}
+
+.toggle-btn:hover {
+    transform: scale(1.2);
+}
+
+.changelog-content {
+    transition: all 0.3s ease;
+}
+
+.changelog-changes {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-.changes-list li {
-    padding: 5px 0;
+.changelog-changes li {
+    margin-bottom: 10px;
     padding-left: 20px;
     position: relative;
+    color: #fff;
 }
 
-.changes-list li:before {
+.changelog-changes li:before {
     content: "•";
-    color: #0088ff;
     position: absolute;
     left: 0;
+    color: #0088ff;
+}
+
+.shop-item {
+    position: relative;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.upgrade-icon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 20px;
+    height: 20px;
+    z-index: 2;
+}
+
+.buy-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .cooldown-timer {
@@ -1251,41 +1312,55 @@ input:checked + .toggle-slider span {
     100% { opacity: 1; }
 }
 
-.shop-item {
-    position: relative;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.item-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.upgrade-icon {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 20px;
-    height: 20px;
-    z-index: 2;
-}
-
-.buy-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* Удаляем все стили, связанные с краш игрой */
-
-.modal-content {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.modal-content::-webkit-scrollbar {
+/* Удаляем стили для меню выбора игр */
+.games-menu {
     display: none;
+}
+
+.game-select-btn {
+    display: none;
+}
+
+.game-container {
+    display: none;
+}
+
+/* Стили для мобильных устройств */
+@media only screen and (max-width: 768px) {
+    * {
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version */
+        -webkit-tap-highlight-color: transparent; /* Убирает подсветку при тапе на iOS */
+    }
+
+    input, textarea {
+        -webkit-user-select: text; /* Разрешаем выделение текста в полях ввода */
+        -khtml-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+    }
+
+    body {
+        overscroll-behavior: none; /* Предотвращает bouncing эффект на iOS */
+        -webkit-overflow-scrolling: touch; /* Улучшает скролл на iOS */
+    }
+}
+
+.banner-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('https://i.postimg.cc/TY0tB6hv/image.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 1;
+    z-index: -1;
+    filter: brightness(1.2) saturate(1.3);
 }

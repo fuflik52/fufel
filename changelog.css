@@ -1,0 +1,139 @@
+.changelog-container {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.changelog-container::-webkit-scrollbar {
+    display: none;
+}
+
+.changelog-entry {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.changelog-entry.new {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: rgba(40, 167, 69, 0.5);
+}
+
+.changelog-entry.old {
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.changelog-entry.planned {
+    background: rgba(0, 136, 255, 0.1);
+    border-color: rgba(0, 136, 255, 0.5);
+}
+
+.changelog-entry.important {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.changelog-date {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #0088ff;
+    font-size: 1.2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.changelog-date > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.new-badge, .old-label, .planned-label, .important-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.new-badge {
+    background: #28a745;
+}
+
+.old-label {
+    background: rgba(128, 128, 128, 0.8);
+}
+
+.planned-label {
+    background: #0088ff;
+}
+
+.important-badge {
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: #0088ff;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0 8px;
+    transition: transform 0.3s ease;
+}
+
+.toggle-btn:hover {
+    transform: scale(1.2);
+}
+
+.changelog-content {
+    transition: all 0.3s ease;
+}
+
+.changelog-changes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.changelog-changes li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+    color: #fff;
+    line-height: 1.5;
+}
+
+.changelog-changes li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #0088ff;
+}
+
+.important .changelog-changes li:before {
+    color: #ffd700;
+}
+
+/* Анимация для важных обновлений */
+@keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+}
+
+.changelog-entry.important {
+    animation: glow 2s infinite;
+}

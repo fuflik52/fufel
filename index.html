@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Увлекательная кликер-игра с автоматизацией и улучшениями">
     <meta name="keywords" content="кликер, игра, автокликер, улучшения">
     <meta name="theme-color" content="#0f0f1a">
@@ -10,6 +12,7 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="changelog.css">
     <link rel="stylesheet" href="crash.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -48,11 +51,7 @@
                             </span>
                         </label>
                     </div>
-                    <div class="settings-option" style="margin-top: 20px;">
-                        <button id="clearShopItemsBtn" style="background-color: #ff3366; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-                            Очистить товары магазина
-                        </button>
-                    </div>
+            
                 </div>
             </div>
             <div class="section-content" id="tasks-section">
@@ -89,6 +88,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Модальное окно истории -->
                 <div id="historyModal" class="history-modal">
                     <div class="history-modal-content">
@@ -142,7 +142,6 @@
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/xT9WVHjw/image.png" alt="Mini games">
                         <span>Мини игры</span>
-                        <div class="new-label">New</div>
                     </button>
                     <button class="nav-btn">
                         <img src="https://i.postimg.cc/DZycbPFg/free-icon-investment-5530639.png" alt="Investments">
@@ -214,9 +213,19 @@
 
     <canvas id="performanceChart" style="display: none;"></canvas>
 
-    <script src="script.js"></script>
-    <script src="vibration.js"></script>
-    <script src="crash.js"></script>
+    <script>
+        // Проверяем, пришли ли мы со страницы загрузки
+        if (!sessionStorage.getItem('loaded')) {
+            window.location.href = 'loading.html';
+        } else {
+            // Очищаем флаг загрузки
+            sessionStorage.removeItem('loaded');
+        }
+    </script>
+
+    <script src="gameSettings.js"></script>
     <script src="changelog.js"></script>
+    <script src="crash.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

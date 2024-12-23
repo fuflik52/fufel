@@ -1,0 +1,332 @@
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.history-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.history-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.history-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.roulette-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.roulette-balance {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.balance-amount {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2em;
+    color: #fff;
+}
+
+.bet-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#bet-amount {
+    padding: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 1.1em;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+#bet-amount:focus {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+#bet-amount::-webkit-inner-spin-button,
+#bet-amount::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#bet-amount[type=number] {
+    -moz-appearance: textfield;
+}
+
+.quick-bet-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.quick-bet-buttons button {
+    padding: 5px 15px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.quick-bet-buttons button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.spin-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.spin-button {
+    padding: 15px 40px;
+    font-size: 1.2em;
+    border: none;
+    border-radius: 25px;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    min-width: 200px;
+}
+
+.spin-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+.spin-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.roulette-wheel {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: conic-gradient(
+        #4CAF50 0% 25%,
+        #2196F3 25% 50%,
+        #FFC107 50% 75%,
+        #f44336 75% 100%
+    );
+    position: relative;
+    transition: transform 5s cubic-bezier(0.2, 0.8, 0.3, 0.9);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.roulette-wheel::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -20px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid white;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+}
+
+.multipliers-section {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.multiplier-box {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.multiplier-box:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.multiplier-box.selected {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.roulette-history {
+    width: 100%;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.roulette-history h3 {
+    color: #fff;
+    margin: 0 0 10px 0;
+}
+
+#history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.history-entry {
+    padding: 8px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.history-entry.win {
+    background: rgba(76, 175, 80, 0.3);
+}
+
+.history-entry.lose {
+    background: rgba(244, 67, 54, 0.3);
+}
+
+/* Стили для модального окна истории */
+.history-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.history-modal-content {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.history-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.history-modal-header h2 {
+    color: white;
+    margin: 0;
+}
+
+.close-history-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.roulette-history-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.history-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.win-animation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    color: #4CAF50;
+    animation: winFloat 2s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes winFloat {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, 0);
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -100px);
+    }
+}

@@ -8,7 +8,8 @@ let crashGame = {
     crashPoint: 1,
     hasPlayerCashed: false,
     lastCrashPoint: null,
-    history: []
+    history: [],
+    coefficientsByUser: {}
 };
 
 function initCrashGame() {
@@ -24,30 +25,46 @@ function initCrashGame() {
     crashGame.chart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [],
+            labels: ['', ''],
             datasets: [{
                 label: 'Multiplier',
-                data: [],
+                data: [1, 1],
                 borderColor: '#00ff00',
                 borderWidth: 2,
                 fill: false,
-                tension: 0.4
+                tension: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 10
+                }
+            },
             scales: {
                 x: {
-                    display: false
+                    display: false,
+                    grid: {
+                        display: false
+                    }
                 },
                 y: {
-                    beginAtZero: true,
+                    min: 1,
+                    max: 1.5,
                     grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        drawBorder: false
                     },
                     ticks: {
-                        color: 'white'
+                        color: 'white',
+                        padding: 10,
+                        stepSize: 0.1,
+                        callback: function(value) {
+                            return value.toFixed(1) + 'x';
+                        }
                     }
                 }
             },
@@ -151,7 +168,6 @@ function updateCrashUI(crashed = false) {
     if (betInput) betInput.disabled = crashGame.isRunning;
     
     updateBalanceDisplay();
-    updateScoreDisplay(); // Обновляем общий баланс
 }
 
 function startCrashGame() {
@@ -159,7 +175,7 @@ function startCrashGame() {
     const betAmount = parseFloat(betInput.value);
     
     if (isNaN(betAmount) || betAmount <= 0 || betAmount > score) {
-        alert('Введите корректную ставку!');
+        showCrashNotification('Введите корректную ставку!', false);
         return;
     }
 
@@ -173,8 +189,8 @@ function startCrashGame() {
     
     updateCrashUI();
     
-    crashGame.chart.data.labels = [];
-    crashGame.chart.data.datasets[0].data = [];
+    crashGame.chart.data.labels = ['', ''];
+    crashGame.chart.data.datasets[0].data = [1, 1];
     
     crashGame.gameInterval = setInterval(updateCrashGame, 50);
 }
@@ -185,11 +201,44 @@ function updateCrashGame() {
         return;
     }
 
-    crashGame.currentMultiplier *= 1.002;
+    crashGame.currentMultiplier = Math.max(1, crashGame.currentMultiplier * 1.002);
     updateCrashUI();
     
-    crashGame.chart.data.labels.push('');
-    crashGame.chart.data.datasets[0].data.push(crashGame.currentMultiplier);
+    // Очищаем предыдущие данные и всегда начинаем с 1.0
+    crashGame.chart.data.labels = ['', ''];
+    crashGame.chart.data.datasets[0].data = [1, crashGame.currentMultiplier];
+    
+    // Динамически обновляем шкалу в зависимости от текущего множителя
+    const currentMultiplier = crashGame.currentMultiplier;
+    let newMin, newMax, stepSize;
+    
+    if (currentMultiplier <= 1.5) {
+        newMin = 1;
+        newMax = 1.5;
+        stepSize = 0.1;
+    } else if (currentMultiplier <= 2) {
+        newMin = 1;
+        newMax = 2;
+        stepSize = 0.2;
+    } else if (currentMultiplier <= 3) {
+        newMin = 1;
+        newMax = 3;
+        stepSize = 0.5;
+    } else if (currentMultiplier <= 5) {
+        newMin = 1;
+        newMax = 5;
+        stepSize = 1;
+    } else {
+        newMin = 1;
+        newMax = Math.ceil(currentMultiplier + 1);
+        stepSize = 1;
+    }
+
+    // Обновляем настройки шкалы
+    crashGame.chart.options.scales.y.min = newMin;
+    crashGame.chart.options.scales.y.max = newMax;
+    crashGame.chart.options.scales.y.ticks.stepSize = stepSize;
+    
     crashGame.chart.update('none');
 }
 
@@ -202,6 +251,9 @@ function cashOut() {
     
     addHistoryItem(crashGame.currentMultiplier, true);
     updateCrashUI();
+    
+    // Показываем уведомление о выигрыше
+    showCrashNotification(`Выигрыш: ${formatNumber(winAmount)} (+${(crashGame.currentMultiplier - 1).toFixed(2)}x)`, true);
 }
 
 function endCrashGame() {
@@ -211,6 +263,8 @@ function endCrashGame() {
     
     if (!crashGame.hasPlayerCashed) {
         addHistoryItem(crashGame.crashPoint, false);
+        // Показываем уведомление о проигрыше
+        showCrashNotification(`Проигрыш: ${formatNumber(crashGame.betAmount)}`, false);
     }
     
     updateCrashUI(true);
@@ -246,8 +300,40 @@ function addHistoryItem(multiplier, won) {
 }
 
 function generateCrashPoint() {
-    const random = Math.random();
-    return Math.max(1, Math.pow(2, random * 4));
+    const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegramId) return 1 + Math.random() * 4; // Default range from 1 to 5
+    
+    if (!crashGame.coefficientsByUser[telegramId]) {
+        crashGame.coefficientsByUser[telegramId] = [];
+    }
+    
+    const newPoint = 1 + Math.random() * 4; // Generate between 1 and 5
+    crashGame.coefficientsByUser[telegramId].push(newPoint);
+    
+    // Keep only last 50 coefficients per user
+    if (crashGame.coefficientsByUser[telegramId].length > 50) {
+        crashGame.coefficientsByUser[telegramId].shift();
+    }
+    
+    return newPoint;
+}
+
+function showCrashNotification(message, isSuccess = true) {
+    const notification = document.createElement('div');
+    notification.className = `crash-notification ${isSuccess ? 'success' : 'error'}`;
+    notification.textContent = message;
+    
+    document.querySelector('.crash-game-container').appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2000);
+    }, 100);
 }
 
 // Initialize crash game when mini-games section is shown
