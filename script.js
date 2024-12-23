@@ -157,6 +157,17 @@ const tasks = [
         reward: 100000,
         completed: false,
         claimed: false
+    },
+    {
+        id: 23,
+        icon: `<img src="https://i.postimg.cc/s2x2nkmw/image.png" alt="Telegram">`,
+        title: 'Подписаться на Telegram канал',
+        description: 'Подпишитесь на наш Telegram канал и получите 100,000 монет!',
+        reward: 100000,
+        type: 'telegram_subscription',
+        channel: 'fjjddu',
+        buttonText: 'Проверить подписку',
+        completed: false
     }
 ];
 
@@ -527,6 +538,8 @@ function getTaskProgress(task) {
             return currentStreak >= 100 ? 1 : 0;
         case 22:
             return currentStreak >= 1000 ? 1 : 0;
+        case 23:
+            return tg.isSubscribedToChat(task.channel) ? 1 : 0;
         default:
             return 0;
     }
@@ -620,8 +633,10 @@ function loadGameState() {
         // Load tasks state
         if (state.tasks) {
             tasks.forEach((task, index) => {
-                task.completed = state.tasks[index].completed;
-                task.claimed = state.tasks[index].claimed;
+                if (state.tasks[index]) {
+                    task.completed = state.tasks[index].completed || false;
+                    task.claimed = state.tasks[index].claimed || false;
+                }
             });
         }
 
@@ -683,6 +698,8 @@ function getTaskProgressText(task, progress) {
             return `${progress} / 100`;
         case 22:
             return `${progress} / 1000`;
+        case 23:
+            return `${progress} / 1`;
         default:
             return `${progress} / 1`;
     }
@@ -870,6 +887,8 @@ function canClaimTask(task) {
             return currentStreak >= 100;
         case 22:
             return currentStreak >= 1000;
+        case 23:
+            return tg.isSubscribedToChat(task.channel);
         default:
             return false;
     }
@@ -881,6 +900,16 @@ function canAfford(price) {
 
 // Настройки игры
 let shopItems = [
+    {
+        id: 'energy-upgrade',
+        icon: `<img src="https://i.postimg.cc/SKJxmrmN/image.png" alt="Улучшение энергии">`,
+        title: 'Улучшение энергии',
+        price: 1000,
+        basePrice: 1000,
+        level: 0,
+        power: 0,
+        description: 'Увеличивает максимальный запас энергии на 100'
+    },
     {
         id: 1,
         icon: `<img src="https://i.postimg.cc/44zLpwFY/image.png" alt="Автокликер">`,
@@ -1406,6 +1435,9 @@ function checkTasks() {
                 case 22: // Цирковой артист
                     completed = currentStreak >= 1000;
                     break;
+                case 23: // Подписаться на Telegram канал
+                    completed = tg.isSubscribedToChat(task.channel);
+                    break;
                 // Добавьте другие задания по необходимости
             }
 
@@ -1479,6 +1511,20 @@ setInterval(() => {
     });
     saveTimersState();
 }, 1000);
+
+// Обновляем обработчик кликов для поддержки проверки подписки
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('task-button')) {
+        const taskId = parseInt(e.target.closest('.task-item').getAttribute('data-task-id'));
+        const task = tasks.find(t => t.id === taskId);
+        
+        if (task && task.type === 'telegram_subscription') {
+            window.telegramApi.handleSubscriptionCheck(taskId);
+        } else {
+            claimTaskReward(taskId);
+        }
+    }
+});
 
 // Загружаем настройки при старте
 document.addEventListener('DOMContentLoaded', () => {
@@ -1572,7 +1618,7 @@ function saveBalance() {
 // Функция загрузки локального баланса
 function loadLocalBalance() {
     const savedBalance = localStorage.getItem('userBalance');
-    if (savedBalance !== null) {
+    if (savedBalance) {
         score = parseInt(savedBalance);
         updateBalanceDisplay();
     }
@@ -1707,6 +1753,8 @@ function canClaimTask(task) {
             return currentStreak >= 100;
         case 22:
             return currentStreak >= 1000;
+        case 23:
+            return tg.isSubscribedToChat(task.channel);
         default:
             return false;
     }
@@ -1758,3 +1806,39 @@ setInterval(() => {
     lastSaveTime = now;
     lastUpdateTime = now;
 }, 10000);
+
+function buyItem(itemId) {
+    const item = shopItems.find(item => item.id === itemId);
+    if (!item) return;
+
+    if (score >= item.price) {
+        score -= item.price;
+        item.level++;
+        
+        // Специальная обработка для улучшения энергии
+        if (itemId === 'energy-upgrade') {
+            maxEnergy += 100;
+            currentEnergy = maxEnergy;
+            localStorage.setItem('maxEnergy', maxEnergy);
+            updateEnergyDisplay();
+        }
+        
+        // Обновляем цену
+        item.price = Math.floor(item.basePrice * Math.pow(1.15, item.level));
+        
+        // Обновляем отображение
+        updateBalanceDisplay();
+        updateShopItem(item);
+        saveGameState();
+        
+        // Показываем уведомление о покупке
+        showNotification(`Куплено: ${item.title}`);
+        
+        // Обновляем CPS если это не улучшение энергии
+        if (itemId !== 'energy-upgrade') {
+            updateCPS();
+        }
+    } else {
+        showNotification('Недостаточно средств!');
+    }
+}
