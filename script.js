@@ -15,26 +15,34 @@ const rewards = [
 ];
 
 // В начале файла добавим переменную для Telegram WebApp
-const tg = window.Telegram.WebApp;
+const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
 // Функция форматирования чисел
 function formatNumber(num) {
     if (typeof num !== 'number' || isNaN(num)) {
         return '0';
     }
-    return num.toString();
+    
+    if (num < 1000) return num.toString();
+    
+    const suffixes = ['', 'K', 'M', 'B', 'T'];
+    const magnitude = Math.floor(Math.log10(num) / 3);
+    const scaled = num / Math.pow(1000, magnitude);
+    const suffix = suffixes[magnitude];
+    
+    return scaled.toFixed(1).replace(/\.0$/, '') + suffix;
 }
 
 // Функция показа уведомлений
-function showNotification(message) {
+function showNotification(message, isError = false) {
     const notification = document.querySelector('.notification');
     
     if (window.notificationTimeout) {
         clearTimeout(window.notificationTimeout);
     }
     
-    const isError = message.toLowerCase().includes('недостаточно');
-    notification.style.background = isError ? 'rgba(255, 51, 102, 0.95)' : 'rgba(40, 167, 69, 0.95)';
+    const color = isError ? 'rgba(255, 51, 102, 0.95)' : 'rgba(40, 167, 69, 0.95)';
+    notification.style.background = color;
     notification.textContent = message;
     notification.classList.add('show');
     
@@ -199,11 +207,9 @@ let maxBalance = 0;
 let totalEarned = 0;
 let lastUpdateTime = Date.now();
 let lastSaveTime = Date.now();
-let gameStartTime = Date.now();
-let lastClickTime = Date.now();
-let canClick = true;
-let clickTimes = [];
-let vibrationEnabled = true;
+let totalPurchases = 0; // Добавляем счетчик покупок
+let clickCount = 0; // Добавляем счетчик кликов
+let gameStartTime = Date.now(); // Добавляем время начала игры
 
 // Используем gameSettings из gameSettings.js
 if (!window.gameSettings) {
@@ -482,11 +488,13 @@ function saveGameState() {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализируем Telegram WebApp
-    window.telegramApi.init();
+    // Инициализируем Telegram WebApp только если он доступен
+    if (window.telegramApi && typeof window.telegramApi.init === 'function') {
+        window.telegramApi.init();
+    }
     
     // Загружаем баланс
-    if (window.telegramApi.isTelegramUser()) {
+    if (window.telegramApi && window.telegramApi.isTelegramUser()) {
         window.telegramApi.loadBalance();
     } else {
         // Если пользователь не из Telegram, используем локальное хранилище
@@ -555,7 +563,7 @@ function getTaskProgress(task) {
         case 22:
             return currentStreak >= 1000 ? 1 : 0;
         case 23:
-            return tg.isSubscribedToChat(task.channel) ? 1 : 0;
+            return tg && tg.isSubscribedToChat(task.channel) ? 1 : 0;
         default:
             return 0;
     }
@@ -563,43 +571,42 @@ function getTaskProgress(task) {
 
 // Обновляем функцию handleClick
 function handleClick(e) {
-    if (!e || !e.target) return;
-    
-    const clickCircle = e.target.closest('.click-circle');
-    if (!clickCircle) return;
-    
-    // Обновляем счетчики
-    totalClicks++;
+    // Проверяем, что клик был в главном разделе
+    const mainSection = document.querySelector('.section-content.active');
+    if (!mainSection || mainSection.id !== 'shop-section') {
+        const clickCircle = e.target.closest('.click-circle');
+        if (!clickCircle) return;
+    } else {
+        return; // Если мы в разделе магазина, игнорируем клики
+    }
+
+    if (e && e.preventDefault) {
+        e.preventDefault();
+    }
+
     score++;
+    totalClicks++;
+    currentStreak++;
+    totalEarned++;
     
-    // Обновляем максимальный баланс
     if (score > maxBalance) {
         maxBalance = score;
     }
-    
-    // Обновляем общий заработок
-    totalEarned++;
-    
-    // Обновляем текущую серию кликов
-    const now = Date.now();
-    if (now - lastClickTime < 1000) {
-        currentStreak++;
-    } else {
-        currentStreak = 1;
+
+    // Создаем эффект клика
+    if (e && e.clientX && e.clientY) {
+        createClickEffect(e.clientX, e.clientY);
     }
-    lastClickTime = now;
-    
-    // Обновляем клики в час
-    const timeSinceStart = (now - gameStartTime) / 1000;
-    clicksPerHour = Math.floor(totalClicks * (3600 / timeSinceStart));
-    
+
     // Обновляем отображение
     updateScoreDisplay();
-    updateStatsSection();
+    checkTasksProgress();
     
-    // Сохраняем состояние и проверяем задания
-    saveGameState();
-    checkTasks();
+    // Сохраняем состояние игры
+    if (Date.now() - lastSaveTime > 10000) {
+        saveGameState();
+        lastSaveTime = Date.now();
+    }
 }
 
 // Функция для создания эффекта клика
@@ -785,16 +792,15 @@ function updateStatsSection() {
     const statsSection = document.getElementById('stats-section');
     if (!statsSection) return;
 
-    const clicksPerSecond = autoClickPower;
-    const clicksPerHour = clicksPerSecond * 3600;
-    const totalTime = Math.floor((Date.now() - gameStartTime) / 1000);
+    // Вычисляем время игры
+    const now = Date.now();
+    const totalTime = Math.floor((now - (gameStartTime || now)) / 1000);
     const hours = Math.floor(totalTime / 3600);
     const minutes = Math.floor((totalTime % 3600) / 60);
 
     // Получаем имя пользователя из Telegram WebApp
-    const username = tg.initDataUnsafe?.user?.username || 'Игрок';
+    const username = tg && tg.initDataUnsafe?.user?.username || 'Игрок';
 
-    // Добавляем заголовок с именем пользователя
     statsSection.innerHTML = `
         <div class="user-header">
             <h2>👤 ${username}</h2>
@@ -832,7 +838,14 @@ function updateStatsSection() {
                 <div class="stat-emoji">💰</div>
                 <div class="stat-info">
                     <h3>Максимальный баланс</h3>
-                    <p>${formatNumber(Math.max(score, maxBalance))}</p>
+                    <p>${formatNumber(maxBalance)}</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-emoji">🛒</div>
+                <div class="stat-info">
+                    <h3>Всего покупок</h3>
+                    <p>${formatNumber(totalPurchases)}</p>
                 </div>
             </div>
         </div>
@@ -1186,16 +1199,6 @@ function updateScore() {
     }
 }
 
-function formatNumber(num) {
-    if (num >= 1e6) {
-        return (num / 1e6).toFixed(1) + 'M';
-    } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(1) + 'K';
-    }
-    return num.toString();
-}
-
-// Функция подсчета дохода в секунду
 function calculateAutoIncomePerSecond() {
     let totalIncome = 0;
     // Подсчитываем доход от всех купленных предметов
@@ -1244,37 +1247,6 @@ setInterval(() => {
     
     lastUpdateTime = now;
 }, gameSettings.autoIncomeInterval * 1000);
-
-// Обновляем функцию handleClick
-function handleClick(e) {
-    if (!canClick) return;
-    
-    // Добавляем очки с учетом силы клика
-    score += gameSettings.clickPower;
-    totalClicks++;
-    totalEarned += gameSettings.clickPower;
-    
-    // Обновляем статистику
-    const now = Date.now();
-    clickTimes.push(now);
-    
-    // Удаляем старые клики (старше 1 секунды)
-    while (clickTimes.length > 0 && now - clickTimes[0] > 1000) {
-        clickTimes.shift();
-    }
-    
-    // Обновляем CPS
-    clicksPerSecond = clickTimes.length;
-    clicksPerHour = Math.floor(clicksPerSecond * 3600);
-    
-    // Обновляем отображение
-    updateScoreDisplay();
-    updateStatsSection();
-    
-    // Сохраняем состояние и проверяем задания
-    saveGameState();
-    checkTasks();
-}
 
 // Обновляем функцию buyItem
 function buyItem(itemId) {
@@ -1452,7 +1424,7 @@ function checkTasks() {
                     completed = currentStreak >= 1000;
                     break;
                 case 23: // Подписаться на Telegram канал
-                    completed = tg.isSubscribedToChat(task.channel);
+                    completed = tg && tg.isSubscribedToChat(task.channel);
                     break;
                 // Добавьте другие задания по необходимости
             }
@@ -1584,27 +1556,29 @@ document.addEventListener('click', async function(e) {
         const rewardItem = e.target.closest('.reward-item');
         if (!rewardItem) return;
         
-        const rewardId = rewardItem.getAttribute('data-reward-id');
+        const rewardId = rewardItem.dataset.rewardId;
         const reward = rewards.find(r => r.id === rewardId);
         
-        if (reward && !reward.completed) {
-            if (reward.type === 'telegram_subscription') {
-                // Открываем ссылку на канал
-                window.open(`https://t.me/${reward.channel}`, '_blank');
-                
-                // Показываем уведомление
-                showNotification('Подпишитесь на канал и нажмите кнопку еще раз для проверки');
-                
-                // Имитация проверки подписки
-                setTimeout(() => {
-                    reward.completed = true;
-                    reward.claimed = true;
-                    score += reward.reward;
-                    updateScoreDisplay();
-                    renderRewards();
-                    showNotification('Поздравляем! Вы получили награду!');
-                    saveGameState();
-                }, 500);
+        if (reward && reward.type === 'telegram_subscription') {
+            try {
+                const isSubscribed = await checkTelegramSubscription(reward.channel);
+                if (isSubscribed) {
+                    if (!reward.claimed) {
+                        score += reward.reward;
+                        reward.claimed = true;
+                        updateScoreDisplay();
+                        saveGameState();
+                        showNotification(`Получено ${reward.reward} монет за подписку!`);
+                        renderRewards();
+                    }
+                } else {
+                    showNotification('Подпишитесь на канал, чтобы получить награду!', true);
+                    // Открываем канал в новой вкладке
+                    window.open(`https://t.me/${reward.channel}`, '_blank');
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке подписки:', error);
+                showNotification('Ошибка при проверке подписки', true);
             }
         }
     }
@@ -1645,6 +1619,7 @@ function loadGameState() {
     currentStreak = state.currentStreak || 0;
     clicksPerHour = state.clicksPerHour || 0;
     autoClickPower = state.autoClickPower || 0;
+    gameStartTime = state.gameStartTime || Date.now();
     
     if (state.rewards) {
         rewards.forEach(reward => {
@@ -1809,37 +1784,149 @@ document.addEventListener('click', async function(e) {
         const rewardId = rewardItem.getAttribute('data-reward-id');
         const reward = rewards.find(r => r.id === rewardId);
         
-        if (reward && !reward.completed) {
-            if (reward.type === 'telegram_subscription') {
-                try {
-                    // Проверяем подписку через Telegram WebApp
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        const tg = window.Telegram.WebApp;
-                        
-                        // Проверяем, подписан ли пользователь
-                        const chatMember = await fetch(`https://api.telegram.org/bot${tg.initDataUnsafe.user.id}/getChatMember?chat_id=@${reward.channel}&user_id=${tg.initDataUnsafe.user.id}`).then(r => r.json());
-                        
-                        if (chatMember.ok && ['member', 'administrator', 'creator'].includes(chatMember.result.status)) {
-                            // Пользователь подписан
-                            reward.completed = true;
-                            reward.claimed = true;
-                            score += reward.reward;
-                            updateScoreDisplay();
-                            renderRewards();
-                            showNotification('Поздравляем! Вы получили награду!');
-                            saveGameState();
-                        } else {
-                            // Пользователь не подписан
-                            showNotification('Вы не подписаны на канал. Подпишитесь, чтобы получить награду!', true);
-                            window.open(`https://t.me/${reward.channel}`, '_blank');
-                        }
+        if (reward && reward.type === 'telegram_subscription') {
+            try {
+                // Проверяем подписку через Telegram WebApp
+                if (window.Telegram && window.Telegram.WebApp) {
+                    const tg = window.Telegram.WebApp;
+                    
+                    // Проверяем, подписан ли пользователь
+                    const chatMember = await fetch(`https://api.telegram.org/bot${tg.initDataUnsafe.user.id}/getChatMember?chat_id=@${reward.channel}&user_id=${tg.initDataUnsafe.user.id}`).then(r => r.json());
+                    
+                    if (chatMember.ok && ['member', 'administrator', 'creator'].includes(chatMember.result.status)) {
+                        // Пользователь подписан
+                        reward.completed = true;
+                        reward.claimed = true;
+                        score += reward.reward;
+                        updateScoreDisplay();
+                        renderRewards();
+                        showNotification('Поздравляем! Вы получили награду!');
+                        saveGameState();
                     } else {
-                        showNotification('Для получения награды необходимо открыть игру в Telegram', true);
+                        // Пользователь не подписан
+                        showNotification('Вы не подписаны на канал. Подпишитесь, чтобы получить награду!', true);
+                        window.open(`https://t.me/${reward.channel}`, '_blank');
                     }
-                } catch (error) {
-                    console.error('Ошибка при проверке подписки:', error);
-                    showNotification('Произошла ошибка при проверке подписки', true);
+                } else {
+                    showNotification('Для получения награды необходимо открыть игру в Telegram', true);
                 }
+            } catch (error) {
+                console.error('Ошибка при проверке подписки:', error);
+                showNotification('Произошла ошибка при проверке подписки', true);
+            }
+        }
+    }
+});
+
+// Функция для проверки подписки на Telegram канал
+async function checkTelegramSubscription(channelUsername) {
+    try {
+        if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe || !window.Telegram.WebApp.initDataUnsafe.user) {
+            return false;
+        }
+
+        // Здесь можно добавить реальную проверку подписки через Telegram API
+        // Пока возвращаем true для тестирования
+        return true;
+    } catch (error) {
+        console.error('Ошибка при проверке подписки:', error);
+        return false;
+    }
+}
+
+// Обновляем функцию checkTasks
+function checkTasks() {
+    tasks.forEach(async task => {
+        if (!task.completed) {
+            let completed = false;
+            switch (task.id) {
+                case 4: // Первые шаги
+                    completed = totalClicks >= 1;
+                    break;
+                case 5: // Начинающий кликер
+                    completed = totalClicks >= 1000;
+                    break;
+                case 6: // Опытный кликер
+                    completed = totalClicks >= 10000;
+                    break;
+                case 7: // Мастер кликер
+                    completed = totalClicks >= 100000;
+                    break;
+                case 8: // Король кликов
+                    completed = totalClicks >= 1000000;
+                    break;
+                case 9: // Первая покупка
+                    completed = totalPurchases >= 1;
+                    break;
+                case 10: // Шопоголик
+                    completed = totalPurchases >= 5;
+                    break;
+                case 11: // Коллекционер
+                    completed = totalPurchases >= 10;
+                    break;
+                case 12: // Энергичный старт
+                    completed = clicksPerSecond >= 10;
+                    break;
+                case 13: // Скоростной кликер
+                    completed = clicksPerSecond >= 100;
+                    break;
+                case 14: // Звездный путь
+                    completed = clicksPerSecond >= 1000;
+                    break;
+                case 15: // Мировое господство
+                    completed = clicksPerSecond >= 10000;
+                    break;
+                case 21: // Точность
+                    completed = currentStreak >= 100;
+                    break;
+                case 22: // Цирковой артист
+                    completed = currentStreak >= 1000;
+                    break;
+                case 23: // Подписка на Telegram
+                    if (task.type === 'telegram_subscription') {
+                        completed = await checkTelegramSubscription(task.channel);
+                    }
+                    break;
+            }
+            
+            if (completed) {
+                task.completed = true;
+                showNotification(`Задание "${task.title}" выполнено!`);
+                renderTasks();
+            }
+        }
+    });
+}
+
+// Обновляем обработчик для проверки подписки на Telegram канал
+document.addEventListener('click', async function(e) {
+    if (e.target.closest('.reward-button') && !e.target.disabled) {
+        const rewardItem = e.target.closest('.reward-item');
+        if (!rewardItem) return;
+        
+        const rewardId = rewardItem.dataset.rewardId;
+        const reward = rewards.find(r => r.id === rewardId);
+        
+        if (reward && reward.type === 'telegram_subscription') {
+            try {
+                const isSubscribed = await checkTelegramSubscription(reward.channel);
+                if (isSubscribed) {
+                    if (!reward.claimed) {
+                        score += reward.reward;
+                        reward.claimed = true;
+                        updateScoreDisplay();
+                        saveGameState();
+                        showNotification(`Получено ${reward.reward} монет за подписку!`);
+                        renderRewards();
+                    }
+                } else {
+                    showNotification('Подпишитесь на канал, чтобы получить награду!', true);
+                    // Открываем канал в новой вкладке
+                    window.open(`https://t.me/${reward.channel}`, '_blank');
+                }
+            } catch (error) {
+                console.error('Ошибка при проверке подписки:', error);
+                showNotification('Ошибка при проверке подписки', true);
             }
         }
     }
