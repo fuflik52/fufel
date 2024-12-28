@@ -2,233 +2,84 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="Увлекательная кликер-игра с автоматизацией и улучшениями">
-    <meta name="keywords" content="кликер, игра, автокликер, улучшения">
-    <meta name="theme-color" content="#0f0f1a">
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/mrTkbdNm/coin-us-dollar-40536.png">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Interface</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="changelog.css">
-    <link rel="stylesheet" href="crash.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Автокликер</title>
 </head>
 <body>
-    <div class="phone-container">
-        <div class="new-year-banner"></div>
-        <div class="notification"></div>
-        <div class="game-area">
-            <div class="score-container">
-                <div class="score">0</div>
-            </div>
-            <div class="click-circle"></div>
-            <button id="changelogBtn" class="changelog-btn">
-                <img src="https://i.postimg.cc/85KmdfzV/free-icon-newspaper-8417401.png" alt="Changelog">
-            </button>
-            <div class="section-content" id="shop-section">
-                <div class="shop-grid"></div>
-            </div>
-            <div class="section-content" id="settings-section">
-                <i class="fas fa-cog development-icon"></i>
-                <div class="settings-options" style="margin-top: 20px; background: rgba(0, 136, 255, 0.1); padding: 20px; border-radius: 15px;">
-                    <div class="settings-option" style="display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <img src="https://i.postimg.cc/nVTK9hF1/image.png" style="width: 24px; height: 24px;">
-                            <div>
-                                <h3 style="margin-bottom: 5px;">Вибрация</h3>
-                                <p style="font-size: 14px; color: #aaa;">Включить вибрацию при клике</p>
-                            </div>
-                        </div>
-                        <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
-                            <input type="checkbox" id="vibrationToggle" checked style="opacity: 0; width: 0; height: 0;">
-                            <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                                <span style="position: absolute; content: ''; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .2s; border-radius: 50%;"></span>
-                            </span>
-                        </label>
+    <div class="mobile-frame">
+        <div class="container">
+            <div class="header">
+                <div class="user-info">
+                    <img src="https://i.postimg.cc/vBBWGZjL/image.png" alt="User" class="user-icon">
+                    <div class="user-details">
+                        <div class="username">Guest</div>
+                        <div class="rate">10/hour</div>
                     </div>
                 </div>
-            </div>
-            <div class="section-content" id="tasks-section">
-                <div class="tasks-grid"></div>
-            </div>
-            <div class="section-content" id="rewards-section">
-                <!-- Rewards will be populated by renderRewards() -->
-            </div>
-            <div class="section-content" id="mini-games-section">
-                <div class="crash-game-container">
-                    <button class="history-button" id="historyBtn">
-                        <img src="https://i.postimg.cc/rpfc0Jn2/image.png" alt="History">
-                    </button>
-                    <div class="crash-game">
-                        <div class="crash-multiplier">1.00x</div>
-                        <canvas id="crash-chart"></canvas>
-                        <div class="crash-controls">
-                            <div class="bet-input-container">
-                                <input type="number" id="bet-amount" placeholder="Введите сумму ставки">
-                                <div class="quick-bet-buttons">
-                                    <button class="quick-bet-btn" data-percent="10">10%</button>
-                                    <button class="quick-bet-btn" data-percent="25">25%</button>
-                                    <button class="quick-bet-btn" data-percent="50">50%</button>
-                                    <button class="quick-bet-btn" data-percent="100">MAX</button>
-                                </div>
-                            </div>
-                            <div class="bet-buttons">
-                                <button id="place-bet" class="game-button bet-button">Поставить</button>
-                                <button id="cash-out" class="game-button cashout-button" disabled>Забрать</button>
-                            </div>
-                            <div class="balance-display">
-                                Баланс: <span class="balance-amount">0</span>
-                            </div>
-                            <div class="game-history">
-                                <div class="history-items"></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="telegram-login-container"></div>
+                <div class="balance-container">
+                    <img src="https://i.postimg.cc/FFx7T4Bh/image.png" alt="Balance Icon" class="balance-icon">
+                    <div class="balance">0</div>
                 </div>
+            </div>
 
-                <!-- Модальное окно истории -->
-                <div id="historyModal" class="history-modal">
-                    <div class="history-modal-content">
-                        <div class="history-modal-header">
-                            <h2>История игр</h2>
-                            <button class="close-history-btn">&times;</button>
-                        </div>
-                        <div class="history-modal-body">
-                            <div class="full-history-items"></div>
-                        </div>
-                    </div>
+            <div class="game-area">
+                <div class="main-circle">
+                    <img src="https://i.postimg.cc/XYRKcWrn/image.png" alt="Koala" class="koala-img">
+                </div>
+                <div class="click-info">
+                    <img src="https://i.postimg.cc/FFx7T4Bh/image.png" alt="Click Icon" class="click-icon">
+                    <span class="click-value">+1</span>
                 </div>
             </div>
-            <div class="section-content" id="development-section">
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; padding-top: 20px;">
-                    <div class="development-header" style="text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, rgba(255, 51, 102, 0.2) 0%, rgba(255, 51, 102, 0.1) 100%); padding: 15px 30px; border-radius: 20px; border: 2px solid rgba(255, 51, 102, 0.5); backdrop-filter: blur(5px);">
-                        <h3 style="margin: 0; color: white; font-size: 24px;">Раздел в разработке</h3>
-                    </div>
-                    <img src="https://i.postimg.cc/5NHn3gzK/free-icon-web-development-1352837.png" 
-                         alt="Development" 
-                         style="width: 300px; 
-                                height: 300px; 
-                                object-fit: contain;
-                                filter: drop-shadow(0 0 20px rgba(255, 51, 102, 0.3));">
-                </div>
-            </div>
-            <div class="section-content" id="stats-section">
-                <!-- Content will be populated by updateStatsSection() -->
-            </div>
-        </div>
 
-        <nav class="nav-panel">
-            <div class="nav-scroll">
-                <div class="nav-content">
-                    <button class="nav-btn active">
-                        <img src="https://i.postimg.cc/s2zm3RNb/free-icon-home-8706612.png" alt="Home">
-                        <span>Главная</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/NMppNPbS/free-icon-shopping-cart-3643914.png" alt="Shop">
-                        <span>Магазин</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/fWq8mpV0/free-icon-to-do-list-6019756.png" alt="Tasks">
-                        <span>Задания</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/sxLKzQkJ/free-icon-star-5782443.png" alt="Rewards">
-                        <span>Награды</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/xT9WVHjw/image.png" alt="Mini games">
-                        <span>Мини игры</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/DZycbPFg/free-icon-investment-5530639.png" alt="Investments">
-                        <span>Инвестиции</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/nLfRMmCR/free-icon-setting-3288004.png" alt="Settings">
-                        <span>Настройки</span>
-                    </button>
-                    <button class="nav-btn">
-                        <img src="https://i.postimg.cc/YSx39sc0/free-icon-inferential-statistics-8921140.png" alt="Statistics">
-                        <span>Статистика</span>
-                    </button>
+            <div class="progress-container">
+                <div class="energy-info">
+                    <img src="https://i.postimg.cc/FsZCF7Cw/image.png" alt="Energy" class="energy-icon">
+                    <span class="progress-text">100/100</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress"></div>
                 </div>
             </div>
-        </nav>
 
-        <!-- Модальное окно для changelog -->
-        <div id="changelogModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>ПОСЛЕДНИЕ ОБНОВЛЕНИЯ</h2>
-                    <button class="close-btn">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="version-info">
-                        <h3>Версия 2.1 (20.12.2024)</h3>
-                        <ul>
-                            <li>Добавлена кнопка новостей в правом верхнем углу главного экрана</li>
-                            <li>Улучшена система кликов - теперь клики работают только в области монетки</li>
-                            <li>Исправлена работа навигации на мобильных устройствах</li>
-                            <li>Добавлена проверка подключения к Telegram</li>
-                            <li>Оптимизирована производительность игры</li>
-                            <li>Улучшен внешний вид навигационной панели</li>
-                        </ul>
+            <div class="reward-container">
+                <div class="reward-frame" style="display: none;">
+                    <img src="https://i.postimg.cc/XYRKcWrn/image.png" alt="Koala" class="reward-img">
+                    <div class="reward-info">
+                        <img src="https://i.postimg.cc/FFx7T4Bh/image.png" alt="Coin" class="coin-icon">
+                        <span class="reward-value">0</span>
                     </div>
-                    <div class="version-info">
-                        <h3>Версия 2.0 (20.12.2024)</h3>
-                        <ul>
-                            <li>Полностью обновлен дизайн игры</li>
-                            <li>Добавлена нижняя навигация для удобства</li>
-                            <li>Центрирование кнопки клика</li>
-                            <li>Улучшен внешний вид магазина</li>
-                            <li>Добавлена кнопка сброса прогресса в настройках</li>
-                            <li>Оптимизирована производительность</li>
-                            <li>Исправлены баги с сохранением прогресса</li>
-                            <li>Улучшен баланс цен в магазине</li>
-                            <li>Добавлены новые анимации</li>
-                            <li>Реализована система чтоб можно было кликать сразу с 2 пальцев и более</li>
-                            <li>Улучшена система достижений</li>
-                        </ul>
-                    </div>
-                    <div class="future-updates">
-                        <h3>ЗАПЛАНИРОВАНО:</h3>
-                        <ol>
-                            <li>Новые товары в магазине</li>
-                            <li>Система престижа</li>
-                            <li>Ежедневные задания</li>
-                            <li>Система достижений</li>
-                            <li>Таблица лидеров</li>
-                            <li>Система бонусов</li>
-                        </ol>
-                    </div>
-                    <p class="thank-you">Спасибо что играете в нашу игру! ❤️</p>
+                    <div class="reward-text">Получено за время отсутствия</div>
+                    <button class="collect-btn">Забрать</button>
                 </div>
             </div>
+
+            <nav class="bottom-nav">
+                <a href="#" class="nav-item active">
+                    <img src="https://i.postimg.cc/Y986QWcW/image.png" alt="Home" class="nav-icon">
+                    <span>Home</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="https://i.postimg.cc/bYHMFCPx/image.png" alt="Frens" class="nav-icon">
+                    <span>Frens</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="https://i.postimg.cc/T2C0DZG4/image.png" alt="Cards" class="nav-icon">
+                    <span>Cards</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="https://i.postimg.cc/jd48ZLzZ/image.png" alt="Mining" class="nav-icon">
+                    <span>Mining</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <img src="https://i.postimg.cc/XY2s6m15/image.png" alt="Reward" class="nav-icon">
+                    <span>Reward</span>
+                </a>
+            </nav>
         </div>
     </div>
-
-    <canvas id="performanceChart" style="display: none;"></canvas>
-
-    <script>
-        // Проверяем, пришли ли мы со страницы загрузки
-        if (!sessionStorage.getItem('loaded')) {
-            window.location.href = 'loading.html';
-        } else {
-            // Очищаем флаг загрузки
-            sessionStorage.removeItem('loaded');
-        }
-    </script>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="telegram.js"></script>
     <script src="script.js"></script>
-    <script src="crash.js"></script>
-    <script src="gameSettings.js"></script>
-    <script src="changelog.js"></script>
 </body>
 </html>
