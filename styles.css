@@ -4,39 +4,47 @@
     box-sizing: border-box;
 }
 
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #1a2c1a;
+    position: fixed;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #000;
-    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: white;
 }
 
 .mobile-frame {
     width: 100%;
-    max-width: 390px;
-    height: 844px;
+    height: 100%;
     background-color: #1a2c1a;
-    border-radius: 40px;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
-    height: 100%;
-    padding: 20px;
+    flex: 1;
+    padding: 15px;
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
     margin-bottom: 20px;
 }
 
@@ -47,18 +55,23 @@ body {
 }
 
 .user-icon {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
+}
+
+.user-details {
+    color: white;
 }
 
 .username {
     font-weight: bold;
+    font-size: 14px;
 }
 
 .rate {
-    font-size: 0.8em;
-    color: #aaa;
+    font-size: 12px;
+    color: #888;
 }
 
 .balance-container {
@@ -68,28 +81,22 @@ body {
 }
 
 .balance-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .balance {
-    font-size: 24px;
     font-weight: bold;
 }
 
-.game-area {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
 .main-circle {
-    width: 200px;
-    height: 200px;
+    width: 45vh;
+    height: 45vh;
+    max-width: 80vw;
+    max-height: 80vw;
     background-color: #28a745;
     border-radius: 50%;
+    margin: auto;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -98,194 +105,87 @@ body {
     transition: transform 0.1s, opacity 0.3s;
 }
 
-.main-circle.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background-color: #666;
-}
-
-.main-circle:active:not(.disabled) {
-    transform: scale(0.95);
-}
-
 .koala-img {
     width: 80%;
     height: 80%;
     object-fit: contain;
 }
 
-.progress-container {
-    margin: 20px 0;
-}
-
-.energy-info {
+.energy-container {
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-bottom: 5px;
+    gap: 10px;
+    margin-top: auto;
+    padding: 10px;
 }
 
 .energy-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.progress-text {
-    color: #fff;
-    font-size: 14px;
+    width: 24px;
+    height: 24px;
 }
 
 .progress-bar {
-    width: 100%;
-    background-color: #2d2d2d;
-    border-radius: 10px;
+    flex: 1;
     height: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
     overflow: hidden;
 }
 
 .progress {
-    background: linear-gradient(90deg, #28a745 0%, #34d058 100%);
+    width: 100%;
     height: 100%;
-    animation: progressPulse 2s infinite;
+    background-color: #28a745;
+    transition: width 0.3s;
 }
 
-@keyframes progressPulse {
-    0% {
-        background: linear-gradient(90deg, #28a745 0%, #34d058 100%);
-    }
-    50% {
-        background: linear-gradient(90deg, #34d058 0%, #28a745 100%);
-    }
-    100% {
-        background: linear-gradient(90deg, #28a745 0%, #34d058 100%);
-    }
+.progress-text {
+    min-width: 60px;
+    text-align: right;
 }
 
-.click-info {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 8px 15px;
-    border-radius: 20px;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 100;
-}
-
-.click-info.show {
-    animation: showClickInfo 1s ease-out forwards;
-}
-
-@keyframes showClickInfo {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, 20px);
-    }
-    20% {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-    80% {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -20px);
-    }
-}
-
-.click-icon {
-    width: 16px;
-    height: 16px;
-}
-
-.click-value {
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.bottom-nav {
+.nav-panel {
     background-color: #1a1a1a;
+    padding: 12px;
     display: flex;
     justify-content: space-around;
-    padding: 10px 10px;
-    border-top: 1px solid #333;
-    margin: 0 -20px;
-    margin-bottom: -20px;
-    border-radius: 25px 25px 40px 40px;
-}
-
-.nav-icon {
-    width: 28px;
-    height: 28px;
-    margin-bottom: 6px;
-    transition: filter 0.3s;
+    z-index: 100;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
 .nav-item {
-    color: #666;
-    text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 0.9em;
-    padding: 0 15px;
+    gap: 4px;
+    color: #888;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
 }
 
 .nav-item.active {
     color: #28a745;
 }
 
-.nav-item.active .nav-icon {
-    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
-}
-
-.connect-wallet {
-    background-color: #0095ff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 20px auto;
-}
-
-.wallet-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.reward-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-}
-
 .reward-frame {
     background-color: #1a1a1a;
-    padding: 15px;
+    padding: 12px;
     text-align: center;
-    border-radius: 25px;
-    margin: 0 10px 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    left: 15px;
+    right: 15px;
+    z-index: 99;
 }
 
 .reward-img {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
     margin-bottom: 5px;
 }
 
@@ -298,19 +198,19 @@ body {
 }
 
 .coin-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 }
 
 .reward-value {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #28a745;
 }
 
 .reward-text {
     color: #888;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-size: 12px;
 }
 
@@ -318,8 +218,8 @@ body {
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 8px 20px;
-    border-radius: 20px;
+    padding: 8px 15px;
+    border-radius: 15px;
     font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s;
@@ -330,15 +230,59 @@ body {
     background-color: #34d058;
 }
 
-.telegram-login-container {
+.click-info {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 1000;
-    display: none;
+    color: #28a745;
+    font-weight: bold;
+    font-size: 24px;
+    opacity: 0;
+    pointer-events: none;
 }
 
-.telegram-login-container.show {
-    display: block;
+.click-info.show {
+    animation: popUp 0.3s ease-out;
+}
+
+@keyframes popUp {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@media (max-height: 600px) {
+    .main-circle {
+        width: 35vh;
+        height: 35vh;
+    }
+    
+    .header {
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .energy-container {
+        padding: 5px;
+    }
+    
+    .nav-panel {
+        padding: 8px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    .reward-frame {
+        padding: 8px;
+        bottom: calc(50px + env(safe-area-inset-bottom, 0px));
+    }
 }
